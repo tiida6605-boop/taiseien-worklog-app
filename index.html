@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>(株)大成園　作業記録アプリ</title>
   <meta name="theme-color" content="#516c3d">
   <meta name="application-name" content="(株)大成園　作業記録アプリ">
@@ -274,8 +274,11 @@
               <input type="date" id="dailyReportDate">
             </label>
             <button class="button button--accent" id="dailyReportPreviewButton" type="button">作業日報を表示/印刷</button>
+            <button class="button button--primary" id="dailyReportPdfButton" type="button">日報をPDF保存</button>
+            <button class="button button--ghost" id="dailyReportShareButton" type="button">日報を共有</button>
           </div>
           <p class="form-hint">指定日の作業記録を1日分の日報として表示し、A4で印刷できます。</p>
+          <p class="form-hint print-mobile-guide">Androidでは「PDF保存」後に共有先アプリ（印刷アプリ等）へ渡す運用が安定します。</p>
 
           <div class="monthly-report-tools">
             <label>
@@ -283,9 +286,12 @@
               <input type="month" id="monthlyReportMonth">
             </label>
             <button class="button button--accent" id="monthlyReportPreviewButton" type="button">月報を表示/印刷</button>
+            <button class="button button--primary" id="monthlyReportPdfButton" type="button">月報をPDF保存</button>
+            <button class="button button--ghost" id="monthlyReportShareButton" type="button">月報を共有</button>
             <button class="button button--ghost" id="monthlyReportExportButton" type="button">月次集計CSV出力</button>
           </div>
           <p class="form-hint">指定した月の集計結果を一覧表示し、A4印刷またはCSV出力できます。</p>
+          <p class="form-hint print-mobile-guide">Androidでは「月報をPDF保存」→「月報を共有」で印刷アプリへ渡す運用が安定します。</p>
 
           <section class="backup-tools" aria-live="polite">
             <div class="backup-tools__row">
@@ -555,8 +561,11 @@
                 </label>
 
                 <button type="button" class="button button--accent" id="annualReportPreviewButton">年度レポート表示/印刷</button>
+                <button type="button" class="button button--primary" id="annualReportPdfButton">年度レポートをPDF保存</button>
+                <button type="button" class="button button--ghost" id="annualReportShareButton">年度レポートを共有</button>
                 <button type="button" class="button button--ghost" id="annualReportExportButton">年度レポートCSV出力</button>
               </div>
+              <p class="form-hint print-mobile-guide">Androidでは「年度レポートをPDF保存」→「年度レポートを共有」で印刷アプリへ渡す運用が安定します。</p>
 
               <p class="form-hint" id="annualReportInfo">会社設定の決算年度をもとに、年度レポート総合版を表示します。</p>
 
@@ -973,10 +982,15 @@
 
           <div class="qr-print-actions">
             <button type="button" class="button button--accent" id="openOrchardQrSheetButton">園地札用QRラベル印刷</button>
+            <button type="button" class="button button--primary" id="openOrchardQrSheetPdfButton">園地札用QRラベルをPDF保存</button>
             <button type="button" class="button button--accent" id="openPlotQrSheetButton">区画札用QRラベル印刷</button>
+            <button type="button" class="button button--primary" id="openPlotQrSheetPdfButton">区画札用QRラベルをPDF保存</button>
             <button type="button" class="button button--primary" id="openOrchardQrSimpleSheetButton">園地札用QR簡易ラベル印刷</button>
+            <button type="button" class="button button--ghost" id="openOrchardQrSimpleSheetPdfButton">園地札用QR簡易ラベルをPDF保存</button>
             <button type="button" class="button button--primary" id="openPlotQrSimpleSheetButton">区画札用QR簡易ラベル印刷</button>
+            <button type="button" class="button button--ghost" id="openPlotQrSimpleSheetPdfButton">区画札用QR簡易ラベルをPDF保存</button>
           </div>
+          <p class="form-hint print-mobile-guide">Androidでは「QRラベルをPDF保存」後に共有先アプリから印刷すると、直接印刷より安定しやすいです。</p>
           <div class="qr-filter-grid">
             <label>
               園地名検索

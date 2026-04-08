@@ -198,8 +198,12 @@ const resetButton = document.getElementById("resetButton");
 const exportButton = document.getElementById("exportButton");
 const dailyReportDateInput = document.getElementById("dailyReportDate");
 const dailyReportPreviewButton = document.getElementById("dailyReportPreviewButton");
+const dailyReportPdfButton = document.getElementById("dailyReportPdfButton");
+const dailyReportShareButton = document.getElementById("dailyReportShareButton");
 const monthlyReportMonthInput = document.getElementById("monthlyReportMonth");
 const monthlyReportPreviewButton = document.getElementById("monthlyReportPreviewButton");
+const monthlyReportPdfButton = document.getElementById("monthlyReportPdfButton");
+const monthlyReportShareButton = document.getElementById("monthlyReportShareButton");
 const monthlyReportExportButton = document.getElementById("monthlyReportExportButton");
 const backupButton = document.getElementById("backupButton");
 const restoreButton = document.getElementById("restoreButton");
@@ -296,6 +300,8 @@ const varietyReportExportButton = document.getElementById("varietyReportExportBu
 const annualReportSortMetricInput = document.getElementById("annualReportSortMetric");
 const annualReportSortOrderInput = document.getElementById("annualReportSortOrder");
 const annualReportPreviewButton = document.getElementById("annualReportPreviewButton");
+const annualReportPdfButton = document.getElementById("annualReportPdfButton");
+const annualReportShareButton = document.getElementById("annualReportShareButton");
 const annualReportExportButton = document.getElementById("annualReportExportButton");
 const annualReportInfo = document.getElementById("annualReportInfo");
 const annualReportSummary = document.getElementById("annualReportSummary");
@@ -311,6 +317,10 @@ const openOrchardQrSheetButton = document.getElementById("openOrchardQrSheetButt
 const openPlotQrSheetButton = document.getElementById("openPlotQrSheetButton");
 const openOrchardQrSimpleSheetButton = document.getElementById("openOrchardQrSimpleSheetButton");
 const openPlotQrSimpleSheetButton = document.getElementById("openPlotQrSimpleSheetButton");
+const openOrchardQrSheetPdfButton = document.getElementById("openOrchardQrSheetPdfButton");
+const openPlotQrSheetPdfButton = document.getElementById("openPlotQrSheetPdfButton");
+const openOrchardQrSimpleSheetPdfButton = document.getElementById("openOrchardQrSimpleSheetPdfButton");
+const openPlotQrSimpleSheetPdfButton = document.getElementById("openPlotQrSimpleSheetPdfButton");
 const qrFilterOrchardInput = document.getElementById("qrFilterOrchard");
 const qrFilterPlotInput = document.getElementById("qrFilterPlot");
 const qrFilterVarietyInput = document.getElementById("qrFilterVariety");
@@ -3128,6 +3138,82 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function isAndroidDevice() {
+  if (typeof navigator === "undefined") return false;
+  return /Android/i.test(navigator.userAgent || "");
+}
+
+function applyPlatformUiHints() {
+  if (!document?.body) return;
+  document.body.classList.toggle("platform-android", isAndroidDevice());
+}
+
+function openGeneratedDocumentWindow(html, options = {}) {
+  const {
+    width = 1200,
+    height = 920,
+    popupBlockedMessage = "画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
+  } = options;
+  const features = `width=${Math.max(480, width)},height=${Math.max(480, height)}`;
+  let blobUrl = "";
+
+  try {
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    blobUrl = URL.createObjectURL(blob);
+    const blobWindow = window.open(blobUrl, "_blank", features);
+    if (blobWindow) {
+      window.setTimeout(() => {
+        URL.revokeObjectURL(blobUrl);
+      }, 180000);
+      return blobWindow;
+    }
+    URL.revokeObjectURL(blobUrl);
+    blobUrl = "";
+  } catch (error) {
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+    }
+    console.warn("Blobプレビューの起動に失敗したため通常モードへフォールバックします。", error);
+  }
+
+  const fallbackWindow = window.open("", "_blank", features);
+  if (!fallbackWindow) {
+    window.alert(popupBlockedMessage);
+    return null;
+  }
+  fallbackWindow.document.open();
+  fallbackWindow.document.write(html);
+  fallbackWindow.document.close();
+  return fallbackWindow;
+}
+
+async function shareReportHtmlFromMainPage({ html, fileName, title, text }) {
+  if (!navigator.share) {
+    window.alert("この端末では共有機能を利用できません。");
+    return;
+  }
+  try {
+    let shared = false;
+    if (typeof File !== "undefined" && navigator.canShare) {
+      const file = new File([html], fileName, { type: "text/html" });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title,
+          text,
+          files: [file]
+        });
+        shared = true;
+      }
+    }
+    if (!shared) {
+      await navigator.share({ title, text });
+    }
+  } catch (error) {
+    if (error?.name === "AbortError") return;
+    window.alert("共有に失敗しました。もう一度お試しください。");
+  }
+}
+
 function buildQrLabelSheetItems(type) {
   if (type === "orchard") {
     return masters.orchards.map((orchard) => {
@@ -3160,8 +3246,9 @@ function buildQrLabelSheetItems(type) {
   });
 }
 
-function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard") {
+function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard", options = {}) {
   const isSimple = layoutMode === "simple";
+  const preferredAction = options.preferredAction === "pdf" ? "pdf" : "print";
   const targetLabel = type === "orchard" ? "園地" : "区画";
   const title = isSimple
     ? `(株)大成園 ${targetLabel}QR簡易ラベル印刷`
@@ -3222,6 +3309,8 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard") {
           .sheet-button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; font-size: 14px; cursor: pointer; }
           .sheet-button:disabled { opacity: 0.55; cursor: wait; }
           .sheet-button--print { background: #3f6f3f; color: #fff; }
+          .sheet-button--pdf { background: #c6522f; color: #fff; }
+          .sheet-button--share { background: #e8e2d5; color: #3f3529; }
           .sheet-button--close { background: #ece8de; color: #3c352f; }
           .sheet-body { width: min(210mm, 100%); margin: 0 auto; padding: 8mm 0 12mm; }
           .label-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6mm; }
@@ -3276,9 +3365,12 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard") {
             <h1 class="sheet-toolbar__title">${escapeHtml(title)}</h1>
             <p class="sheet-toolbar__lead">${escapeHtml(subtitle)}</p>
             <p class="sheet-toolbar__lead sheet-toolbar__lead--status" id="sheetLoadStatus">QR画像を読み込み中です...</p>
+            <p class="sheet-toolbar__lead">Androidは「PDF保存」後に共有先アプリで印刷すると安定しやすいです。</p>
           </div>
           <div class="sheet-toolbar__actions">
-            <button class="sheet-button sheet-button--print" id="sheetPrintButton" type="button" onclick="printAfterQrReady()" disabled>QR読込中...</button>
+            <button class="sheet-button sheet-button--print" id="sheetPrintButton" type="button" onclick="printAfterQrReady('print')" disabled>この画面を印刷</button>
+            <button class="sheet-button sheet-button--pdf" id="sheetPdfButton" type="button" onclick="printAfterQrReady('pdf')" disabled>PDF保存</button>
+            <button class="sheet-button sheet-button--share" id="sheetShareButton" type="button">共有</button>
             <button class="sheet-button sheet-button--close" type="button" onclick="window.close()">閉じる</button>
           </div>
         </header>
@@ -3291,7 +3383,10 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard") {
           (function () {
             const images = Array.from(document.querySelectorAll(".label-card__qr"));
             const printButton = document.getElementById("sheetPrintButton");
+            const pdfButton = document.getElementById("sheetPdfButton");
+            const shareButton = document.getElementById("sheetShareButton");
             const status = document.getElementById("sheetLoadStatus");
+            const preferredAction = "${preferredAction}";
             const waitForImage = (image) => new Promise((resolve) => {
               if (image.complete && image.naturalWidth > 0) {
                 resolve(true);
@@ -3310,11 +3405,19 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard") {
             });
             const waitForAllImages = async () => Promise.all(images.map(waitForImage));
 
-            window.printAfterQrReady = async function printAfterQrReady() {
+            const syncButtons = (allReady) => {
               if (printButton) {
-                printButton.disabled = true;
-                printButton.textContent = "画像確認中...";
+                printButton.disabled = !allReady;
+                printButton.textContent = allReady ? "この画面を印刷" : "QR読込中...";
               }
+              if (pdfButton) {
+                pdfButton.disabled = !allReady;
+                pdfButton.textContent = allReady ? "PDF保存" : "QR読込中...";
+              }
+            };
+
+            window.printAfterQrReady = async function printAfterQrReady(triggerMode) {
+              syncButtons(false);
               const results = await waitForAllImages();
               const allReady = results.every(Boolean);
               if (status) {
@@ -3322,14 +3425,50 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard") {
                   ? "QR画像の準備ができました。印刷できます。"
                   : "QR画像の読み込みに失敗した項目があります。再読み込みしてください。";
               }
-              if (printButton) {
-                printButton.disabled = !allReady;
-                printButton.textContent = allReady ? "この画面を印刷" : "QR読込エラー";
-              }
+              syncButtons(allReady);
               if (allReady) {
+                if (status) {
+                  status.textContent = triggerMode === "pdf"
+                    ? "PDF保存ダイアログを開きます。保存先を選択してください。"
+                    : "印刷ダイアログを開きます。";
+                }
                 window.print();
               }
             };
+
+            if (shareButton) {
+              if (!navigator.share) {
+                shareButton.disabled = true;
+                shareButton.textContent = "共有未対応";
+              } else {
+                shareButton.addEventListener("click", async () => {
+                  try {
+                    const html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+                    let shared = false;
+                    if (typeof File !== "undefined" && navigator.canShare) {
+                      const file = new File([html], "taiseien-qr-labels.html", { type: "text/html" });
+                      if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                          title: document.title,
+                          text: "QRラベルを共有します",
+                          files: [file]
+                        });
+                        shared = true;
+                      }
+                    }
+                    if (!shared) {
+                      await navigator.share({
+                        title: document.title,
+                        text: "QRラベルを共有します"
+                      });
+                    }
+                  } catch (error) {
+                    if (error && error.name === "AbortError") return;
+                    window.alert("共有に失敗しました。");
+                  }
+                });
+              }
+            }
 
             waitForAllImages().then((results) => {
               const allReady = results.every(Boolean);
@@ -3342,6 +3481,12 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard") {
                 printButton.disabled = !allReady;
                 printButton.textContent = allReady ? "この画面を印刷" : "QR読込エラー";
               }
+              syncButtons(allReady);
+              if (allReady && preferredAction === "pdf") {
+                window.setTimeout(() => {
+                  window.printAfterQrReady("pdf");
+                }, 120);
+              }
             });
           })();
         </script>
@@ -3350,18 +3495,13 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard") {
   `;
 }
 
-async function openQrLabelSheet(type, layoutMode = "standard") {
+async function openQrLabelSheet(type, layoutMode = "standard", preferredAction = "print") {
   const items = buildQrLabelSheetItems(type);
   if (!items.length) {
     window.alert(type === "orchard" ? "園地データがないため印刷できません。" : "区画データがないため印刷できません。");
     return;
   }
-  const win = window.open("", "_blank", "width=1200,height=920");
-  if (!win) {
-    window.alert("印刷画面を開けませんでした。ブラウザのポップアップ設定を確認してください。");
-    return;
-  }
-  win.document.write(`
+  const loadingHtml = `
     <html lang="ja">
       <head>
         <meta charset="utf-8">
@@ -3377,8 +3517,13 @@ async function openQrLabelSheet(type, layoutMode = "standard") {
         <p>画像の読み込みが終わるまでそのままお待ちください。</p>
       </body>
     </html>
-  `);
-  win.document.close();
+  `;
+  const win = openGeneratedDocumentWindow(loadingHtml, {
+    width: 1200,
+    height: 920,
+    popupBlockedMessage: "印刷画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
+  });
+  if (!win) return;
   try {
     const qrSize = layoutMode === "simple" ? 360 : 300;
     const printableItems = await Promise.all(items.map(async (item) => ({
@@ -3386,7 +3531,7 @@ async function openQrLabelSheet(type, layoutMode = "standard") {
       qrImageSrc: await buildPrintableQrImageSourceFromPayload(item.payload, qrSize)
     })));
     win.document.open();
-    win.document.write(buildQrLabelSheetHtml(type, printableItems, layoutMode));
+    win.document.write(buildQrLabelSheetHtml(type, printableItems, layoutMode, { preferredAction }));
     win.document.close();
   } catch (error) {
     console.error(error);
@@ -3480,7 +3625,7 @@ function buildDailyReportRowsHtml(dayRecords) {
   }).join("");
 }
 
-function buildDailyReportHtml(targetDate) {
+function buildDailyReportHtml(targetDate, options = {}) {
   const dayRecords = getDailyReportRecords(targetDate);
   const summary = getDailyReportSummary(dayRecords);
   const rowsHtml = dayRecords.length
@@ -3503,7 +3648,10 @@ function buildDailyReportHtml(targetDate) {
           .report-actions { display: flex; gap: 8px; flex-wrap: wrap; }
           .report-button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
           .report-button--print { background: #3f6f3f; color: #fff; }
+          .report-button--pdf { background: #c6522f; color: #fff; }
+          .report-button--share { background: #ece4d7; color: #3e342a; }
           .report-button--close { background: #ece8de; color: #3c352f; }
+          .report-toolbar__hint { margin-top: 6px; font-size: 12px; color: #7b6a58; }
           .report-body { width: min(210mm, 100%); margin: 0 auto; padding: 7mm 0 12mm; }
           .report-header { margin-bottom: 6mm; padding: 5mm; border-radius: 4mm; background: #fff; border: 1px solid #dfd8cd; }
           .report-app-name { margin: 0; font-size: 20px; line-height: 1.3; }
@@ -3571,6 +3719,34 @@ function buildDailyReportHtml(targetDate) {
             ${rowsHtml}
           </section>
         </main>
+        <script>
+          (function () {
+            const preferredAction = "${preferredAction}";
+            const pdfButton = document.getElementById("reportPdfButton");
+            const shareButton = document.getElementById("reportShareButton");
+            if (shareButton) {
+              if (!navigator.share) {
+                shareButton.disabled = true;
+                shareButton.textContent = "${text.shareUnavailable}";
+              } else {
+                shareButton.addEventListener("click", async () => {
+                  try {
+                    await navigator.share({
+                      title: document.title,
+                      text: "${text.shareText}"
+                    });
+                  } catch (error) {
+                    if (error && error.name === "AbortError") return;
+                    window.alert("${text.shareError}");
+                  }
+                });
+              }
+            }
+            if (preferredAction === "pdf" && pdfButton) {
+              window.setTimeout(() => pdfButton.click(), 120);
+            }
+          })();
+        </script>
       </body>
     </html>
   `;
@@ -3654,7 +3830,7 @@ function buildDailyReportRowsHtml(dayRecords) {
   }).join("");
 }
 
-function buildDailyReportHtml(targetDate) {
+function buildDailyReportHtml(targetDate, options = {}) {
   const text = {
     appName: "\u0028\u682a\u0029\u5927\u6210\u5712\u3000\u4f5c\u696d\u8a18\u9332\u30a2\u30d7\u30ea",
     reportTitle: "\u4f5c\u696d\u65e5\u5831",
@@ -3662,6 +3838,12 @@ function buildDailyReportHtml(targetDate) {
     targetDate: "\u6307\u5b9a\u65e5",
     noRecords: "\u6307\u5b9a\u65e5\u306e\u4f5c\u696d\u8a18\u9332\u306f\u3042\u308a\u307e\u305b\u3093\u3002",
     print: "\u3053\u306e\u753b\u9762\u3092\u5370\u5237",
+    savePdf: "\u0050\u0044\u0046\u4fdd\u5b58",
+    share: "\u5171\u6709",
+    shareUnavailable: "\u5171\u6709\u672a\u5bfe\u5fdc",
+    shareError: "\u5171\u6709\u306b\u5931\u6557\u3057\u307e\u3057\u305f\u3002",
+    shareText: "\u4f5c\u696d\u65e5\u5831\u3092\u5171\u6709\u3057\u307e\u3059",
+    androidHint: "\u0041\u006e\u0064\u0072\u006f\u0069\u0064\u306f\u300c\u0050\u0044\u0046\u4fdd\u5b58\u300d\u2192\u300c\u5171\u6709\u300d\u3067\u5370\u5237\u30a2\u30d7\u30ea\u3078\u6e21\u3059\u3068\u5b89\u5b9a\u3057\u3084\u3059\u3044\u3067\u3059\u3002",
     close: "\u9589\u3058\u308b",
     totalCount: "\u5f53\u65e5\u306e\u7dcf\u4f5c\u696d\u4ef6\u6570",
     totalHours: "\u5f53\u65e5\u306e\u7dcf\u4f5c\u696d\u6642\u9593",
@@ -3669,6 +3851,7 @@ function buildDailyReportHtml(targetDate) {
     totalLaborCost: "\u5f53\u65e5\u306e\u7dcf\u6982\u7b97\u4eba\u4ef6\u8cbb",
     workDate: "\u4f5c\u696d\u65e5"
   };
+  const preferredAction = options.preferredAction === "pdf" ? "pdf" : "print";
 
   const dayRecords = getDailyReportRecords(targetDate);
   const summary = getDailyReportSummary(dayRecords);
@@ -3692,7 +3875,10 @@ function buildDailyReportHtml(targetDate) {
           .report-actions { display: flex; gap: 8px; flex-wrap: wrap; }
           .report-button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
           .report-button--print { background: #3f6f3f; color: #fff; }
+          .report-button--pdf { background: #c6522f; color: #fff; }
+          .report-button--share { background: #ece4d7; color: #3e342a; }
           .report-button--close { background: #ece8de; color: #3c352f; }
+          .report-toolbar__hint { margin-top: 6px; font-size: 12px; color: #7b6a58; }
           .report-body { width: min(210mm, 100%); margin: 0 auto; padding: 7mm 0 12mm; }
           .report-header { margin-bottom: 6mm; padding: 5mm; border-radius: 4mm; background: #fff; border: 1px solid #dfd8cd; }
           .report-app-name { margin: 0; font-size: 20px; line-height: 1.3; }
@@ -3738,9 +3924,12 @@ function buildDailyReportHtml(targetDate) {
           <div>
             <h1>${text.previewTitle}</h1>
             <p>${text.targetDate}: ${escapeHtml(formatDateYmd(targetDate))}</p>
+            <p class="report-toolbar__hint">${text.androidHint}</p>
           </div>
           <div class="report-actions">
             <button class="report-button report-button--print" type="button" onclick="window.print()">${text.print}</button>
+            <button class="report-button report-button--pdf" id="reportPdfButton" type="button" onclick="window.print()">${text.savePdf}</button>
+            <button class="report-button report-button--share" id="reportShareButton" type="button">${text.share}</button>
             <button class="report-button report-button--close" type="button" onclick="window.close()">${text.close}</button>
           </div>
         </header>
@@ -3760,24 +3949,66 @@ function buildDailyReportHtml(targetDate) {
             ${rowsHtml}
           </section>
         </main>
+        <script>
+          (function () {
+            const preferredAction = "${preferredAction}";
+            const pdfButton = document.getElementById("reportPdfButton");
+            const shareButton = document.getElementById("reportShareButton");
+            if (shareButton) {
+              if (!navigator.share) {
+                shareButton.disabled = true;
+                shareButton.textContent = "${text.shareUnavailable}";
+              } else {
+                shareButton.addEventListener("click", async () => {
+                  try {
+                    await navigator.share({
+                      title: document.title,
+                      text: "${text.shareText}"
+                    });
+                  } catch (error) {
+                    if (error && error.name === "AbortError") return;
+                    window.alert("${text.shareError}");
+                  }
+                });
+              }
+            }
+            if (preferredAction === "pdf" && pdfButton) {
+              window.setTimeout(() => pdfButton.click(), 120);
+            }
+          })();
+        </script>
       </body>
     </html>
   `;
 }
 
-function openDailyReportWindow() {
+function openDailyReportWindow(preferredAction = "print") {
   if (!dailyReportDateInput || !dailyReportDateInput.value) {
     window.alert("\u65e5\u5831\u5bfe\u8c61\u65e5\u3092\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
     return;
   }
   const targetDate = dailyReportDateInput.value;
-  const win = window.open("", "_blank", "width=1200,height=920");
-  if (!win) {
-    window.alert("\u65e5\u5831\u753b\u9762\u3092\u958b\u3051\u307e\u305b\u3093\u3067\u3057\u305f\u3002\u30d6\u30e9\u30a6\u30b6\u306e\u30dd\u30c3\u30d7\u30a2\u30c3\u30d7\u8a2d\u5b9a\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
+  const html = buildDailyReportHtml(targetDate, { preferredAction });
+  openGeneratedDocumentWindow(html, {
+    width: 1200,
+    height: 920,
+    popupBlockedMessage: "\u65e5\u5831\u753b\u9762\u3092\u958b\u3051\u307e\u305b\u3093\u3067\u3057\u305f\u3002\u30d6\u30e9\u30a6\u30b6\u306e\u30dd\u30c3\u30d7\u30a2\u30c3\u30d7\u8a2d\u5b9a\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002"
+  });
+}
+
+async function shareDailyReportFromMainPage() {
+  if (!dailyReportDateInput || !dailyReportDateInput.value) {
+    window.alert("日報対象日を選択してください。");
     return;
   }
-  win.document.write(buildDailyReportHtml(targetDate));
-  win.document.close();
+  const targetDate = dailyReportDateInput.value;
+  const html = buildDailyReportHtml(targetDate, { preferredAction: "print" });
+  await shareReportHtmlFromMainPage({
+    html,
+    fileName: `taiseien-daily-report-${targetDate}.html`,
+    title: "(株)大成園 作業日報",
+    text: `${formatDateYmd(targetDate)} の作業日報を共有します`
+  });
 }
 
 function getMonthDateRangeFromMonth(targetMonth) {
@@ -3915,10 +4146,11 @@ function buildMonthlyWorkerRowsHtml(entries) {
   `).join("");
 }
 
-function buildMonthlyReportHtml(targetMonth) {
+function buildMonthlyReportHtml(targetMonth, options = {}) {
   const data = getMonthlyReportData(targetMonth);
   const rangeText = `${formatDateYmd(data.from)}〜${formatDateYmd(data.to)}`;
   const fiscalText = `${formatDateYmd(data.fiscalFrom)}〜${formatDateYmd(data.fiscalTo)}`;
+  const preferredAction = options.preferredAction === "pdf" ? "pdf" : "print";
 
   const renderSection = (title, entries, emptyMessage) => `
     <section class="monthly-section">
@@ -3958,7 +4190,10 @@ function buildMonthlyReportHtml(targetMonth) {
           .monthly-actions { display: flex; gap: 8px; flex-wrap: wrap; }
           .monthly-button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
           .monthly-button--print { background: #3f6f3f; color: #fff; }
+          .monthly-button--pdf { background: #c6522f; color: #fff; }
+          .monthly-button--share { background: #ece4d7; color: #3f3529; }
           .monthly-button--close { background: #ece8de; color: #3c352f; }
+          .monthly-toolbar__hint { margin-top: 6px; font-size: 12px; color: #7b6a58; }
           .monthly-body { width: min(210mm, 100%); margin: 0 auto; padding: 7mm 0 12mm; }
           .monthly-header { margin-bottom: 5mm; padding: 5mm; border-radius: 4mm; background: #fff; border: 1px solid #dfd8cd; }
           .monthly-app-name { margin: 0; font-size: 20px; line-height: 1.3; }
@@ -3998,9 +4233,12 @@ function buildMonthlyReportHtml(targetMonth) {
           <div>
             <h1>月報プレビュー</h1>
             <p>対象年月: ${escapeHtml(data.monthLabel)}</p>
+            <p class="monthly-toolbar__hint">Androidは「PDF保存」→「共有」で印刷アプリへ渡すと安定しやすいです。</p>
           </div>
           <div class="monthly-actions">
             <button class="monthly-button monthly-button--print" type="button" onclick="window.print()">この画面を印刷</button>
+            <button class="monthly-button monthly-button--pdf" id="monthlyPdfButton" type="button" onclick="window.print()">PDF保存</button>
+            <button class="monthly-button monthly-button--share" id="monthlyShareButton" type="button">共有</button>
             <button class="monthly-button monthly-button--close" type="button" onclick="window.close()">閉じる</button>
           </div>
         </header>
@@ -4039,24 +4277,66 @@ function buildMonthlyReportHtml(targetMonth) {
             </div>
           </section>
         </main>
+        <script>
+          (function () {
+            const preferredAction = "${preferredAction}";
+            const pdfButton = document.getElementById("monthlyPdfButton");
+            const shareButton = document.getElementById("monthlyShareButton");
+            if (shareButton) {
+              if (!navigator.share) {
+                shareButton.disabled = true;
+                shareButton.textContent = "共有未対応";
+              } else {
+                shareButton.addEventListener("click", async () => {
+                  try {
+                    await navigator.share({
+                      title: document.title,
+                      text: "月報を共有します"
+                    });
+                  } catch (error) {
+                    if (error && error.name === "AbortError") return;
+                    window.alert("共有に失敗しました。");
+                  }
+                });
+              }
+            }
+            if (preferredAction === "pdf" && pdfButton) {
+              window.setTimeout(() => pdfButton.click(), 120);
+            }
+          })();
+        </script>
       </body>
     </html>
   `;
 }
 
-function openMonthlyReportWindow() {
+function openMonthlyReportWindow(preferredAction = "print") {
   if (!monthlyReportMonthInput || !monthlyReportMonthInput.value) {
     window.alert("月報対象年月を選択してください。");
     return;
   }
   const targetMonth = monthlyReportMonthInput.value;
-  const win = window.open("", "_blank", "width=1280,height=920");
-  if (!win) {
-    window.alert("月報画面を開けませんでした。ブラウザのポップアップ設定を確認してください。");
+  const html = buildMonthlyReportHtml(targetMonth, { preferredAction });
+  openGeneratedDocumentWindow(html, {
+    width: 1280,
+    height: 920,
+    popupBlockedMessage: "月報画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
+  });
+}
+
+async function shareMonthlyReportFromMainPage() {
+  if (!monthlyReportMonthInput || !monthlyReportMonthInput.value) {
+    window.alert("月報対象年月を選択してください。");
     return;
   }
-  win.document.write(buildMonthlyReportHtml(targetMonth));
-  win.document.close();
+  const targetMonth = monthlyReportMonthInput.value;
+  const html = buildMonthlyReportHtml(targetMonth, { preferredAction: "print" });
+  await shareReportHtmlFromMainPage({
+    html,
+    fileName: `taiseien-monthly-report-${targetMonth}.html`,
+    title: "(株)大成園 月報",
+    text: `${targetMonth} の月報を共有します`
+  });
 }
 
 function exportMonthlyReportCsv() {
@@ -4257,13 +4537,11 @@ function openTaskTypeReportWindow() {
     window.alert(config.error || "比較条件を確認してください。");
     return;
   }
-  const win = window.open("", "_blank", "width=1280,height=920");
-  if (!win) {
-    window.alert("作業区分別レポート画面を開けませんでした。ブラウザのポップアップ設定を確認してください。");
-    return;
-  }
-  win.document.write(buildTaskTypeReportHtml());
-  win.document.close();
+  openGeneratedDocumentWindow(buildTaskTypeReportHtml(), {
+    width: 1280,
+    height: 920,
+    popupBlockedMessage: "作業区分別レポート画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
+  });
 }
 
 function exportTaskTypeReportCsv() {
@@ -4470,13 +4748,11 @@ function openVarietyTypeReportWindow() {
     window.alert(config.error || "比較条件を確認してください。");
     return;
   }
-  const win = window.open("", "_blank", "width=1280,height=920");
-  if (!win) {
-    window.alert("品種別レポート画面を開けませんでした。ブラウザのポップアップ設定を確認してください。");
-    return;
-  }
-  win.document.write(buildVarietyTypeReportHtml());
-  win.document.close();
+  openGeneratedDocumentWindow(buildVarietyTypeReportHtml(), {
+    width: 1280,
+    height: 920,
+    popupBlockedMessage: "品種別レポート画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
+  });
 }
 
 function exportVarietyTypeReportCsv() {
@@ -4525,10 +4801,11 @@ function exportVarietyTypeReportCsv() {
   URL.revokeObjectURL(url);
 }
 
-function buildAnnualReportHtml() {
+function buildAnnualReportHtml(options = {}) {
   const data = getAnnualReportData();
   const metricLabel = getSortMetricLabel(data.metric);
   const sortLabel = data.sortOrder === "asc" ? "少ない順" : "多い順";
+  const preferredAction = options.preferredAction === "pdf" ? "pdf" : "print";
 
   const renderMetricSection = (title, entries, emptyMessage, labelColumn) => `
     <section class="annual-section">
@@ -4568,7 +4845,10 @@ function buildAnnualReportHtml() {
           .annual-actions { display: flex; gap: 8px; flex-wrap: wrap; }
           .annual-button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
           .annual-button--print { background: #3f6f3f; color: #fff; }
+          .annual-button--pdf { background: #c6522f; color: #fff; }
+          .annual-button--share { background: #ece4d7; color: #3f3529; }
           .annual-button--close { background: #ece8de; color: #3c352f; }
+          .annual-toolbar__hint { margin-top: 6px; font-size: 12px; color: #7b6a58; }
           .annual-body { width: min(210mm, 100%); margin: 0 auto; padding: 7mm 0 12mm; }
           .annual-header { margin-bottom: 5mm; padding: 5mm; border-radius: 4mm; background: #fff; border: 1px solid #dfd8cd; }
           .annual-app-name { margin: 0; font-size: 20px; line-height: 1.3; }
@@ -4608,9 +4888,12 @@ function buildAnnualReportHtml() {
           <div>
             <h1>年度レポート総合版</h1>
             <p>対象決算年度: ${escapeHtml(data.periodLabel)}</p>
+            <p class="annual-toolbar__hint">Androidは「PDF保存」→「共有」で印刷アプリへ渡すと安定しやすいです。</p>
           </div>
           <div class="annual-actions">
             <button class="annual-button annual-button--print" type="button" onclick="window.print()">この画面を印刷</button>
+            <button class="annual-button annual-button--pdf" id="annualPdfButton" type="button" onclick="window.print()">PDF保存</button>
+            <button class="annual-button annual-button--share" id="annualShareButton" type="button">共有</button>
             <button class="annual-button annual-button--close" type="button" onclick="window.close()">閉じる</button>
           </div>
         </header>
@@ -4645,19 +4928,56 @@ function buildAnnualReportHtml() {
             </div>
           </section>
         </main>
+        <script>
+          (function () {
+            const preferredAction = "${preferredAction}";
+            const pdfButton = document.getElementById("annualPdfButton");
+            const shareButton = document.getElementById("annualShareButton");
+            if (shareButton) {
+              if (!navigator.share) {
+                shareButton.disabled = true;
+                shareButton.textContent = "共有未対応";
+              } else {
+                shareButton.addEventListener("click", async () => {
+                  try {
+                    await navigator.share({
+                      title: document.title,
+                      text: "年度レポート総合版を共有します"
+                    });
+                  } catch (error) {
+                    if (error && error.name === "AbortError") return;
+                    window.alert("共有に失敗しました。");
+                  }
+                });
+              }
+            }
+            if (preferredAction === "pdf" && pdfButton) {
+              window.setTimeout(() => pdfButton.click(), 120);
+            }
+          })();
+        </script>
       </body>
     </html>
   `;
 }
 
-function openAnnualReportWindow() {
-  const win = window.open("", "_blank", "width=1280,height=920");
-  if (!win) {
-    window.alert("年度レポート画面を開けませんでした。ブラウザのポップアップ設定を確認してください。");
-    return;
-  }
-  win.document.write(buildAnnualReportHtml());
-  win.document.close();
+function openAnnualReportWindow(preferredAction = "print") {
+  const html = buildAnnualReportHtml({ preferredAction });
+  openGeneratedDocumentWindow(html, {
+    width: 1280,
+    height: 920,
+    popupBlockedMessage: "年度レポート画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
+  });
+}
+
+async function shareAnnualReportFromMainPage() {
+  const html = buildAnnualReportHtml({ preferredAction: "print" });
+  await shareReportHtmlFromMainPage({
+    html,
+    fileName: "taiseien-annual-report.html",
+    title: "(株)大成園 年度レポート総合版",
+    text: "年度レポート総合版を共有します"
+  });
 }
 
 function exportAnnualReportCsv() {
@@ -4695,12 +5015,7 @@ function exportAnnualReportCsv() {
 
 async function printQrCard(title, meta, imageUrl) {
   const printableImageUrl = await buildPrintableQrImageSourceFromUrl(imageUrl, 360);
-  const win = window.open("", "_blank", "width=520,height=700");
-  if (!win) {
-    window.alert("印刷用ウィンドウを開けませんでした。ポップアップ設定を確認してください。");
-    return;
-  }
-  win.document.write(`
+  const html = `
     <html lang="ja">
       <head>
         <meta charset="utf-8" />
@@ -4745,8 +5060,13 @@ async function printQrCard(title, meta, imageUrl) {
         </script>
       </body>
     </html>
-  `);
-  win.document.close();
+  `;
+  const win = openGeneratedDocumentWindow(html, {
+    width: 520,
+    height: 700,
+    popupBlockedMessage: "印刷用ウィンドウを開けませんでした。ポップアップ設定を確認してください。"
+  });
+  if (!win) return;
   win.focus();
 }
 
@@ -5175,8 +5495,20 @@ if (shortcutQrScanButton) {
 if (dailyReportPreviewButton) {
   dailyReportPreviewButton.addEventListener("click", openDailyReportWindow);
 }
+if (dailyReportPdfButton) {
+  dailyReportPdfButton.addEventListener("click", () => openDailyReportWindow("pdf"));
+}
+if (dailyReportShareButton) {
+  dailyReportShareButton.addEventListener("click", shareDailyReportFromMainPage);
+}
 if (monthlyReportPreviewButton) {
   monthlyReportPreviewButton.addEventListener("click", openMonthlyReportWindow);
+}
+if (monthlyReportPdfButton) {
+  monthlyReportPdfButton.addEventListener("click", () => openMonthlyReportWindow("pdf"));
+}
+if (monthlyReportShareButton) {
+  monthlyReportShareButton.addEventListener("click", shareMonthlyReportFromMainPage);
 }
 if (monthlyReportExportButton) {
   monthlyReportExportButton.addEventListener("click", exportMonthlyReportCsv);
@@ -5196,6 +5528,12 @@ if (varietyReportExportButton) {
 if (annualReportPreviewButton) {
   annualReportPreviewButton.addEventListener("click", openAnnualReportWindow);
 }
+if (annualReportPdfButton) {
+  annualReportPdfButton.addEventListener("click", () => openAnnualReportWindow("pdf"));
+}
+if (annualReportShareButton) {
+  annualReportShareButton.addEventListener("click", shareAnnualReportFromMainPage);
+}
 if (annualReportExportButton) {
   annualReportExportButton.addEventListener("click", exportAnnualReportCsv);
 }
@@ -5212,6 +5550,18 @@ if (openOrchardQrSimpleSheetButton) {
 }
 if (openPlotQrSimpleSheetButton) {
   openPlotQrSimpleSheetButton.addEventListener("click", () => openQrLabelSheet("plot", "simple"));
+}
+if (openOrchardQrSheetPdfButton) {
+  openOrchardQrSheetPdfButton.addEventListener("click", () => openQrLabelSheet("orchard", "standard", "pdf"));
+}
+if (openPlotQrSheetPdfButton) {
+  openPlotQrSheetPdfButton.addEventListener("click", () => openQrLabelSheet("plot", "standard", "pdf"));
+}
+if (openOrchardQrSimpleSheetPdfButton) {
+  openOrchardQrSimpleSheetPdfButton.addEventListener("click", () => openQrLabelSheet("orchard", "simple", "pdf"));
+}
+if (openPlotQrSimpleSheetPdfButton) {
+  openPlotQrSimpleSheetPdfButton.addEventListener("click", () => openQrLabelSheet("plot", "simple", "pdf"));
 }
 if (qrFilterOrchardInput) {
   qrFilterOrchardInput.addEventListener("input", renderQrCodeList);
@@ -5678,6 +6028,7 @@ function registerPwaServiceWorker() {
 }
 
 registerPwaServiceWorker();
+applyPlatformUiHints();
 updateTimeHint();
 resetGroupForm();
 resetTeamSetForm();

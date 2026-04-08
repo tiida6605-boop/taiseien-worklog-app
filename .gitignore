@@ -1,0 +1,10 @@
+# 実運用データのエクスポート（公開物に含めない）
+taiseien-backup-*.json
+taiseien-work-records-v5.csv
+taiseien-cumulative-comparison.csv
+taiseien-*-report-*.csv
+taiseien-fiscal-annual-report-*.csv
+
+# OS生成ファイル
+Thumbs.db
+Desktop.ini
