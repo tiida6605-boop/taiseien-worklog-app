@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>(株)大成園　作業記録アプリ</title>
+  <meta name="theme-color" content="#516c3d">
+  <meta name="application-name" content="(株)大成園　作業記録アプリ">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero__copy">
+        <p class="eyebrow">(株)大成園　作業記録アプリ</p>
+        <h1>(株)大成園　作業記録アプリ</h1>
+        <p class="hero__lead">
+          大成園の園地・品種・作業者・グループの各マスターを使って、毎日の作業記録をスマホでも入力しやすく整理しました。
+          作業者は1人1件で管理しつつ複数グループ所属に対応し、その日の参加グループで記録できます。
+        </p>
+      </div>
+
+      <section class="summary-grid home-summary-grid" aria-label="ホームサマリー">
+        <article class="summary-card">
+          <span class="summary-card__label">今日の作業件数</span>
+          <strong id="totalCount">0</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-card__label">今日の総作業時間</span>
+          <strong id="totalHours">0.0時間</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-card__label">今日の総延べ人時</span>
+          <strong id="todayTotalPersonHours">0.0人時</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-card__label">今日の総概算人件費</span>
+          <strong id="todayTotalLaborCost">0円</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-card__label">今日のチーム編成件数</span>
+          <strong id="todayTeamPlanCount">0件</strong>
+        </article>
+      </section>
+
+      <section class="home-shortcuts" aria-label="よく使う入口">
+        <p class="home-shortcuts__title">よく使う入口</p>
+        <div class="home-shortcuts__grid">
+          <button type="button" class="button button--primary home-shortcut-button" id="shortcutRecordFormButton">作業記録入力</button>
+          <button type="button" class="button button--ghost home-shortcut-button" id="shortcutTeamPlanButton">日別チーム編成</button>
+          <button type="button" class="button button--ghost home-shortcut-button" id="shortcutDailyReportButton">作業日報</button>
+          <button type="button" class="button button--ghost home-shortcut-button" id="shortcutMonthlyReportButton">月報</button>
+          <button type="button" class="button button--ghost home-shortcut-button" id="shortcutAnnualReportButton">年度レポート総合版</button>
+          <button type="button" class="button button--ghost home-shortcut-button" id="shortcutQrScanButton">QRコード読取</button>
+        </div>
+      </section>
+    </header>
+
+    <main class="layout">
+      <section class="panel form-panel" id="recordFormPanel">
+        <div class="panel__header">
+          <div>
+            <p class="panel__eyebrow">作業記録</p>
+            <h2>作業記録を登録</h2>
+          </div>
+          <span class="chip" id="formMode">新規登録</span>
+        </div>
+
+        <p class="panel__lead">
+          グループを選ぶと、そのグループに所属する作業者だけが候補に表示されます。複数人をまとめて選べて、将来の固定チームセット追加にも広げやすい構成です。
+        </p>
+        <p class="required-note">「必須」項目を入力してから保存してください。</p>
+
+        <form id="recordForm" class="record-form">
+          <input type="hidden" id="recordId">
+
+          <label class="required-label">
+            作業日
+            <input type="date" id="workDate" required>
+          </label>
+
+          <div class="form-row form-row--triple">
+            <label class="required-label">
+              園地
+              <select id="orchardSelect" required></select>
+            </label>
+
+            <label class="required-label">
+              区画
+              <select id="plotSelect" required></select>
+            </label>
+
+            <label class="required-label">
+              品種
+              <select id="varietySelect" required></select>
+            </label>
+          </div>
+
+          <div class="qr-inline-actions">
+            <button type="button" class="button button--ghost" id="qrScanButton">QR読み取りで園地/区画を入力</button>
+            <p class="form-hint">現場のQRから園地・区画を自動入力できます。</p>
+          </div>
+
+          <label class="required-label">
+            作業内容
+            <select id="taskType" required>
+              <option value="">選択してください</option>
+              <option>摘果</option>
+              <option>受粉</option>
+              <option>摘花</option>
+              <option>葉摘み</option>
+              <option>防除</option>
+              <option>収穫</option>
+              <option>剪定</option>
+              <option>誘引</option>
+              <option>運搬</option>
+              <option>その他</option>
+            </select>
+          </label>
+
+          <div class="form-row">
+            <label>
+              作業時間
+              <input type="number" id="workHours" min="0" max="24" step="0.5" placeholder="例: 2.5">
+            </label>
+
+            <label>
+              天気
+              <select id="weather">
+                <option value="">未選択</option>
+                <option>晴れ</option>
+                <option>くもり</option>
+                <option>雨</option>
+                <option>雪</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label class="required-label">
+              当日グループ
+              <select id="groupSelect" required></select>
+            </label>
+
+            <label>
+              作業人数
+              <input type="number" id="workerCount" min="1" step="1" placeholder="例: 2">
+            </label>
+
+            <div class="worker-picker">
+              <div class="worker-picker__header">
+                <span>作業者（必須）</span>
+                <strong id="selectedWorkerCount">0人選択</strong>
+              </div>
+              <p class="worker-picker__hint" id="workerPickerHint">先にグループを選択してください。</p>
+              <div id="workerSelectionList" class="worker-selection-list" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>
+              開始時刻
+              <input type="time" id="startTime">
+            </label>
+
+            <label>
+              終了時刻
+              <input type="time" id="endTime">
+            </label>
+          </div>
+
+          <p class="form-hint" id="timeHint">開始時刻と終了時刻を入れると、作業時間に自動で反映されます。</p>
+
+          <label>
+            使用資材・数量
+            <input type="text" id="materials" placeholder="例: ボルドー剤 500g">
+          </label>
+
+          <label>
+            作業メモ
+            <textarea id="notes" rows="4" placeholder="気づきや作業条件を記録"></textarea>
+          </label>
+
+          <div class="form-actions">
+            <button type="submit" class="button button--primary">保存する</button>
+            <button type="button" class="button button--ghost" id="resetButton">入力をクリア</button>
+          </div>
+        </form>
+      </section>
+
+      <div class="content-stack">
+        <section class="panel team-panel" id="teamPlanPanel">
+          <div class="panel__header">
+            <div>
+              <p class="panel__eyebrow">日別チーム編成</p>
+              <h2>日別チーム編成</h2>
+            </div>
+            <span class="chip chip--leaf">欠勤・応援に対応</span>
+          </div>
+
+          <p class="panel__lead">
+            日付ごと・作業グループごとに参加者を編成できます。前回編成のコピーや、作業記録入力への反映に対応しています。
+          </p>
+
+          <form id="teamPlanForm" class="record-form">
+            <input type="hidden" id="teamPlanId">
+
+            <div class="form-row">
+              <label>
+                編成日
+                <input type="date" id="teamPlanDate" required>
+              </label>
+
+              <label>
+                作業グループ
+                <select id="teamPlanGroup" required></select>
+              </label>
+            </div>
+
+            <div class="form-row">
+              <label>
+                固定チームセット
+                <select id="teamSetSelect"></select>
+              </label>
+            </div>
+            <p class="form-hint" id="teamSetHint">固定チームセットを呼び出すと、参加者を一括で反映できます。</p>
+
+            <div class="worker-picker">
+              <div class="worker-picker__header">
+                <span>当日参加者</span>
+                <strong id="teamPlanSelectedCount">0人選択</strong>
+              </div>
+              <p class="worker-picker__hint" id="teamPlanHint">所属者を基本に、応援者も追加できます。</p>
+              <div id="teamPlanWorkerList" class="worker-selection-list" aria-live="polite"></div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="button button--primary">編成を保存</button>
+              <button type="button" class="button button--ghost" id="teamPlanLoadSetButton">固定セットを呼び出し</button>
+              <button type="button" class="button button--ghost" id="teamPlanCopyButton">前回編成をコピー</button>
+              <button type="button" class="button button--ghost" id="teamPlanApplyButton">作業記録へ反映</button>
+              <button type="button" class="button button--ghost" id="teamPlanResetButton">クリア</button>
+            </div>
+          </form>
+
+          <div id="teamPlanList" class="master-list"></div>
+        </section>
+
+        <section class="panel list-panel" id="recordListPanel">
+          <div class="panel__header">
+            <div>
+              <p class="panel__eyebrow">記録管理</p>
+              <h2>作業記録一覧</h2>
+            </div>
+            <div class="toolbar-actions">
+              <button class="button button--accent" id="exportButton" type="button">CSV出力</button>
+              <button class="button button--ghost" id="backupButton" type="button">JSON保存</button>
+              <button class="button button--ghost" id="restoreButton" type="button">JSON復元</button>
+              <input type="file" id="restoreInput" accept=".json,application/json" hidden>
+            </div>
+          </div>
+
+          <div class="daily-report-tools">
+            <label>
+              日報対象日
+              <input type="date" id="dailyReportDate">
+            </label>
+            <button class="button button--accent" id="dailyReportPreviewButton" type="button">作業日報を表示/印刷</button>
+          </div>
+          <p class="form-hint">指定日の作業記録を1日分の日報として表示し、A4で印刷できます。</p>
+
+          <div class="monthly-report-tools">
+            <label>
+              月報対象年月
+              <input type="month" id="monthlyReportMonth">
+            </label>
+            <button class="button button--accent" id="monthlyReportPreviewButton" type="button">月報を表示/印刷</button>
+            <button class="button button--ghost" id="monthlyReportExportButton" type="button">月次集計CSV出力</button>
+          </div>
+          <p class="form-hint">指定した月の集計結果を一覧表示し、A4印刷またはCSV出力できます。</p>
+
+          <section class="backup-tools" aria-live="polite">
+            <div class="backup-tools__row">
+              <label>
+                JSON復元方法
+                <select id="restoreMode">
+                  <option value="replace">上書き（既存データを置き換え）</option>
+                  <option value="append">追加（既存データに取り込み）</option>
+                </select>
+              </label>
+              <p class="form-hint">復元前に確認メッセージが表示されます。</p>
+            </div>
+
+            <div class="backup-summary-grid" id="backupSummaryGrid">
+              <div class="backup-summary-item"><span>園地数</span><strong id="backupOrchardCount">0件</strong></div>
+              <div class="backup-summary-item"><span>区画数</span><strong id="backupPlotCount">0件</strong></div>
+              <div class="backup-summary-item"><span>品種数</span><strong id="backupVarietyCount">0件</strong></div>
+              <div class="backup-summary-item"><span>作業者数</span><strong id="backupWorkerCount">0件</strong></div>
+              <div class="backup-summary-item"><span>グループ数</span><strong id="backupGroupCount">0件</strong></div>
+              <div class="backup-summary-item"><span>日別チーム編成数</span><strong id="backupTeamPlanCount">0件</strong></div>
+              <div class="backup-summary-item"><span>作業記録数</span><strong id="backupRecordCount">0件</strong></div>
+            </div>
+
+            <p class="backup-meta">最終JSON保存日時: <strong id="backupTimestamp">未実行</strong></p>
+            <p class="form-hint" id="backupMessage">JSON保存を押すと、バックアップ前件数サマリーを確認できます。</p>
+          </section>
+
+          <div class="filters filters--quad">
+            <label>
+              園地で絞り込み
+              <select id="orchardFilter"></select>
+            </label>
+
+            <label>
+              品種で絞り込み
+              <select id="varietyFilter"></select>
+            </label>
+
+            <label>
+              作業内容で絞り込み
+              <select id="taskFilter">
+                <option value="">すべて</option>
+                <option>摘果</option>
+                <option>受粉</option>
+                <option>摘花</option>
+                <option>葉摘み</option>
+                <option>防除</option>
+                <option>収穫</option>
+                <option>剪定</option>
+                <option>誘引</option>
+                <option>運搬</option>
+                <option>その他</option>
+              </select>
+            </label>
+
+            <label>
+              作業者で絞り込み
+              <select id="workerFilter"></select>
+            </label>
+          </div>
+
+          <div id="recordList" class="record-list" aria-live="polite"></div>
+        </section>
+
+        <section class="panel analytics-panel" id="analyticsPanel">
+          <div class="panel__header">
+            <div>
+              <p class="panel__eyebrow">集計</p>
+              <h2>集計</h2>
+            </div>
+            <span class="chip chip--leaf">時間・延べ人時・概算人件費</span>
+          </div>
+
+          <div class="analytics-grid">
+            <section class="analytics-card analytics-card--wide">
+              <h3>園地別・区画別の累積比較</h3>
+
+              <div class="comparison-controls">
+                <label>
+                  比較期間
+                  <select id="comparisonPeriod">
+                    <option value="all">全期間</option>
+                    <option value="month">今月</option>
+                    <option value="fiscal">決算年度</option>
+                    <option value="custom">任意期間</option>
+                  </select>
+                </label>
+
+                <label>
+                  並び替え基準
+                  <select id="comparisonSortMetric">
+                    <option value="count">件数基準</option>
+                    <option value="hours" selected>総作業時間基準</option>
+                    <option value="personHours">延べ人時基準</option>
+                    <option value="laborCost">概算人件費基準</option>
+                  </select>
+                </label>
+
+                <label>
+                  並び順
+                  <select id="comparisonSortOrder">
+                    <option value="desc">多い順</option>
+                    <option value="asc">少ない順</option>
+                  </select>
+                </label>
+
+                <button type="button" class="button button--ghost" id="comparisonExportButton">累積比較CSV出力</button>
+              </div>
+
+              <div class="comparison-range" id="comparisonRangeRow">
+                <label>
+                  開始日
+                  <input type="date" id="comparisonFromDate">
+                </label>
+
+                <label>
+                  終了日
+                  <input type="date" id="comparisonToDate">
+                </label>
+              </div>
+
+              <p class="form-hint" id="comparisonInfo">比較条件を選ぶと、園地別・区画別の累積比較結果が表示されます。</p>
+
+              <div class="comparison-grid">
+                <section class="comparison-panel">
+                  <h4>園地別累積</h4>
+                  <div id="orchardCumulativeList" class="comparison-list"></div>
+                </section>
+
+                <section class="comparison-panel">
+                  <h4>区画別累積</h4>
+                  <div id="plotCumulativeList" class="comparison-list"></div>
+                </section>
+              </div>
+            </section>
+
+            <section class="analytics-card analytics-card--wide">
+              <h3>作業区分別レポート</h3>
+
+              <div class="comparison-controls">
+                <label>
+                  対象期間
+                  <select id="taskReportPeriod">
+                    <option value="month">今月</option>
+                    <option value="fiscal">決算年度</option>
+                    <option value="custom">任意期間</option>
+                  </select>
+                </label>
+
+                <label>
+                  並び替え基準
+                  <select id="taskReportSortMetric">
+                    <option value="count">件数基準</option>
+                    <option value="hours" selected>総作業時間基準</option>
+                    <option value="personHours">延べ人時基準</option>
+                    <option value="laborCost">概算人件費基準</option>
+                  </select>
+                </label>
+
+                <label>
+                  並び順
+                  <select id="taskReportSortOrder">
+                    <option value="desc">多い順</option>
+                    <option value="asc">少ない順</option>
+                  </select>
+                </label>
+
+                <button type="button" class="button button--accent" id="taskReportPreviewButton">作業区分別レポート表示/印刷</button>
+              </div>
+
+              <div class="comparison-range" id="taskReportRangeRow">
+                <label>
+                  開始日
+                  <input type="date" id="taskReportFromDate">
+                </label>
+
+                <label>
+                  終了日
+                  <input type="date" id="taskReportToDate">
+                </label>
+              </div>
+
+              <div class="task-report-actions">
+                <button type="button" class="button button--ghost" id="taskReportExportButton">作業区分別CSV出力</button>
+              </div>
+
+              <p class="form-hint" id="taskReportInfo">条件を選ぶと、作業区分ごとのレポートが表示されます。</p>
+
+              <div id="taskTypeReportList" class="task-report-list"></div>
+            </section>
+
+            <section class="analytics-card analytics-card--wide">
+              <h3>品種別レポート</h3>
+
+              <div class="comparison-controls">
+                <label>
+                  対象期間
+                  <select id="varietyReportPeriod">
+                    <option value="month">今月</option>
+                    <option value="fiscal">決算年度</option>
+                    <option value="custom">任意期間</option>
+                  </select>
+                </label>
+
+                <label>
+                  並び替え基準
+                  <select id="varietyReportSortMetric">
+                    <option value="count">件数基準</option>
+                    <option value="hours" selected>総作業時間基準</option>
+                    <option value="personHours">延べ人時基準</option>
+                    <option value="laborCost">概算人件費基準</option>
+                  </select>
+                </label>
+
+                <label>
+                  並び順
+                  <select id="varietyReportSortOrder">
+                    <option value="desc">多い順</option>
+                    <option value="asc">少ない順</option>
+                  </select>
+                </label>
+
+                <button type="button" class="button button--accent" id="varietyReportPreviewButton">品種別レポート表示/印刷</button>
+              </div>
+
+              <div class="comparison-range" id="varietyReportRangeRow">
+                <label>
+                  開始日
+                  <input type="date" id="varietyReportFromDate">
+                </label>
+
+                <label>
+                  終了日
+                  <input type="date" id="varietyReportToDate">
+                </label>
+              </div>
+
+              <div class="task-report-actions">
+                <button type="button" class="button button--ghost" id="varietyReportExportButton">品種別CSV出力</button>
+              </div>
+
+              <p class="form-hint" id="varietyReportInfo">条件を選ぶと、品種ごとのレポートが表示されます。</p>
+
+              <div id="varietyTypeReportList" class="task-report-list"></div>
+            </section>
+
+            <section class="analytics-card analytics-card--wide">
+              <h3>年度レポート総合版（決算年度）</h3>
+
+              <div class="comparison-controls">
+                <label>
+                  並び替え基準
+                  <select id="annualReportSortMetric">
+                    <option value="count">件数</option>
+                    <option value="hours" selected>総作業時間</option>
+                    <option value="personHours">延べ人時</option>
+                    <option value="laborCost">概算人件費</option>
+                  </select>
+                </label>
+
+                <label>
+                  並び順
+                  <select id="annualReportSortOrder">
+                    <option value="desc">多い順</option>
+                    <option value="asc">少ない順</option>
+                  </select>
+                </label>
+
+                <button type="button" class="button button--accent" id="annualReportPreviewButton">年度レポート表示/印刷</button>
+                <button type="button" class="button button--ghost" id="annualReportExportButton">年度レポートCSV出力</button>
+              </div>
+
+              <p class="form-hint" id="annualReportInfo">会社設定の決算年度をもとに、年度レポート総合版を表示します。</p>
+
+              <div id="annualReportSummary" class="annual-report-summary" aria-live="polite"></div>
+              <div id="annualReportList" class="task-report-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>月別の記録件数</h3>
+              <div id="monthlyCountList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>月別の総作業時間</h3>
+              <div id="monthlyHoursList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>園地別の総作業時間</h3>
+              <div id="orchardHoursList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>園地別の延べ人時</h3>
+              <div id="orchardPersonHoursList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>園地別の概算人件費</h3>
+              <div id="orchardLaborCostList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>区画別の総作業時間</h3>
+              <div id="plotHoursList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>区画別の延べ人時</h3>
+              <div id="plotPersonHoursList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>区画別の概算人件費</h3>
+              <div id="plotLaborCostList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>作業内容別の総作業時間</h3>
+              <div id="taskHoursList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>作業者別の総作業時間</h3>
+              <div id="workerTotalHoursList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>グループ別・作業者別の総作業時間</h3>
+              <div id="groupWorkerHoursList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>主所属別の総作業時間</h3>
+              <div id="primaryGroupHoursList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card analytics-card--wide">
+              <h3>グループ別の総作業件数</h3>
+              <div id="groupCountList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>グループ別の総作業時間</h3>
+              <div id="groupHoursList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card">
+              <h3>グループ別の延べ人時</h3>
+              <div id="groupPersonHoursList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card analytics-card--wide">
+              <h3>グループ別の概算人件費</h3>
+              <div id="groupLaborCostList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card analytics-card--wide">
+              <h3>品種別の総作業時間</h3>
+              <div id="varietyHoursList" class="analytics-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel master-panel">
+          <div class="panel__header">
+            <div>
+              <p class="panel__eyebrow">マスター管理</p>
+              <h2>マスター管理</h2>
+            </div>
+            <span class="chip chip--leaf">登録・編集・削除に対応</span>
+          </div>
+
+          <p class="panel__lead">
+            園地・区画・品種・グループ・作業者の各マスターを管理できます。作業者は1人1件だけ登録し、所属グループは別設定で複数登録できます。
+          </p>
+
+          <div class="master-grid master-grid--wide">
+            <section class="master-card">
+              <div class="master-card__header">
+                <h3>会社設定</h3>
+                <span class="chip chip--soft">決算年度基準</span>
+              </div>
+
+              <form id="companySettingsForm" class="master-form">
+                <div class="form-row">
+                  <label>
+                    決算締月
+                    <input type="number" id="fiscalClosingMonth" min="1" max="12" step="1" required>
+                  </label>
+
+                  <label>
+                    決算締日
+                    <input type="number" id="fiscalClosingDay" min="1" max="31" step="1" required>
+                  </label>
+                </div>
+
+                <p class="form-hint" id="companyFiscalYearPreview">現在の決算年度範囲を表示します。</p>
+
+                <div class="form-actions form-actions--tight">
+                  <button type="submit" class="button button--primary button--small">会社設定を保存</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="master-card">
+              <div class="master-card__header">
+                <h3>園地マスター</h3>
+                <span class="chip chip--soft" id="orchardCount">0件</span>
+              </div>
+
+              <form id="orchardForm" class="master-form">
+                <input type="hidden" id="orchardId">
+
+                <label>
+                  園地名
+                  <input type="text" id="orchardName" placeholder="例: 北園地" required>
+                </label>
+
+                <label>
+                  管理コード（短縮）
+                  <input type="text" id="orchardCode" placeholder="例: O-01" maxlength="32">
+                </label>
+
+                <label>
+                  メモ
+                  <input type="text" id="orchardNote" placeholder="例: 主力品種の園地">
+                </label>
+
+                <div class="form-actions form-actions--tight">
+                  <button type="submit" class="button button--primary button--small">園地を保存</button>
+                  <button type="button" class="button button--ghost button--small" id="orchardResetButton">クリア</button>
+                </div>
+              </form>
+
+              <div id="orchardList" class="master-list"></div>
+            </section>
+
+            <section class="master-card">
+              <div class="master-card__header">
+                <h3>区画マスター</h3>
+                <span class="chip chip--soft" id="plotCount">0件</span>
+              </div>
+
+              <form id="plotForm" class="master-form">
+                <input type="hidden" id="plotId">
+
+                <label>
+                  所属園地
+                  <select id="plotOrchardId" required></select>
+                </label>
+
+                <label>
+                  区画名
+                  <input type="text" id="plotName" placeholder="例: A-1" required>
+                </label>
+
+                <label>
+                  管理コード（短縮）
+                  <input type="text" id="plotCode" placeholder="例: K-01" maxlength="32">
+                </label>
+
+                <label>
+                  メモ
+                  <input type="text" id="plotNote" placeholder="例: 南側の斜面区画">
+                </label>
+
+                <div class="form-actions form-actions--tight">
+                  <button type="submit" class="button button--primary button--small">区画を保存</button>
+                  <button type="button" class="button button--ghost button--small" id="plotResetButton">クリア</button>
+                </div>
+              </form>
+
+              <div id="plotList" class="master-list"></div>
+            </section>
+
+            <section class="master-card">
+              <div class="master-card__header">
+                <h3>品種マスター</h3>
+                <span class="chip chip--soft" id="varietyCount">0件</span>
+              </div>
+
+              <form id="varietyForm" class="master-form">
+                <input type="hidden" id="varietyId">
+
+                <label>
+                  品種名
+                  <input type="text" id="varietyName" placeholder="例: ふじ" required>
+                </label>
+
+                <label>
+                  メモ
+                  <input type="text" id="varietyNote" placeholder="例: 晩生の主力品種">
+                </label>
+
+                <div class="form-actions form-actions--tight">
+                  <button type="submit" class="button button--primary button--small">品種を保存</button>
+                  <button type="button" class="button button--ghost button--small" id="varietyResetButton">クリア</button>
+                </div>
+              </form>
+
+              <div id="varietyList" class="master-list"></div>
+            </section>
+
+            <section class="master-card">
+              <div class="master-card__header">
+                <h3>グループマスター</h3>
+                <span class="chip chip--soft" id="groupMasterCount">0件</span>
+              </div>
+
+              <form id="groupForm" class="master-form">
+                <input type="hidden" id="groupId">
+
+                <div class="form-row">
+                  <label>
+                    グループ名
+                    <input type="text" id="groupName" placeholder="例: 第1班" required>
+                  </label>
+
+                  <label>
+                    表示順
+                    <input type="number" id="groupSortOrder" min="1" step="1" placeholder="例: 1" required>
+                  </label>
+                </div>
+
+                <label>
+                  説明
+                  <input type="text" id="groupDescription" placeholder="例: 摘果中心の班">
+                </label>
+
+                <label class="checkbox-field">
+                  <input type="checkbox" id="groupIsActive">
+                  <span>有効にする</span>
+                </label>
+
+                <div class="form-actions form-actions--tight">
+                  <button type="submit" class="button button--primary button--small">グループを保存</button>
+                  <button type="button" class="button button--ghost button--small" id="groupResetButton">クリア</button>
+                </div>
+              </form>
+
+              <div id="groupList" class="master-list"></div>
+            </section>
+
+            <section class="master-card">
+              <div class="master-card__header">
+                <h3>固定チームセット</h3>
+                <span class="chip chip--soft" id="teamSetCount">0件</span>
+              </div>
+
+              <form id="teamSetForm" class="master-form">
+                <input type="hidden" id="teamSetId">
+
+                <label>
+                  セット名
+                  <input type="text" id="teamSetName" placeholder="例: 剪定班A" required>
+                </label>
+
+                <label>
+                  作業グループ
+                  <select id="teamSetGroupId" required></select>
+                </label>
+
+                <div class="worker-picker">
+                  <div class="worker-picker__header">
+                    <span>セット作業者</span>
+                    <strong id="teamSetSelectedCount">0人選択</strong>
+                  </div>
+                  <p class="worker-picker__hint" id="teamSetWorkerHint">セットに含める作業者を複数選択してください。</p>
+                  <div id="teamSetWorkerList" class="worker-selection-list" aria-live="polite"></div>
+                </div>
+
+                <div class="form-actions form-actions--tight">
+                  <button type="submit" class="button button--primary button--small">セットを保存</button>
+                  <button type="button" class="button button--ghost button--small" id="teamSetResetButton">クリア</button>
+                </div>
+              </form>
+
+              <div id="teamSetList" class="master-list"></div>
+            </section>
+
+            <section class="master-card master-card--worker">
+              <div class="master-card__header">
+                <h3>作業者マスター</h3>
+                <span class="chip chip--soft" id="workerMasterCount">0件</span>
+              </div>
+
+              <form id="workerForm" class="master-form">
+                <input type="hidden" id="workerId">
+
+                <div class="form-row">
+                  <label>
+                    氏名
+                    <input type="text" id="workerFullName" placeholder="例: 田中 一郎" required>
+                  </label>
+
+                  <label>
+                    表示名
+                    <input type="text" id="workerDisplayName" placeholder="例: 一郎" required>
+                  </label>
+                </div>
+
+                <div class="form-row form-row--triple">
+                  <label>
+                    所属区分
+                    <select id="workerCategory" required>
+                      <option value="">選択してください</option>
+                      <option value="家族">家族</option>
+                      <option value="社員">社員</option>
+                      <option value="パート">パート</option>
+                      <option value="その他">その他</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    時給単価
+                    <input type="number" id="workerHourlyRate" min="0" step="1" placeholder="例: 1200" required>
+                  </label>
+                </div>
+
+                <label class="checkbox-field">
+                  <input type="checkbox" id="workerIsActive">
+                  <span>有効にする</span>
+                </label>
+
+                <div class="form-actions form-actions--tight">
+                  <button type="submit" class="button button--primary button--small">作業者を保存</button>
+                  <button type="button" class="button button--ghost button--small" id="workerResetButton">クリア</button>
+                </div>
+              </form>
+
+              <div id="workerList" class="master-list"></div>
+            </section>
+
+            <section class="master-card master-card--worker">
+              <div class="master-card__header">
+                <h3>作業者所属グループ設定</h3>
+                <span class="chip chip--soft" id="membershipCount">0件</span>
+              </div>
+
+              <form id="membershipForm" class="master-form">
+                <label>
+                  作業者
+                  <select id="membershipWorkerId" required></select>
+                </label>
+
+                <div class="worker-picker">
+                  <div class="worker-picker__header">
+                    <span>所属グループ</span>
+                    <strong id="membershipSelectedCount">0件選択</strong>
+                  </div>
+                  <p class="worker-picker__hint" id="membershipHint">所属させるグループを複数選択できます。</p>
+                  <div id="membershipGroupList" class="worker-selection-list" aria-live="polite"></div>
+                </div>
+
+                <label>
+                  主所属グループ
+                  <select id="membershipPrimaryGroupId" required></select>
+                </label>
+
+                <div class="form-actions form-actions--tight">
+                  <button type="submit" class="button button--primary button--small">所属設定を保存</button>
+                  <button type="button" class="button button--ghost button--small" id="membershipResetButton">クリア</button>
+                </div>
+              </form>
+
+              <div id="membershipList" class="master-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel qr-panel">
+          <div class="panel__header">
+            <div>
+              <p class="panel__eyebrow">QR管理</p>
+              <h2>園地・区画QRコード一覧</h2>
+            </div>
+            <span class="chip chip--leaf">保存・印刷に対応</span>
+          </div>
+
+          <p class="panel__lead">
+            園地ID・区画IDを使った重複しない識別子でQRコードを表示します。名称変更後もIDが同じなら同じQRを使えます。
+          </p>
+
+          <div class="qr-print-actions">
+            <button type="button" class="button button--accent" id="openOrchardQrSheetButton">園地札用QRラベル印刷</button>
+            <button type="button" class="button button--accent" id="openPlotQrSheetButton">区画札用QRラベル印刷</button>
+            <button type="button" class="button button--primary" id="openOrchardQrSimpleSheetButton">園地札用QR簡易ラベル印刷</button>
+            <button type="button" class="button button--primary" id="openPlotQrSimpleSheetButton">区画札用QR簡易ラベル印刷</button>
+          </div>
+          <div class="qr-filter-grid">
+            <label>
+              園地名検索
+              <input type="search" id="qrFilterOrchard" placeholder="例: 北園地">
+            </label>
+            <label>
+              区画名検索
+              <input type="search" id="qrFilterPlot" placeholder="例: A-1">
+            </label>
+            <label>
+              品種検索
+              <input type="search" id="qrFilterVariety" placeholder="例: ふじ">
+            </label>
+            <label>
+              管理コード検索
+              <input type="search" id="qrFilterCode" placeholder="例: O-01 / K-01">
+            </label>
+            <label>
+              表示種別
+              <select id="qrFilterType">
+                <option value="all">すべて表示</option>
+                <option value="orchard">園地QRのみ</option>
+                <option value="plot">区画QRのみ</option>
+              </select>
+            </label>
+          </div>
+          <p class="form-hint">園地札用と区画札用を分けてA4印刷できます。簡易ラベルは管理コードを最優先で大きく表示し、未設定時は警告を表示します。内部識別IDは小さく表示または印刷時に非表示化されます。</p>
+          <div id="qrCodeList" class="qr-code-list"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="qrScannerDialog" class="qr-scanner-dialog">
+    <form method="dialog" class="qr-scanner">
+      <div class="qr-scanner__header">
+        <h3>QRコード読み取り</h3>
+        <button type="button" class="button button--ghost button--small" id="qrScannerCloseButton">閉じる</button>
+      </div>
+      <video id="qrScannerVideo" class="qr-scanner__video" autoplay playsinline muted></video>
+      <p class="form-hint" id="qrScannerMessage">カメラを起動してQRコードを読み取ってください。</p>
+      <label>
+        手入力（カメラが使えない場合）
+        <input type="text" id="qrManualInput" placeholder="例: capple-location:v1:orchard-north または capple-location:v1:orchard-north:plot-north-a1">
+      </label>
+      <div class="form-actions form-actions--tight">
+        <button type="button" class="button button--primary" id="qrManualApplyButton">このコードを適用</button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="recordCardTemplate">
+    <article class="record-card">
+      <div class="record-card__top">
+        <div>
+          <p class="record-card__date"></p>
+          <h3 class="record-card__task"></h3>
+        </div>
+        <span class="chip record-card__orchard"></span>
+      </div>
+
+      <dl class="record-meta">
+        <div>
+          <dt>区画</dt>
+          <dd class="record-card__plot"></dd>
+        </div>
+        <div>
+          <dt>品種</dt>
+          <dd class="record-card__variety"></dd>
+        </div>
+        <div>
+          <dt>作業時間</dt>
+          <dd class="record-card__hours"></dd>
+        </div>
+        <div>
+          <dt>作業人数</dt>
+          <dd class="record-card__workers"></dd>
+        </div>
+        <div>
+          <dt>延べ人時</dt>
+          <dd class="record-card__person-hours"></dd>
+        </div>
+        <div>
+          <dt>概算人件費</dt>
+          <dd class="record-card__labor-cost"></dd>
+        </div>
+        <div>
+          <dt>作業者</dt>
+          <dd class="record-card__worker-name"></dd>
+        </div>
+        <div>
+          <dt>選択作業者一覧</dt>
+          <dd class="record-card__worker-list"></dd>
+        </div>
+        <div>
+          <dt>グループ</dt>
+          <dd class="record-card__group"></dd>
+        </div>
+        <div>
+          <dt>使用固定チームセット</dt>
+          <dd class="record-card__team-set"></dd>
+        </div>
+        <div>
+          <dt>所属区分</dt>
+          <dd class="record-card__worker-category"></dd>
+        </div>
+        <div>
+          <dt>時給単価</dt>
+          <dd class="record-card__worker-rate"></dd>
+        </div>
+        <div>
+          <dt>開始 / 終了</dt>
+          <dd class="record-card__time-range"></dd>
+        </div>
+        <div>
+          <dt>天気</dt>
+          <dd class="record-card__weather"></dd>
+        </div>
+        <div>
+          <dt>資材</dt>
+          <dd class="record-card__materials"></dd>
+        </div>
+      </dl>
+
+      <p class="record-card__notes"></p>
+
+      <div class="record-card__actions">
+        <button type="button" class="button button--small button--ghost record-edit">編集</button>
+        <button type="button" class="button button--small button--danger record-delete">削除</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
