@@ -254,7 +254,14 @@
           <div id="teamPlanList" class="master-list"></div>
         </section>
 
-        <section class="panel list-panel" id="recordListPanel">
+        <nav class="mobile-section-tabs" id="mobileSectionTabs" aria-label="スマホ画面表示切替">
+          <button type="button" class="mobile-section-tabs__button is-active" data-mobile-target="recordListPanel" aria-pressed="true">記録一覧</button>
+          <button type="button" class="mobile-section-tabs__button" data-mobile-target="analyticsPanel" aria-pressed="false">集計 / レポート</button>
+          <button type="button" class="mobile-section-tabs__button" data-mobile-target="masterPanel" aria-pressed="false">マスター管理</button>
+          <button type="button" class="mobile-section-tabs__button" data-mobile-target="qrPanel" aria-pressed="false">QR / 印刷</button>
+        </nav>
+
+        <section class="panel list-panel" id="recordListPanel" data-mobile-tab-panel="true">
           <div class="panel__header">
             <div>
               <p class="panel__eyebrow">記録管理</p>
@@ -356,7 +363,7 @@
           <div id="recordList" class="record-list" aria-live="polite"></div>
         </section>
 
-        <section class="panel analytics-panel" id="analyticsPanel">
+        <section class="panel analytics-panel" id="analyticsPanel" data-mobile-tab-panel="true">
           <div class="panel__header">
             <div>
               <p class="panel__eyebrow">集計</p>
@@ -660,7 +667,7 @@
           </div>
         </section>
 
-        <section class="panel master-panel">
+        <section class="panel master-panel" id="masterPanel" data-mobile-tab-panel="true">
           <div class="panel__header">
             <div>
               <p class="panel__eyebrow">マスター管理</p>
@@ -967,7 +974,7 @@
           </div>
         </section>
 
-        <section class="panel qr-panel">
+        <section class="panel qr-panel" id="qrPanel" data-mobile-tab-panel="true">
           <div class="panel__header">
             <div>
               <p class="panel__eyebrow">QR管理</p>

@@ -229,6 +229,16 @@ const recordFormPanel = document.getElementById("recordFormPanel");
 const teamPlanPanel = document.getElementById("teamPlanPanel");
 const recordListPanel = document.getElementById("recordListPanel");
 const analyticsPanel = document.getElementById("analyticsPanel");
+const mobileSectionTabs = document.getElementById("mobileSectionTabs");
+const mobileSectionTabButtons = mobileSectionTabs
+  ? Array.from(mobileSectionTabs.querySelectorAll("[data-mobile-target]"))
+  : [];
+const mobileTabPanelIds = ["recordListPanel", "analyticsPanel", "masterPanel", "qrPanel"];
+const mobileTabPanels = mobileTabPanelIds
+  .map((panelId) => document.getElementById(panelId))
+  .filter(Boolean);
+const MOBILE_LAYOUT_BREAKPOINT = 430;
+let activeMobileSectionId = mobileTabPanelIds[0];
 const shortcutRecordFormButton = document.getElementById("shortcutRecordFormButton");
 const shortcutTeamPlanButton = document.getElementById("shortcutTeamPlanButton");
 const shortcutDailyReportButton = document.getElementById("shortcutDailyReportButton");
@@ -2425,7 +2435,63 @@ function scrollToElement(element) {
   element.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+function isCompactMobileLayout() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(`(max-width: ${MOBILE_LAYOUT_BREAKPOINT}px)`).matches;
+}
+
+function setMobileSectionActive(panelId, options = {}) {
+  if (!panelId || !mobileTabPanels.length || !mobileSectionTabButtons.length) return;
+  if (!mobileTabPanels.some((panel) => panel.id === panelId)) return;
+
+  const { scrollIntoView = false } = options;
+  const mobileLayout = isCompactMobileLayout();
+  activeMobileSectionId = panelId;
+
+  mobileSectionTabButtons.forEach((button) => {
+    const isActive = button.dataset.mobileTarget === panelId;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+
+  mobileTabPanels.forEach((panel) => {
+    if (!mobileLayout) {
+      panel.hidden = false;
+      return;
+    }
+    panel.hidden = panel.id !== panelId;
+  });
+
+  if (mobileLayout && scrollIntoView) {
+    const activePanel = document.getElementById(panelId);
+    if (activePanel) {
+      scrollToElement(activePanel);
+    }
+  }
+}
+
+function applyMobileSectionLayout() {
+  if (!mobileTabPanels.length || !mobileSectionTabButtons.length) return;
+  const mobileLayout = isCompactMobileLayout();
+  if (mobileSectionTabs) {
+    mobileSectionTabs.classList.toggle("is-mobile", mobileLayout);
+  }
+  if (!mobileLayout) {
+    mobileTabPanels.forEach((panel) => {
+      panel.hidden = false;
+    });
+    return;
+  }
+  const initialId = mobileTabPanels.some((panel) => panel.id === activeMobileSectionId)
+    ? activeMobileSectionId
+    : mobileTabPanels[0].id;
+  setMobileSectionActive(initialId);
+}
+
 function moveToShortcut(targetPanel, focusElement) {
+  if (targetPanel?.id && mobileTabPanels.some((panel) => panel.id === targetPanel.id)) {
+    setMobileSectionActive(targetPanel.id);
+  }
   scrollToElement(targetPanel);
   if (!focusElement) return;
   window.setTimeout(() => {
@@ -5492,6 +5558,16 @@ if (shortcutQrScanButton) {
     window.setTimeout(() => qrScanButton.click(), 280);
   });
 }
+if (mobileSectionTabButtons.length) {
+  mobileSectionTabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetId = button.dataset.mobileTarget;
+      if (!targetId) return;
+      setMobileSectionActive(targetId, { scrollIntoView: true });
+    });
+  });
+  window.addEventListener("resize", applyMobileSectionLayout);
+}
 if (dailyReportPreviewButton) {
   dailyReportPreviewButton.addEventListener("click", openDailyReportWindow);
 }
@@ -6032,6 +6108,7 @@ function registerPwaServiceWorker() {
 
 registerPwaServiceWorker();
 applyPlatformUiHints();
+applyMobileSectionLayout();
 updateTimeHint();
 resetGroupForm();
 resetTeamSetForm();
