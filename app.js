@@ -6021,7 +6021,10 @@ function registerPwaServiceWorker() {
   window.addEventListener("load", () => {
     const swUrl = new URL("./sw.js", window.location.href);
     const scopeUrl = new URL("./", window.location.href);
-    navigator.serviceWorker.register(swUrl.href, { scope: scopeUrl.pathname }).catch((error) => {
+    navigator.serviceWorker.register(swUrl.href, {
+      scope: scopeUrl.pathname,
+      updateViaCache: "none"
+    }).catch((error) => {
       console.error("Service Workerの登録に失敗しました。", error);
     });
   });

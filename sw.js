@@ -1,4 +1,4 @@
-const CACHE_NAME = "taiseien-pwa-v2";
+const CACHE_NAME = "taiseien-pwa-v3";
 const SW_URL = new URL(self.location.href);
 const BASE_PATH = SW_URL.pathname.slice(0, SW_URL.pathname.lastIndexOf("/") + 1);
 const APP_BASE_URL = `${SW_URL.origin}${BASE_PATH}`;
@@ -17,6 +17,27 @@ const APP_SHELL = [
   appUrl("icons/icon-192.png"),
   appUrl("icons/icon-512.png")
 ];
+
+const NETWORK_FIRST_PATHS = new Set(
+  [
+    appUrl(""),
+    appUrl("index.html"),
+    appUrl("style.css"),
+    appUrl("app.js"),
+    appUrl("manifest.json")
+  ].map((url) => new URL(url).pathname)
+);
+
+function shouldUseNetworkFirstForAsset(request) {
+  const requestUrl = new URL(request.url);
+  return NETWORK_FIRST_PATHS.has(requestUrl.pathname);
+}
+
+async function putInCache(request, response) {
+  if (!response || !response.ok) return;
+  const cache = await caches.open(CACHE_NAME);
+  await cache.put(request, response.clone());
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
@@ -41,10 +62,7 @@ self.addEventListener("activate", (event) => {
 async function networkFirstForNavigation(request) {
   try {
     const networkResponse = await fetch(request);
-    if (networkResponse && networkResponse.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, networkResponse.clone());
-    }
+    await putInCache(request, networkResponse);
     return networkResponse;
   } catch (error) {
     return (
@@ -56,16 +74,26 @@ async function networkFirstForNavigation(request) {
   }
 }
 
+async function networkFirstForAsset(request) {
+  try {
+    const networkResponse = await fetch(request);
+    await putInCache(request, networkResponse);
+    return networkResponse;
+  } catch (error) {
+    return (
+      (await caches.match(request, { ignoreSearch: true })) ||
+      Response.error()
+    );
+  }
+}
+
 async function cacheFirstForStaticAssets(request) {
   const cached = await caches.match(request, { ignoreSearch: true });
   if (cached) return cached;
 
   try {
     const response = await fetch(request);
-    if (response && response.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, response.clone());
-    }
+    await putInCache(request, response);
     return response;
   } catch (error) {
     if (request.destination === "document") {
@@ -88,6 +116,11 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(networkFirstForNavigation(request));
+    return;
+  }
+
+  if (shouldUseNetworkFirstForAsset(request)) {
+    event.respondWith(networkFirstForAsset(request));
     return;
   }
 
