@@ -209,6 +209,7 @@ const backupButton = document.getElementById("backupButton");
 const restoreButton = document.getElementById("restoreButton");
 const restoreInput = document.getElementById("restoreInput");
 const restoreModeInput = document.getElementById("restoreMode");
+const resetAllDataButton = document.getElementById("resetAllDataButton");
 const backupTimestamp = document.getElementById("backupTimestamp");
 const backupMessage = document.getElementById("backupMessage");
 const backupOrchardCount = document.getElementById("backupOrchardCount");
@@ -225,26 +226,50 @@ const activeWorkerCount = document.getElementById("activeWorkerCount");
 const todayTotalPersonHours = document.getElementById("todayTotalPersonHours");
 const todayTotalLaborCost = document.getElementById("todayTotalLaborCost");
 const todayTeamPlanCount = document.getElementById("todayTeamPlanCount");
+const homePanel = document.getElementById("homePanel");
 const recordFormPanel = document.getElementById("recordFormPanel");
 const teamPlanPanel = document.getElementById("teamPlanPanel");
 const recordListPanel = document.getElementById("recordListPanel");
 const analyticsPanel = document.getElementById("analyticsPanel");
-const mobileSectionTabs = document.getElementById("mobileSectionTabs");
-const mobileSectionTabButtons = mobileSectionTabs
-  ? Array.from(mobileSectionTabs.querySelectorAll("[data-mobile-target]"))
+const masterPanel = document.getElementById("masterPanel");
+const qrPanel = document.getElementById("qrPanel");
+const settingsTitle = document.getElementById("settingsTitle");
+const settingsLead = document.getElementById("settingsLead");
+const settingsTopMenu = document.getElementById("settingsTopMenu");
+const settingsPageNav = document.getElementById("settingsPageNav");
+const settingsMasterGrid = document.getElementById("settingsMasterGrid");
+const settingsSectionCards = Array.from(document.querySelectorAll("[data-settings-section]"));
+const settingsMenuButtons = Array.from(document.querySelectorAll("[data-settings-target]"));
+const settingsNavButtons = Array.from(document.querySelectorAll("[data-settings-nav]"));
+const settingsMenuCompanyButton = document.getElementById("settingsMenuCompanyButton");
+const bottomNav = document.getElementById("bottomNav");
+const bottomNavButtons = bottomNav
+  ? Array.from(bottomNav.querySelectorAll("[data-app-view]"))
   : [];
-const mobileTabPanelIds = ["recordListPanel", "analyticsPanel", "masterPanel", "qrPanel"];
-const mobileTabPanels = mobileTabPanelIds
-  .map((panelId) => document.getElementById(panelId))
-  .filter(Boolean);
-const MOBILE_LAYOUT_BREAKPOINT = 430;
-let activeMobileSectionId = mobileTabPanelIds[0];
+const appViewPanelMap = {
+  home: ["homePanel"],
+  record: ["recordFormPanel"],
+  team: ["teamPlanPanel"],
+  records: ["recordListPanel"],
+  summary: ["analyticsPanel"],
+  settings: ["masterPanel", "qrPanel"]
+};
+const appViewKeys = Object.keys(appViewPanelMap);
+const appViewPanels = Array.from(
+  new Set(
+    appViewKeys
+      .flatMap((viewKey) => appViewPanelMap[viewKey])
+      .map((panelId) => document.getElementById(panelId))
+      .filter(Boolean)
+  )
+);
+let activeAppViewKey = "home";
+let activeSettingsSection = "top";
 const shortcutRecordFormButton = document.getElementById("shortcutRecordFormButton");
 const shortcutTeamPlanButton = document.getElementById("shortcutTeamPlanButton");
 const shortcutDailyReportButton = document.getElementById("shortcutDailyReportButton");
 const shortcutMonthlyReportButton = document.getElementById("shortcutMonthlyReportButton");
 const shortcutAnnualReportButton = document.getElementById("shortcutAnnualReportButton");
-const shortcutQrScanButton = document.getElementById("shortcutQrScanButton");
 const cardTemplate = document.getElementById("recordCardTemplate");
 const teamPlanForm = document.getElementById("teamPlanForm");
 const teamPlanIdInput = document.getElementById("teamPlanId");
@@ -2435,70 +2460,203 @@ function scrollToElement(element) {
   element.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function isCompactMobileLayout() {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia(`(max-width: ${MOBILE_LAYOUT_BREAKPOINT}px)`).matches;
+function getAppViewForPanelId(panelId) {
+  if (!panelId) return null;
+  const matchedView = appViewKeys.find((viewKey) => appViewPanelMap[viewKey]?.includes(panelId));
+  return matchedView || null;
 }
 
-function setMobileSectionActive(panelId, options = {}) {
-  if (!panelId || !mobileTabPanels.length || !mobileSectionTabButtons.length) return;
-  if (!mobileTabPanels.some((panel) => panel.id === panelId)) return;
+const settingsSectionMeta = {
+  top: {
+    title: "設定",
+    lead: "設定トップから必要な項目だけ開いてください。"
+  },
+  company: {
+    title: "会社設定",
+    lead: "決算締月・決算締日を設定します。"
+  },
+  orchard: {
+    title: "園地設定",
+    lead: "園地、区画、品種を管理します。"
+  },
+  worker: {
+    title: "作業者設定",
+    lead: "グループ、固定チームセット、作業者情報を管理します。"
+  },
+  backup: {
+    title: "バックアップ",
+    lead: "件数を確認してJSONバックアップを保存できます。"
+  },
+  advanced: {
+    title: "くわしい設定",
+    lead: "CSV、復元、初期化など管理者向け操作です。"
+  },
+  qr: {
+    title: "QRコード",
+    lead: "QR一覧・印刷を管理します。"
+  }
+};
 
-  const { scrollIntoView = false } = options;
-  const mobileLayout = isCompactMobileLayout();
-  activeMobileSectionId = panelId;
+const settingsSectionCardMap = {
+  top: [],
+  company: ["company"],
+  orchard: ["orchard", "plot", "variety"],
+  worker: ["group", "teamSet", "worker", "membership"],
+  backup: ["backup"],
+  advanced: ["advanced"]
+};
 
-  mobileSectionTabButtons.forEach((button) => {
-    const isActive = button.dataset.mobileTarget === panelId;
-    button.classList.toggle("is-active", isActive);
-    button.setAttribute("aria-pressed", String(isActive));
+function getSettingsSectionKey(sectionKey) {
+  return Object.prototype.hasOwnProperty.call(settingsSectionMeta, sectionKey) ? sectionKey : "top";
+}
+
+function getSettingsSectionFocus(sectionKey) {
+  switch (sectionKey) {
+    case "company":
+      return fiscalClosingMonthInput;
+    case "orchard":
+      return orchardNameInput;
+    case "worker":
+      return workerFullNameInput;
+    case "backup":
+      return backupButton;
+    case "advanced":
+      return exportButton;
+    case "qr":
+      return qrFilterOrchardInput;
+    default:
+      return settingsMenuCompanyButton;
+  }
+}
+
+function focusElementLater(element) {
+  if (!element || typeof element.focus !== "function") return;
+  window.setTimeout(() => {
+    element.focus({ preventScroll: true });
+  }, 260);
+}
+
+function applySettingsSectionState() {
+  const inSettingsView = activeAppViewKey === "settings";
+  const normalizedSection = getSettingsSectionKey(activeSettingsSection);
+  activeSettingsSection = normalizedSection;
+  const isQrSection = normalizedSection === "qr";
+
+  if (masterPanel) {
+    masterPanel.hidden = !inSettingsView || isQrSection;
+  }
+  if (qrPanel) {
+    qrPanel.hidden = !inSettingsView || !isQrSection;
+  }
+  if (settingsTopMenu) {
+    settingsTopMenu.hidden = !inSettingsView || isQrSection || normalizedSection !== "top";
+  }
+  if (settingsPageNav) {
+    settingsPageNav.hidden = !inSettingsView || isQrSection || normalizedSection === "top";
+  }
+  if (settingsMasterGrid) {
+    const showMasterGrid = normalizedSection === "company" || normalizedSection === "orchard" || normalizedSection === "worker";
+    settingsMasterGrid.hidden = !inSettingsView || isQrSection || !showMasterGrid;
+  }
+  if (settingsTitle && !isQrSection) {
+    settingsTitle.textContent = settingsSectionMeta[normalizedSection].title;
+  }
+  if (settingsLead && !isQrSection) {
+    settingsLead.textContent = settingsSectionMeta[normalizedSection].lead;
+  }
+
+  const visibleSectionKeys = new Set(settingsSectionCardMap[normalizedSection] || []);
+  settingsSectionCards.forEach((card) => {
+    const sectionKey = card.dataset.settingsSection;
+    card.hidden = !inSettingsView || isQrSection || !visibleSectionKeys.has(sectionKey);
   });
 
-  mobileTabPanels.forEach((panel) => {
-    if (!mobileLayout) {
-      panel.hidden = false;
-      return;
+  if (document?.body) {
+    if (inSettingsView) {
+      document.body.dataset.settingsSection = normalizedSection;
+    } else {
+      delete document.body.dataset.settingsSection;
     }
-    panel.hidden = panel.id !== panelId;
+  }
+}
+
+function setSettingsSection(sectionKey, options = {}) {
+  const { scrollIntoView = true, focusElement = null, switchToSettingsView = false } = options;
+  const normalizedSection = getSettingsSectionKey(sectionKey);
+  activeSettingsSection = normalizedSection;
+  const resolvedFocus = focusElement || getSettingsSectionFocus(normalizedSection);
+
+  if (switchToSettingsView && activeAppViewKey !== "settings") {
+    setAppView("settings", { scrollIntoView, focusElement: resolvedFocus });
+    return;
+  }
+
+  if (activeAppViewKey !== "settings") return;
+
+  applySettingsSectionState();
+  if (scrollIntoView) {
+    const settingsPanel = normalizedSection === "qr" ? qrPanel : masterPanel;
+    if (settingsPanel) {
+      scrollToElement(settingsPanel);
+    }
+  }
+  focusElementLater(resolvedFocus);
+}
+
+function setAppView(viewKey, options = {}) {
+  if (!viewKey || !appViewPanelMap[viewKey] || !appViewPanels.length) return;
+  const { scrollIntoView = true, focusElement = null } = options;
+  activeAppViewKey = viewKey;
+
+  appViewPanels.forEach((panel) => {
+    panel.hidden = !appViewPanelMap[viewKey].includes(panel.id);
   });
 
-  if (mobileLayout && scrollIntoView) {
-    const activePanel = document.getElementById(panelId);
+  if (bottomNavButtons.length) {
+    bottomNavButtons.forEach((button) => {
+      const isActive = button.dataset.appView === viewKey;
+      button.classList.toggle("is-active", isActive);
+      if (isActive) {
+        button.setAttribute("aria-current", "page");
+      } else {
+        button.removeAttribute("aria-current");
+      }
+    });
+  }
+  if (document?.body) {
+    document.body.dataset.currentView = viewKey;
+  }
+
+  if (viewKey === "settings") {
+    applySettingsSectionState();
+  } else if (document?.body) {
+    delete document.body.dataset.settingsSection;
+  }
+
+  if (scrollIntoView) {
+    let activePanel = null;
+    if (viewKey === "settings") {
+      activePanel = activeSettingsSection === "qr" ? qrPanel : masterPanel;
+    }
+    if (!activePanel) {
+      const firstPanelId = appViewPanelMap[viewKey][0];
+      activePanel = document.getElementById(firstPanelId);
+    }
     if (activePanel) {
       scrollToElement(activePanel);
     }
   }
-}
 
-function applyMobileSectionLayout() {
-  if (!mobileTabPanels.length || !mobileSectionTabButtons.length) return;
-  const mobileLayout = isCompactMobileLayout();
-  if (mobileSectionTabs) {
-    mobileSectionTabs.classList.toggle("is-mobile", mobileLayout);
-  }
-  if (!mobileLayout) {
-    mobileTabPanels.forEach((panel) => {
-      panel.hidden = false;
-    });
-    return;
-  }
-  const initialId = mobileTabPanels.some((panel) => panel.id === activeMobileSectionId)
-    ? activeMobileSectionId
-    : mobileTabPanels[0].id;
-  setMobileSectionActive(initialId);
+  focusElementLater(focusElement);
 }
 
 function moveToShortcut(targetPanel, focusElement) {
-  if (targetPanel?.id && mobileTabPanels.some((panel) => panel.id === targetPanel.id)) {
-    setMobileSectionActive(targetPanel.id);
+  const targetViewKey = getAppViewForPanelId(targetPanel?.id);
+  if (targetViewKey) {
+    setAppView(targetViewKey, { scrollIntoView: true, focusElement });
+    return;
   }
   scrollToElement(targetPanel);
-  if (!focusElement) return;
-  window.setTimeout(() => {
-    if (typeof focusElement.focus === "function") {
-      focusElement.focus({ preventScroll: true });
-    }
-  }, 260);
 }
 
 function getFilteredRecords() {
@@ -2542,7 +2700,7 @@ function fillRecordForm(record) {
   formMode.textContent = "編集中";
   renderWorkerSelectionList();
   updateTimeHint();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  moveToShortcut(recordFormPanel, workDateInput);
 }
 
 function resetRecordForm() {
@@ -3133,6 +3291,23 @@ function handleRestoreFile(event) {
     }
   };
   reader.readAsText(file, "utf-8");
+}
+
+function resetAllDataToSeedState() {
+  const firstConfirm = window.confirm("初期データに戻します。現在のデータは失われます。\n\n先にバックアップ保存しましたか？");
+  if (!firstConfirm) return;
+  const secondConfirm = window.confirm("本当に初期データに戻しますか？");
+  if (!secondConfirm) return;
+
+  const resetState = hydrateWorkerRelations(createSeedState());
+  applyState(resetState);
+  const counts = getStateCounts(resetState);
+  renderBackupSummary(counts);
+  setBackupMessage("初期データに戻しました。必要に応じて再設定してください。");
+  localStorage.removeItem(LAST_BACKUP_AT_KEY);
+  updateBackupTimestamp(localStorage.getItem(LAST_BACKUP_AT_KEY));
+  setSettingsSection("backup", { switchToSettingsView: true, scrollIntoView: true, focusElement: backupButton });
+  window.alert(`初期データへの復元が完了しました。\n\n${formatCountsSummary(counts)}`);
 }
 
 function renderBackupPanel() {
@@ -5534,39 +5709,66 @@ if (shortcutDailyReportButton) {
       dailyReportDateInput.value = getTodayString();
     }
     moveToShortcut(recordListPanel, dailyReportDateInput);
-    openDailyReportWindow();
   });
 }
 if (shortcutMonthlyReportButton) {
   shortcutMonthlyReportButton.addEventListener("click", () => {
-    if (monthlyReportMonthInput && !monthlyReportMonthInput.value) {
-      monthlyReportMonthInput.value = getTodayString().slice(0, 7);
-    }
-    moveToShortcut(recordListPanel, monthlyReportMonthInput);
-    openMonthlyReportWindow();
+    setSettingsSection("company", {
+      switchToSettingsView: true,
+      scrollIntoView: true,
+      focusElement: fiscalClosingMonthInput
+    });
   });
 }
 if (shortcutAnnualReportButton) {
   shortcutAnnualReportButton.addEventListener("click", () => {
-    moveToShortcut(analyticsPanel, annualReportSortMetricInput);
-    openAnnualReportWindow();
+    moveToShortcut(analyticsPanel, comparisonPeriodInput);
   });
 }
-if (shortcutQrScanButton) {
-  shortcutQrScanButton.addEventListener("click", () => {
-    moveToShortcut(recordFormPanel, qrScanButton);
-    window.setTimeout(() => qrScanButton.click(), 280);
-  });
-}
-if (mobileSectionTabButtons.length) {
-  mobileSectionTabButtons.forEach((button) => {
+if (settingsMenuButtons.length) {
+  settingsMenuButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      const targetId = button.dataset.mobileTarget;
-      if (!targetId) return;
-      setMobileSectionActive(targetId, { scrollIntoView: true });
+      const targetSection = button.dataset.settingsTarget;
+      setSettingsSection(targetSection, {
+        switchToSettingsView: true,
+        scrollIntoView: true
+      });
     });
   });
-  window.addEventListener("resize", applyMobileSectionLayout);
+}
+if (settingsNavButtons.length) {
+  settingsNavButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = button.dataset.settingsNav;
+      if (target === "home") {
+        setAppView("home", { scrollIntoView: true, focusElement: shortcutRecordFormButton });
+        return;
+      }
+      setSettingsSection("top", { switchToSettingsView: true, scrollIntoView: true, focusElement: settingsMenuCompanyButton });
+    });
+  });
+}
+if (bottomNavButtons.length) {
+  const viewFocusMap = {
+    record: workDateInput,
+    team: teamPlanDateInput,
+    records: orchardFilterInput,
+    summary: comparisonPeriodInput,
+    settings: settingsMenuCompanyButton
+  };
+  bottomNavButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetView = button.dataset.appView;
+      if (!targetView || !appViewPanelMap[targetView]) return;
+      if (targetView === "settings") {
+        setSettingsSection("top", { scrollIntoView: false, focusElement: settingsMenuCompanyButton });
+      }
+      setAppView(targetView, {
+        scrollIntoView: true,
+        focusElement: viewFocusMap[targetView] || null
+      });
+    });
+  });
 }
 if (dailyReportPreviewButton) {
   dailyReportPreviewButton.addEventListener("click", openDailyReportWindow);
@@ -5657,6 +5859,9 @@ if (qrFilterTypeInput) {
 backupButton.addEventListener("click", downloadJsonBackup);
 restoreButton.addEventListener("click", () => restoreInput.click());
 restoreInput.addEventListener("change", handleRestoreFile);
+if (resetAllDataButton) {
+  resetAllDataButton.addEventListener("click", resetAllDataToSeedState);
+}
 comparisonPeriodInput.addEventListener("change", renderCumulativeComparison);
 comparisonSortMetricInput.addEventListener("change", renderCumulativeComparison);
 comparisonSortOrderInput.addEventListener("change", renderCumulativeComparison);
@@ -5980,6 +6185,7 @@ teamPlanApplyButton.addEventListener("click", () => {
     updatedAt: new Date().toISOString()
   };
   applyTeamPlanToRecordForm(plan);
+  moveToShortcut(recordFormPanel, workDateInput);
 });
 
 teamPlanResetButton.addEventListener("click", () => {
@@ -6108,7 +6314,6 @@ function registerPwaServiceWorker() {
 
 registerPwaServiceWorker();
 applyPlatformUiHints();
-applyMobileSectionLayout();
 updateTimeHint();
 resetGroupForm();
 resetTeamSetForm();
@@ -6116,3 +6321,4 @@ resetWorkerForm();
 resetMembershipForm();
 resetTeamPlanForm();
 render();
+setAppView(activeAppViewKey, { scrollIntoView: false });

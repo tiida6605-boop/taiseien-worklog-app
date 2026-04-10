@@ -18,13 +18,12 @@
 </head>
 <body>
   <div class="page-shell">
-    <header class="hero">
+    <header class="hero" id="homePanel" data-mobile-tab-panel="true">
       <div class="hero__copy">
         <p class="eyebrow">(株)大成園　作業記録アプリ</p>
         <h1>(株)大成園　作業記録アプリ</h1>
         <p class="hero__lead">
-          大成園の園地・品種・作業者・グループの各マスターを使って、毎日の作業記録をスマホでも入力しやすく整理しました。
-          作業者は1人1件で管理しつつ複数グループ所属に対応し、その日の参加グループで記録できます。
+          まずは「作業を記録する」を押してください。
         </p>
       </div>
 
@@ -51,31 +50,29 @@
         </article>
       </section>
 
-      <section class="home-shortcuts" aria-label="よく使う入口">
-        <p class="home-shortcuts__title">よく使う入口</p>
+      <section class="home-shortcuts" aria-label="よく使うメニュー">
+        <p class="home-shortcuts__title">まずはここを押してください</p>
         <div class="home-shortcuts__grid">
-          <button type="button" class="button button--primary home-shortcut-button" id="shortcutRecordFormButton">作業記録入力</button>
-          <button type="button" class="button button--ghost home-shortcut-button" id="shortcutTeamPlanButton">日別チーム編成</button>
-          <button type="button" class="button button--ghost home-shortcut-button" id="shortcutDailyReportButton">作業日報</button>
-          <button type="button" class="button button--ghost home-shortcut-button" id="shortcutMonthlyReportButton">月報</button>
-          <button type="button" class="button button--ghost home-shortcut-button" id="shortcutAnnualReportButton">年度レポート総合版</button>
-          <button type="button" class="button button--ghost home-shortcut-button" id="shortcutQrScanButton">QRコード読取</button>
+          <button type="button" class="button button--save home-shortcut-button" id="shortcutRecordFormButton">作業を記録する</button>
+          <button type="button" class="button button--view home-shortcut-button" id="shortcutDailyReportButton">履歴を見る</button>
+          <button type="button" class="button button--view home-shortcut-button" id="shortcutTeamPlanButton">今日のメンバー</button>
+          <button type="button" class="button button--view home-shortcut-button" id="shortcutAnnualReportButton">まとめを見る</button>
         </div>
       </section>
     </header>
 
     <main class="layout">
-      <section class="panel form-panel" id="recordFormPanel">
+      <section class="panel form-panel" id="recordFormPanel" data-mobile-tab-panel="true">
         <div class="panel__header">
           <div>
-            <p class="panel__eyebrow">作業記録</p>
-            <h2>作業記録を登録</h2>
+            <p class="panel__eyebrow">記録</p>
+            <h2>作業を記録する</h2>
           </div>
           <span class="chip" id="formMode">新規登録</span>
         </div>
 
         <p class="panel__lead">
-          グループを選ぶと、そのグループに所属する作業者だけが候補に表示されます。複数人をまとめて選べて、将来の固定チームセット追加にも広げやすい構成です。
+          上から順に入力して、最後に「この内容で保存する」を押してください。分からない項目はあとで編集できます。
         </p>
         <p class="required-note">「必須」項目を入力してから保存してください。</p>
 
@@ -105,7 +102,7 @@
           </div>
 
           <div class="qr-inline-actions">
-            <button type="button" class="button button--ghost" id="qrScanButton">QR読み取りで園地/区画を入力</button>
+            <button type="button" class="button button--view" id="qrScanButton">QRを読む（園地・区画を入力）</button>
             <p class="form-hint">現場のQRから園地・区画を自動入力できます。</p>
           </div>
 
@@ -190,24 +187,24 @@
           </label>
 
           <div class="form-actions">
-            <button type="submit" class="button button--primary">保存する</button>
-            <button type="button" class="button button--ghost" id="resetButton">入力をクリア</button>
+            <button type="submit" class="button button--save">この内容で保存する</button>
+            <button type="button" class="button button--settings" id="resetButton">入力をクリア</button>
           </div>
         </form>
       </section>
 
       <div class="content-stack">
-        <section class="panel team-panel" id="teamPlanPanel">
+        <section class="panel team-panel" id="teamPlanPanel" data-mobile-tab-panel="true">
           <div class="panel__header">
             <div>
-              <p class="panel__eyebrow">日別チーム編成</p>
-              <h2>日別チーム編成</h2>
+              <p class="panel__eyebrow">メンバー</p>
+              <h2>今日のメンバー</h2>
             </div>
             <span class="chip chip--leaf">欠勤・応援に対応</span>
           </div>
 
           <p class="panel__lead">
-            日付ごと・作業グループごとに参加者を編成できます。前回編成のコピーや、作業記録入力への反映に対応しています。
+            今日の参加メンバーを登録できます。前回のメンバーをコピーして使うこともできます。
           </p>
 
           <form id="teamPlanForm" class="record-form">
@@ -243,88 +240,27 @@
             </div>
 
             <div class="form-actions">
-              <button type="submit" class="button button--primary">編成を保存</button>
-              <button type="button" class="button button--ghost" id="teamPlanLoadSetButton">固定セットを呼び出し</button>
-              <button type="button" class="button button--ghost" id="teamPlanCopyButton">前回編成をコピー</button>
-              <button type="button" class="button button--ghost" id="teamPlanApplyButton">作業記録へ反映</button>
-              <button type="button" class="button button--ghost" id="teamPlanResetButton">クリア</button>
+              <button type="submit" class="button button--save">このメンバーで保存する</button>
+              <button type="button" class="button button--view" id="teamPlanLoadSetButton">固定セットを使う</button>
+              <button type="button" class="button button--view" id="teamPlanCopyButton">前回をコピー</button>
+              <button type="button" class="button button--view" id="teamPlanApplyButton">作業記録に反映</button>
+              <button type="button" class="button button--settings" id="teamPlanResetButton">クリア</button>
             </div>
           </form>
 
           <div id="teamPlanList" class="master-list"></div>
         </section>
 
-        <nav class="mobile-section-tabs" id="mobileSectionTabs" aria-label="スマホ画面表示切替">
-          <button type="button" class="mobile-section-tabs__button is-active" data-mobile-target="recordListPanel" aria-pressed="true">記録一覧</button>
-          <button type="button" class="mobile-section-tabs__button" data-mobile-target="analyticsPanel" aria-pressed="false">集計 / レポート</button>
-          <button type="button" class="mobile-section-tabs__button" data-mobile-target="masterPanel" aria-pressed="false">マスター管理</button>
-          <button type="button" class="mobile-section-tabs__button" data-mobile-target="qrPanel" aria-pressed="false">QR / 印刷</button>
-        </nav>
-
         <section class="panel list-panel" id="recordListPanel" data-mobile-tab-panel="true">
           <div class="panel__header">
             <div>
-              <p class="panel__eyebrow">記録管理</p>
-              <h2>作業記録一覧</h2>
+              <p class="panel__eyebrow">履歴を見る</p>
+              <h2>履歴を見る</h2>
             </div>
-            <div class="toolbar-actions">
-              <button class="button button--accent" id="exportButton" type="button">CSV出力</button>
-              <button class="button button--ghost" id="backupButton" type="button">JSON保存</button>
-              <button class="button button--ghost" id="restoreButton" type="button">JSON復元</button>
-              <input type="file" id="restoreInput" accept=".json,application/json" hidden>
-            </div>
+            <span class="chip chip--leaf">日報・月報・バックアップ</span>
           </div>
-
-          <div class="daily-report-tools">
-            <label>
-              日報対象日
-              <input type="date" id="dailyReportDate">
-            </label>
-            <button class="button button--accent" id="dailyReportPreviewButton" type="button">作業日報を表示/印刷</button>
-            <button class="button button--primary" id="dailyReportPdfButton" type="button">日報をPDF保存</button>
-            <button class="button button--ghost" id="dailyReportShareButton" type="button">日報を共有</button>
-          </div>
-          <p class="form-hint">指定日の作業記録を1日分の日報として表示し、A4で印刷できます。</p>
-          <p class="form-hint print-mobile-guide">Androidでは「PDF保存」後に共有先アプリ（印刷アプリ等）へ渡す運用が安定します。</p>
-
-          <div class="monthly-report-tools">
-            <label>
-              月報対象年月
-              <input type="month" id="monthlyReportMonth">
-            </label>
-            <button class="button button--accent" id="monthlyReportPreviewButton" type="button">月報を表示/印刷</button>
-            <button class="button button--primary" id="monthlyReportPdfButton" type="button">月報をPDF保存</button>
-            <button class="button button--ghost" id="monthlyReportShareButton" type="button">月報を共有</button>
-            <button class="button button--ghost" id="monthlyReportExportButton" type="button">月次集計CSV出力</button>
-          </div>
-          <p class="form-hint">指定した月の集計結果を一覧表示し、A4印刷またはCSV出力できます。</p>
-          <p class="form-hint print-mobile-guide">Androidでは「月報をPDF保存」→「月報を共有」で印刷アプリへ渡す運用が安定します。</p>
-
-          <section class="backup-tools" aria-live="polite">
-            <div class="backup-tools__row">
-              <label>
-                JSON復元方法
-                <select id="restoreMode">
-                  <option value="replace">上書き（既存データを置き換え）</option>
-                  <option value="append">追加（既存データに取り込み）</option>
-                </select>
-              </label>
-              <p class="form-hint">復元前に確認メッセージが表示されます。</p>
-            </div>
-
-            <div class="backup-summary-grid" id="backupSummaryGrid">
-              <div class="backup-summary-item"><span>園地数</span><strong id="backupOrchardCount">0件</strong></div>
-              <div class="backup-summary-item"><span>区画数</span><strong id="backupPlotCount">0件</strong></div>
-              <div class="backup-summary-item"><span>品種数</span><strong id="backupVarietyCount">0件</strong></div>
-              <div class="backup-summary-item"><span>作業者数</span><strong id="backupWorkerCount">0件</strong></div>
-              <div class="backup-summary-item"><span>グループ数</span><strong id="backupGroupCount">0件</strong></div>
-              <div class="backup-summary-item"><span>日別チーム編成数</span><strong id="backupTeamPlanCount">0件</strong></div>
-              <div class="backup-summary-item"><span>作業記録数</span><strong id="backupRecordCount">0件</strong></div>
-            </div>
-
-            <p class="backup-meta">最終JSON保存日時: <strong id="backupTimestamp">未実行</strong></p>
-            <p class="form-hint" id="backupMessage">JSON保存を押すと、バックアップ前件数サマリーを確認できます。</p>
-          </section>
+          <p class="panel__lead">過去の作業記録を見たり、絞り込みで探したりできます。</p>
+          <p class="form-hint">条件を選んで、見たい記録を確認してください。</p>
 
           <div class="filters filters--quad">
             <label>
@@ -366,11 +302,43 @@
         <section class="panel analytics-panel" id="analyticsPanel" data-mobile-tab-panel="true">
           <div class="panel__header">
             <div>
-              <p class="panel__eyebrow">集計</p>
-              <h2>集計</h2>
+              <p class="panel__eyebrow">まとめを見る</p>
+              <h2>まとめを見る</h2>
             </div>
             <span class="chip chip--leaf">時間・延べ人時・概算人件費</span>
           </div>
+          <p class="panel__lead">期間ごとの合計や比べる結果を確認できます。</p>
+
+          <section class="summary-report-tools">
+            <h3>作業日報</h3>
+            <div class="daily-report-tools">
+              <label>
+                日報対象日
+                <input type="date" id="dailyReportDate">
+              </label>
+              <button class="button button--view" id="dailyReportPreviewButton" type="button">作業日報を表示/印刷</button>
+              <button class="button button--save" id="dailyReportPdfButton" type="button">日報をPDF保存</button>
+              <button class="button button--view" id="dailyReportShareButton" type="button">日報を共有</button>
+            </div>
+            <p class="form-hint">指定日の作業記録を1日分の日報として表示し、A4で印刷できます。</p>
+            <p class="form-hint print-mobile-guide">Androidでは「PDF保存」後に共有先アプリ（印刷アプリ等）へ渡す運用が安定します。</p>
+          </section>
+
+          <section class="summary-report-tools">
+            <h3>月報</h3>
+            <div class="monthly-report-tools">
+              <label>
+                月報対象年月
+                <input type="month" id="monthlyReportMonth">
+              </label>
+              <button class="button button--view" id="monthlyReportPreviewButton" type="button">月報を表示/印刷</button>
+              <button class="button button--save" id="monthlyReportPdfButton" type="button">月報をPDF保存</button>
+              <button class="button button--view" id="monthlyReportShareButton" type="button">月報を共有</button>
+              <button class="button button--save" id="monthlyReportExportButton" type="button">月のまとめをCSVで保存</button>
+            </div>
+            <p class="form-hint">指定した月の集計結果を一覧表示し、A4印刷またはCSVで保存できます。</p>
+            <p class="form-hint print-mobile-guide">Androidでは「月報をPDF保存」→「月報を共有」で印刷アプリへ渡す運用が安定します。</p>
+          </section>
 
           <div class="analytics-grid">
             <section class="analytics-card analytics-card--wide">
@@ -405,7 +373,7 @@
                   </select>
                 </label>
 
-                <button type="button" class="button button--ghost" id="comparisonExportButton">累積比較CSV出力</button>
+                <button type="button" class="button button--save" id="comparisonExportButton">累積比較をCSVで保存</button>
               </div>
 
               <div class="comparison-range" id="comparisonRangeRow">
@@ -466,7 +434,7 @@
                   </select>
                 </label>
 
-                <button type="button" class="button button--accent" id="taskReportPreviewButton">作業区分別レポート表示/印刷</button>
+                <button type="button" class="button button--view" id="taskReportPreviewButton">作業区分別レポート表示/印刷</button>
               </div>
 
               <div class="comparison-range" id="taskReportRangeRow">
@@ -482,7 +450,7 @@
               </div>
 
               <div class="task-report-actions">
-                <button type="button" class="button button--ghost" id="taskReportExportButton">作業区分別CSV出力</button>
+                <button type="button" class="button button--save" id="taskReportExportButton">作業区分別をCSVで保存</button>
               </div>
 
               <p class="form-hint" id="taskReportInfo">条件を選ぶと、作業区分ごとのレポートが表示されます。</p>
@@ -521,7 +489,7 @@
                   </select>
                 </label>
 
-                <button type="button" class="button button--accent" id="varietyReportPreviewButton">品種別レポート表示/印刷</button>
+                <button type="button" class="button button--view" id="varietyReportPreviewButton">品種別レポート表示/印刷</button>
               </div>
 
               <div class="comparison-range" id="varietyReportRangeRow">
@@ -537,7 +505,7 @@
               </div>
 
               <div class="task-report-actions">
-                <button type="button" class="button button--ghost" id="varietyReportExportButton">品種別CSV出力</button>
+                <button type="button" class="button button--save" id="varietyReportExportButton">品種別をCSVで保存</button>
               </div>
 
               <p class="form-hint" id="varietyReportInfo">条件を選ぶと、品種ごとのレポートが表示されます。</p>
@@ -567,10 +535,10 @@
                   </select>
                 </label>
 
-                <button type="button" class="button button--accent" id="annualReportPreviewButton">年度レポート表示/印刷</button>
-                <button type="button" class="button button--primary" id="annualReportPdfButton">年度レポートをPDF保存</button>
-                <button type="button" class="button button--ghost" id="annualReportShareButton">年度レポートを共有</button>
-                <button type="button" class="button button--ghost" id="annualReportExportButton">年度レポートCSV出力</button>
+                <button type="button" class="button button--view" id="annualReportPreviewButton">年度レポート表示/印刷</button>
+                <button type="button" class="button button--save" id="annualReportPdfButton">年度レポートをPDF保存</button>
+                <button type="button" class="button button--view" id="annualReportShareButton">年度レポートを共有</button>
+                <button type="button" class="button button--save" id="annualReportExportButton">年度レポートをCSVで保存</button>
               </div>
               <p class="form-hint print-mobile-guide">Androidでは「年度レポートをPDF保存」→「年度レポートを共有」で印刷アプリへ渡す運用が安定します。</p>
 
@@ -667,21 +635,81 @@
           </div>
         </section>
 
-        <section class="panel master-panel" id="masterPanel" data-mobile-tab-panel="true">
+        <section class="panel master-panel" id="masterPanel" data-mobile-tab-panel="true" data-settings-panel="master">
           <div class="panel__header">
             <div>
-              <p class="panel__eyebrow">マスター管理</p>
-              <h2>マスター管理</h2>
+              <p class="panel__eyebrow">設定</p>
+              <h2 id="settingsTitle">設定</h2>
             </div>
-            <span class="chip chip--leaf">登録・編集・削除に対応</span>
+            <span class="chip chip--leaf">1画面1目的</span>
           </div>
 
-          <p class="panel__lead">
-            園地・区画・品種・グループ・作業者の各マスターを管理できます。作業者は1人1件だけ登録し、所属グループは別設定で複数登録できます。
+          <p class="panel__lead" id="settingsLead">
+            設定トップから必要な項目だけ開いてください。
           </p>
 
-          <div class="master-grid master-grid--wide">
-            <section class="master-card">
+          <div class="settings-page-nav" id="settingsPageNav" hidden>
+            <button type="button" class="button button--settings button--small" data-settings-nav="top">設定トップへ戻る</button>
+            <button type="button" class="button button--settings button--small" data-settings-nav="home">ホームへ戻る</button>
+          </div>
+
+          <nav class="settings-menu" id="settingsTopMenu" aria-label="設定メニュー">
+            <button type="button" class="button button--view settings-menu__button" id="settingsMenuCompanyButton" data-settings-target="company">会社設定</button>
+            <button type="button" class="button button--view settings-menu__button" data-settings-target="orchard">園地設定</button>
+            <button type="button" class="button button--view settings-menu__button" data-settings-target="worker">作業者設定</button>
+            <button type="button" class="button button--view settings-menu__button" data-settings-target="qr">QRコード</button>
+            <button type="button" class="button button--save settings-menu__button" data-settings-target="backup">バックアップ</button>
+            <button type="button" class="button button--settings settings-menu__button" data-settings-target="advanced">くわしい設定</button>
+          </nav>
+
+          <section class="master-card settings-special-card" data-settings-section="backup" hidden>
+            <div class="master-card__header">
+              <h3>バックアップ保存</h3>
+              <span class="chip chip--soft">JSON</span>
+            </div>
+            <div class="toolbar-actions">
+              <button class="button button--save" id="backupButton" type="button">バックアップ保存</button>
+            </div>
+            <section class="backup-tools" aria-live="polite">
+              <div class="backup-summary-grid" id="backupSummaryGrid">
+                <div class="backup-summary-item"><span>園地数</span><strong id="backupOrchardCount">0件</strong></div>
+                <div class="backup-summary-item"><span>区画数</span><strong id="backupPlotCount">0件</strong></div>
+                <div class="backup-summary-item"><span>品種数</span><strong id="backupVarietyCount">0件</strong></div>
+                <div class="backup-summary-item"><span>作業者数</span><strong id="backupWorkerCount">0件</strong></div>
+                <div class="backup-summary-item"><span>グループ数</span><strong id="backupGroupCount">0件</strong></div>
+                <div class="backup-summary-item"><span>メンバー編成数</span><strong id="backupTeamPlanCount">0件</strong></div>
+                <div class="backup-summary-item"><span>作業記録数</span><strong id="backupRecordCount">0件</strong></div>
+              </div>
+              <p class="backup-meta">最終バックアップ保存日時: <strong id="backupTimestamp">未実行</strong></p>
+              <p class="form-hint" id="backupMessage">バックアップ保存を押すと、保存前の件数サマリーを確認できます。</p>
+            </section>
+          </section>
+
+          <section class="master-card settings-special-card" data-settings-section="advanced" hidden>
+            <div class="master-card__header">
+              <h3>くわしい設定</h3>
+              <span class="chip">管理者向け</span>
+            </div>
+            <div class="toolbar-actions toolbar-actions--advanced">
+              <button class="button button--save" id="exportButton" type="button">記録をCSVで保存</button>
+              <button class="button button--settings" id="restoreButton" type="button">バックアップから元に戻す</button>
+              <button class="button button--danger" id="resetAllDataButton" type="button">初期データに戻す</button>
+              <input type="file" id="restoreInput" accept=".json,application/json" hidden>
+            </div>
+            <div class="backup-tools__row">
+              <label>
+                元に戻す方法
+                <select id="restoreMode">
+                  <option value="replace">上書き（今のデータを置き換える）</option>
+                  <option value="append">追加（今のデータに足す）</option>
+                </select>
+              </label>
+              <p class="form-hint">CSV出力・復元・初期化は管理者向けです。実行前に内容を確認してください。</p>
+            </div>
+          </section>
+
+          <div class="master-grid master-grid--wide" id="settingsMasterGrid" hidden>
+            <section class="master-card" data-settings-section="company">
               <div class="master-card__header">
                 <h3>会社設定</h3>
                 <span class="chip chip--soft">決算年度基準</span>
@@ -703,14 +731,14 @@
                 <p class="form-hint" id="companyFiscalYearPreview">現在の決算年度範囲を表示します。</p>
 
                 <div class="form-actions form-actions--tight">
-                  <button type="submit" class="button button--primary button--small">会社設定を保存</button>
+                  <button type="submit" class="button button--save button--small">会社設定を保存</button>
                 </div>
               </form>
             </section>
 
-            <section class="master-card">
+            <section class="master-card" data-settings-section="orchard">
               <div class="master-card__header">
-                <h3>園地マスター</h3>
+                <h3>園地の設定</h3>
                 <span class="chip chip--soft" id="orchardCount">0件</span>
               </div>
 
@@ -733,17 +761,17 @@
                 </label>
 
                 <div class="form-actions form-actions--tight">
-                  <button type="submit" class="button button--primary button--small">園地を保存</button>
-                  <button type="button" class="button button--ghost button--small" id="orchardResetButton">クリア</button>
+                  <button type="submit" class="button button--save button--small">園地を保存</button>
+                  <button type="button" class="button button--settings button--small" id="orchardResetButton">クリア</button>
                 </div>
               </form>
 
               <div id="orchardList" class="master-list"></div>
             </section>
 
-            <section class="master-card">
+            <section class="master-card" data-settings-section="plot">
               <div class="master-card__header">
-                <h3>区画マスター</h3>
+                <h3>区画の設定</h3>
                 <span class="chip chip--soft" id="plotCount">0件</span>
               </div>
 
@@ -771,17 +799,17 @@
                 </label>
 
                 <div class="form-actions form-actions--tight">
-                  <button type="submit" class="button button--primary button--small">区画を保存</button>
-                  <button type="button" class="button button--ghost button--small" id="plotResetButton">クリア</button>
+                  <button type="submit" class="button button--save button--small">区画を保存</button>
+                  <button type="button" class="button button--settings button--small" id="plotResetButton">クリア</button>
                 </div>
               </form>
 
               <div id="plotList" class="master-list"></div>
             </section>
 
-            <section class="master-card">
+            <section class="master-card" data-settings-section="variety">
               <div class="master-card__header">
-                <h3>品種マスター</h3>
+                <h3>品種の設定</h3>
                 <span class="chip chip--soft" id="varietyCount">0件</span>
               </div>
 
@@ -799,17 +827,17 @@
                 </label>
 
                 <div class="form-actions form-actions--tight">
-                  <button type="submit" class="button button--primary button--small">品種を保存</button>
-                  <button type="button" class="button button--ghost button--small" id="varietyResetButton">クリア</button>
+                  <button type="submit" class="button button--save button--small">品種を保存</button>
+                  <button type="button" class="button button--settings button--small" id="varietyResetButton">クリア</button>
                 </div>
               </form>
 
               <div id="varietyList" class="master-list"></div>
             </section>
 
-            <section class="master-card">
+            <section class="master-card" data-settings-section="group">
               <div class="master-card__header">
-                <h3>グループマスター</h3>
+                <h3>グループの設定</h3>
                 <span class="chip chip--soft" id="groupMasterCount">0件</span>
               </div>
 
@@ -839,15 +867,15 @@
                 </label>
 
                 <div class="form-actions form-actions--tight">
-                  <button type="submit" class="button button--primary button--small">グループを保存</button>
-                  <button type="button" class="button button--ghost button--small" id="groupResetButton">クリア</button>
+                  <button type="submit" class="button button--save button--small">グループを保存</button>
+                  <button type="button" class="button button--settings button--small" id="groupResetButton">クリア</button>
                 </div>
               </form>
 
               <div id="groupList" class="master-list"></div>
             </section>
 
-            <section class="master-card">
+            <section class="master-card" data-settings-section="teamSet">
               <div class="master-card__header">
                 <h3>固定チームセット</h3>
                 <span class="chip chip--soft" id="teamSetCount">0件</span>
@@ -876,17 +904,17 @@
                 </div>
 
                 <div class="form-actions form-actions--tight">
-                  <button type="submit" class="button button--primary button--small">セットを保存</button>
-                  <button type="button" class="button button--ghost button--small" id="teamSetResetButton">クリア</button>
+                  <button type="submit" class="button button--save button--small">セットを保存</button>
+                  <button type="button" class="button button--settings button--small" id="teamSetResetButton">クリア</button>
                 </div>
               </form>
 
               <div id="teamSetList" class="master-list"></div>
             </section>
 
-            <section class="master-card master-card--worker">
+            <section class="master-card master-card--worker" data-settings-section="worker">
               <div class="master-card__header">
-                <h3>作業者マスター</h3>
+                <h3>作業者の設定</h3>
                 <span class="chip chip--soft" id="workerMasterCount">0件</span>
               </div>
 
@@ -929,17 +957,17 @@
                 </label>
 
                 <div class="form-actions form-actions--tight">
-                  <button type="submit" class="button button--primary button--small">作業者を保存</button>
-                  <button type="button" class="button button--ghost button--small" id="workerResetButton">クリア</button>
+                  <button type="submit" class="button button--save button--small">作業者を保存</button>
+                  <button type="button" class="button button--settings button--small" id="workerResetButton">クリア</button>
                 </div>
               </form>
 
               <div id="workerList" class="master-list"></div>
             </section>
 
-            <section class="master-card master-card--worker">
+            <section class="master-card master-card--worker" data-settings-section="membership">
               <div class="master-card__header">
-                <h3>作業者所属グループ設定</h3>
+                <h3>作業者の所属グループ設定</h3>
                 <span class="chip chip--soft" id="membershipCount">0件</span>
               </div>
 
@@ -964,8 +992,8 @@
                 </label>
 
                 <div class="form-actions form-actions--tight">
-                  <button type="submit" class="button button--primary button--small">所属設定を保存</button>
-                  <button type="button" class="button button--ghost button--small" id="membershipResetButton">クリア</button>
+                  <button type="submit" class="button button--save button--small">所属設定を保存</button>
+                  <button type="button" class="button button--settings button--small" id="membershipResetButton">クリア</button>
                 </div>
               </form>
 
@@ -974,13 +1002,18 @@
           </div>
         </section>
 
-        <section class="panel qr-panel" id="qrPanel" data-mobile-tab-panel="true">
+        <section class="panel qr-panel" id="qrPanel" data-mobile-tab-panel="true" data-settings-panel="qr" hidden>
+          <div class="settings-page-nav">
+            <button type="button" class="button button--settings button--small" data-settings-nav="top">設定トップへ戻る</button>
+            <button type="button" class="button button--settings button--small" data-settings-nav="home">ホームへ戻る</button>
+          </div>
+
           <div class="panel__header">
             <div>
-              <p class="panel__eyebrow">QR管理</p>
+              <p class="panel__eyebrow">QR / 印刷</p>
               <h2>園地・区画QRコード一覧</h2>
             </div>
-            <span class="chip chip--leaf">保存・印刷に対応</span>
+            <span class="chip chip--leaf">現場札の印刷</span>
           </div>
 
           <p class="panel__lead">
@@ -988,14 +1021,14 @@
           </p>
 
           <div class="qr-print-actions">
-            <button type="button" class="button button--accent" id="openOrchardQrSheetButton">園地札用QRラベル印刷</button>
-            <button type="button" class="button button--primary" id="openOrchardQrSheetPdfButton">園地札用QRラベルをPDF保存</button>
-            <button type="button" class="button button--accent" id="openPlotQrSheetButton">区画札用QRラベル印刷</button>
-            <button type="button" class="button button--primary" id="openPlotQrSheetPdfButton">区画札用QRラベルをPDF保存</button>
-            <button type="button" class="button button--primary" id="openOrchardQrSimpleSheetButton">園地札用QR簡易ラベル印刷</button>
-            <button type="button" class="button button--ghost" id="openOrchardQrSimpleSheetPdfButton">園地札用QR簡易ラベルをPDF保存</button>
-            <button type="button" class="button button--primary" id="openPlotQrSimpleSheetButton">区画札用QR簡易ラベル印刷</button>
-            <button type="button" class="button button--ghost" id="openPlotQrSimpleSheetPdfButton">区画札用QR簡易ラベルをPDF保存</button>
+            <button type="button" class="button button--view" id="openOrchardQrSheetButton">園地札用QRラベル印刷</button>
+            <button type="button" class="button button--save" id="openOrchardQrSheetPdfButton">園地札用QRラベルをPDF保存</button>
+            <button type="button" class="button button--view" id="openPlotQrSheetButton">区画札用QRラベル印刷</button>
+            <button type="button" class="button button--save" id="openPlotQrSheetPdfButton">区画札用QRラベルをPDF保存</button>
+            <button type="button" class="button button--view" id="openOrchardQrSimpleSheetButton">園地札用QR簡易ラベル印刷</button>
+            <button type="button" class="button button--save" id="openOrchardQrSimpleSheetPdfButton">園地札用QR簡易ラベルをPDF保存</button>
+            <button type="button" class="button button--view" id="openPlotQrSimpleSheetButton">区画札用QR簡易ラベル印刷</button>
+            <button type="button" class="button button--save" id="openPlotQrSimpleSheetPdfButton">区画札用QR簡易ラベルをPDF保存</button>
           </div>
           <p class="form-hint print-mobile-guide">Androidでは「QRラベルをPDF保存」後に共有先アプリから印刷すると、直接印刷より安定しやすいです。</p>
           <div class="qr-filter-grid">
@@ -1029,13 +1062,20 @@
         </section>
       </div>
     </main>
+
+    <nav class="bottom-nav" id="bottomNav" aria-label="画面切替">
+      <button type="button" class="bottom-nav__button is-active" data-app-view="home" aria-current="page">ホーム</button>
+      <button type="button" class="bottom-nav__button" data-app-view="record">記録</button>
+      <button type="button" class="bottom-nav__button" data-app-view="records">履歴</button>
+      <button type="button" class="bottom-nav__button" data-app-view="settings">設定</button>
+    </nav>
   </div>
 
   <dialog id="qrScannerDialog" class="qr-scanner-dialog">
     <form method="dialog" class="qr-scanner">
       <div class="qr-scanner__header">
         <h3>QRコード読み取り</h3>
-        <button type="button" class="button button--ghost button--small" id="qrScannerCloseButton">閉じる</button>
+        <button type="button" class="button button--settings button--small" id="qrScannerCloseButton">閉じる</button>
       </div>
       <video id="qrScannerVideo" class="qr-scanner__video" autoplay playsinline muted></video>
       <p class="form-hint" id="qrScannerMessage">カメラを起動してQRコードを読み取ってください。</p>
@@ -1044,7 +1084,7 @@
         <input type="text" id="qrManualInput" placeholder="例: capple-location:v1:orchard-north または capple-location:v1:orchard-north:plot-north-a1">
       </label>
       <div class="form-actions form-actions--tight">
-        <button type="button" class="button button--primary" id="qrManualApplyButton">このコードを適用</button>
+        <button type="button" class="button button--view" id="qrManualApplyButton">このコードを適用</button>
       </div>
     </form>
   </dialog>
