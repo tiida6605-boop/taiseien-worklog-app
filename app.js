@@ -242,6 +242,15 @@ const settingsSectionCards = Array.from(document.querySelectorAll("[data-setting
 const settingsMenuButtons = Array.from(document.querySelectorAll("[data-settings-target]"));
 const settingsNavButtons = Array.from(document.querySelectorAll("[data-settings-nav]"));
 const settingsMenuCompanyButton = document.getElementById("settingsMenuCompanyButton");
+const summaryTitle = document.getElementById("summaryTitle");
+const summaryLead = document.getElementById("summaryLead");
+const summaryTopMenu = document.getElementById("summaryTopMenu");
+const summaryPageNav = document.getElementById("summaryPageNav");
+const summaryAnalyticsGrid = document.getElementById("summaryAnalyticsGrid");
+const summarySectionCards = Array.from(document.querySelectorAll("[data-summary-section]"));
+const summaryMenuButtons = Array.from(document.querySelectorAll("[data-summary-target]"));
+const summaryNavButtons = Array.from(document.querySelectorAll("[data-summary-nav]"));
+const summaryMenuDailyButton = document.getElementById("summaryMenuDailyButton");
 const bottomNav = document.getElementById("bottomNav");
 const bottomNavButtons = bottomNav
   ? Array.from(bottomNav.querySelectorAll("[data-app-view]"))
@@ -265,6 +274,7 @@ const appViewPanels = Array.from(
 );
 let activeAppViewKey = "home";
 let activeSettingsSection = "top";
+let activeSummarySection = "top";
 const shortcutRecordFormButton = document.getElementById("shortcutRecordFormButton");
 const shortcutTeamPlanButton = document.getElementById("shortcutTeamPlanButton");
 const shortcutDailyReportButton = document.getElementById("shortcutDailyReportButton");
@@ -2603,6 +2613,113 @@ function setSettingsSection(sectionKey, options = {}) {
   focusElementLater(resolvedFocus);
 }
 
+const summarySectionMeta = {
+  top: {
+    title: "まとめを見る",
+    lead: "見たいまとめを選んでください。"
+  },
+  daily: {
+    title: "日報",
+    lead: "指定日の作業日報を確認・印刷できます。"
+  },
+  monthly: {
+    title: "月報",
+    lead: "指定した月の結果を確認・保存できます。"
+  },
+  annual: {
+    title: "年度レポート",
+    lead: "決算年度ベースの総合レポートを確認できます。"
+  },
+  comparison: {
+    title: "比較表",
+    lead: "累積比較や分析結果を確認できます。"
+  }
+};
+
+const summarySectionCardMap = {
+  top: [],
+  daily: ["daily"],
+  monthly: ["monthly"],
+  annual: ["annual"],
+  comparison: ["comparison"]
+};
+
+function getSummarySectionKey(sectionKey) {
+  return Object.prototype.hasOwnProperty.call(summarySectionMeta, sectionKey) ? sectionKey : "top";
+}
+
+function getSummarySectionFocus(sectionKey) {
+  switch (sectionKey) {
+    case "daily":
+      return dailyReportDateInput;
+    case "monthly":
+      return monthlyReportMonthInput;
+    case "annual":
+      return annualReportSortMetricInput;
+    case "comparison":
+      return comparisonPeriodInput;
+    default:
+      return summaryMenuDailyButton;
+  }
+}
+
+function applySummarySectionState() {
+  const inSummaryView = activeAppViewKey === "summary";
+  const normalizedSection = getSummarySectionKey(activeSummarySection);
+  activeSummarySection = normalizedSection;
+
+  if (summaryTopMenu) {
+    summaryTopMenu.hidden = !inSummaryView || normalizedSection !== "top";
+  }
+  if (summaryPageNav) {
+    summaryPageNav.hidden = !inSummaryView || normalizedSection === "top";
+  }
+  if (summaryAnalyticsGrid) {
+    const showAnalyticsGrid = normalizedSection === "monthly" || normalizedSection === "comparison" || normalizedSection === "annual";
+    summaryAnalyticsGrid.hidden = !inSummaryView || !showAnalyticsGrid;
+  }
+  if (summaryTitle) {
+    summaryTitle.textContent = summarySectionMeta[normalizedSection].title;
+  }
+  if (summaryLead) {
+    summaryLead.textContent = summarySectionMeta[normalizedSection].lead;
+  }
+
+  const visibleSectionKeys = new Set(summarySectionCardMap[normalizedSection] || []);
+  summarySectionCards.forEach((card) => {
+    const sectionKey = card.dataset.summarySection;
+    card.hidden = !inSummaryView || !visibleSectionKeys.has(sectionKey);
+  });
+
+  if (document?.body) {
+    if (inSummaryView) {
+      document.body.dataset.summarySection = normalizedSection;
+    } else {
+      delete document.body.dataset.summarySection;
+    }
+  }
+}
+
+function setSummarySection(sectionKey, options = {}) {
+  const { scrollIntoView = true, focusElement = null, switchToSummaryView = false } = options;
+  const normalizedSection = getSummarySectionKey(sectionKey);
+  activeSummarySection = normalizedSection;
+  const resolvedFocus = focusElement || getSummarySectionFocus(normalizedSection);
+
+  if (switchToSummaryView && activeAppViewKey !== "summary") {
+    setAppView("summary", { scrollIntoView, focusElement: resolvedFocus });
+    return;
+  }
+
+  if (activeAppViewKey !== "summary") return;
+
+  applySummarySectionState();
+  if (scrollIntoView && analyticsPanel) {
+    scrollToElement(analyticsPanel);
+  }
+  focusElementLater(resolvedFocus);
+}
+
 function setAppView(viewKey, options = {}) {
   if (!viewKey || !appViewPanelMap[viewKey] || !appViewPanels.length) return;
   const { scrollIntoView = true, focusElement = null } = options;
@@ -2629,14 +2746,25 @@ function setAppView(viewKey, options = {}) {
 
   if (viewKey === "settings") {
     applySettingsSectionState();
+    if (document?.body) {
+      delete document.body.dataset.summarySection;
+    }
+  } else if (viewKey === "summary") {
+    applySummarySectionState();
+    if (document?.body) {
+      delete document.body.dataset.settingsSection;
+    }
   } else if (document?.body) {
     delete document.body.dataset.settingsSection;
+    delete document.body.dataset.summarySection;
   }
 
   if (scrollIntoView) {
     let activePanel = null;
     if (viewKey === "settings") {
       activePanel = activeSettingsSection === "qr" ? qrPanel : masterPanel;
+    } else if (viewKey === "summary") {
+      activePanel = analyticsPanel;
     }
     if (!activePanel) {
       const firstPanelId = appViewPanelMap[viewKey][0];
@@ -5722,7 +5850,11 @@ if (shortcutMonthlyReportButton) {
 }
 if (shortcutAnnualReportButton) {
   shortcutAnnualReportButton.addEventListener("click", () => {
-    moveToShortcut(analyticsPanel, comparisonPeriodInput);
+    setSummarySection("top", {
+      switchToSummaryView: true,
+      scrollIntoView: true,
+      focusElement: summaryMenuDailyButton
+    });
   });
 }
 if (settingsMenuButtons.length) {
@@ -5748,12 +5880,35 @@ if (settingsNavButtons.length) {
     });
   });
 }
+if (summaryMenuButtons.length) {
+  summaryMenuButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetSection = button.dataset.summaryTarget;
+      setSummarySection(targetSection, {
+        switchToSummaryView: true,
+        scrollIntoView: true
+      });
+    });
+  });
+}
+if (summaryNavButtons.length) {
+  summaryNavButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = button.dataset.summaryNav;
+      if (target === "home") {
+        setAppView("home", { scrollIntoView: true, focusElement: shortcutRecordFormButton });
+        return;
+      }
+      setSummarySection("top", { switchToSummaryView: true, scrollIntoView: true, focusElement: summaryMenuDailyButton });
+    });
+  });
+}
 if (bottomNavButtons.length) {
   const viewFocusMap = {
     record: workDateInput,
     team: teamPlanDateInput,
     records: orchardFilterInput,
-    summary: comparisonPeriodInput,
+    summary: summaryMenuDailyButton,
     settings: settingsMenuCompanyButton
   };
   bottomNavButtons.forEach((button) => {
@@ -5762,6 +5917,8 @@ if (bottomNavButtons.length) {
       if (!targetView || !appViewPanelMap[targetView]) return;
       if (targetView === "settings") {
         setSettingsSection("top", { scrollIntoView: false, focusElement: settingsMenuCompanyButton });
+      } else if (targetView === "summary") {
+        setSummarySection("top", { scrollIntoView: false, focusElement: summaryMenuDailyButton });
       }
       setAppView(targetView, {
         scrollIntoView: true,

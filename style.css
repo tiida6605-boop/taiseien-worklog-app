@@ -58,7 +58,8 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  width: min(100%, 430px);
+  width: 100%;
+  max-width: 430px;
   margin: 0 auto;
   padding: 0.4rem 0.5rem env(safe-area-inset-bottom);
   border-top: 1px solid rgba(96, 68, 38, 0.16);
@@ -77,7 +78,7 @@ body {
   border-radius: 12px;
   min-height: 52px;
   padding: 0.36rem 0.25rem;
-  font-size: 0.98rem;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1.1;
 }
@@ -136,6 +137,7 @@ main,
 .panel,
 .summary-grid,
 .home-shortcuts,
+.summary-menu,
 .master-grid,
 .qr-print-actions,
 .qr-filter-grid {
@@ -235,6 +237,30 @@ main,
 
 .settings-special-card {
   margin-top: 0.9rem;
+}
+
+.summary-menu {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+}
+
+.summary-menu__button {
+  width: 100%;
+  min-height: 56px;
+  text-align: left;
+}
+
+.summary-page-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0.2rem 0 0.8rem;
+}
+
+.summary-page-nav .button {
+  width: 100%;
 }
 
 .mobile-section-tabs {
@@ -1310,6 +1336,7 @@ textarea {
   .home-summary-grid,
   .home-shortcuts__grid,
   .settings-page-nav,
+  .summary-page-nav,
   .comparison-controls,
   .comparison-range,
   .annual-report-summary,
@@ -1432,7 +1459,8 @@ textarea {
   .qr-code-list,
   .home-shortcuts__grid,
   .backup-summary-grid,
-  .settings-page-nav {
+  .settings-page-nav,
+  .summary-page-nav {
     grid-template-columns: 1fr;
   }
 

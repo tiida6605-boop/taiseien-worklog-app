@@ -300,16 +300,28 @@
         </section>
 
         <section class="panel analytics-panel" id="analyticsPanel" data-mobile-tab-panel="true">
+          <div class="summary-page-nav" id="summaryPageNav" hidden>
+            <button type="button" class="button button--settings button--small" data-summary-nav="top">まとめトップへ戻る</button>
+            <button type="button" class="button button--settings button--small" data-summary-nav="home">ホームへ戻る</button>
+          </div>
+
           <div class="panel__header">
             <div>
               <p class="panel__eyebrow">まとめを見る</p>
-              <h2>まとめを見る</h2>
+              <h2 id="summaryTitle">まとめを見る</h2>
             </div>
             <span class="chip chip--leaf">時間・延べ人時・概算人件費</span>
           </div>
-          <p class="panel__lead">期間ごとの合計や比べる結果を確認できます。</p>
+          <p class="panel__lead" id="summaryLead">見たいまとめを選んでください。</p>
 
-          <section class="summary-report-tools">
+          <nav class="summary-menu" id="summaryTopMenu" aria-label="まとめメニュー">
+            <button type="button" class="button button--view summary-menu__button" id="summaryMenuDailyButton" data-summary-target="daily">日報</button>
+            <button type="button" class="button button--view summary-menu__button" data-summary-target="monthly">月報</button>
+            <button type="button" class="button button--view summary-menu__button" data-summary-target="annual">年度レポート</button>
+            <button type="button" class="button button--save summary-menu__button" data-summary-target="comparison">比較表</button>
+          </nav>
+
+          <section class="summary-report-tools" data-summary-section="daily" hidden>
             <h3>作業日報</h3>
             <div class="daily-report-tools">
               <label>
@@ -324,7 +336,7 @@
             <p class="form-hint print-mobile-guide">Androidでは「PDF保存」後に共有先アプリ（印刷アプリ等）へ渡す運用が安定します。</p>
           </section>
 
-          <section class="summary-report-tools">
+          <section class="summary-report-tools" data-summary-section="monthly" hidden>
             <h3>月報</h3>
             <div class="monthly-report-tools">
               <label>
@@ -340,8 +352,8 @@
             <p class="form-hint print-mobile-guide">Androidでは「月報をPDF保存」→「月報を共有」で印刷アプリへ渡す運用が安定します。</p>
           </section>
 
-          <div class="analytics-grid">
-            <section class="analytics-card analytics-card--wide">
+          <div class="analytics-grid" id="summaryAnalyticsGrid" hidden>
+            <section class="analytics-card analytics-card--wide" data-summary-section="comparison" hidden>
               <h3>園地別・区画別の累積比較</h3>
 
               <div class="comparison-controls">
@@ -403,7 +415,7 @@
               </div>
             </section>
 
-            <section class="analytics-card analytics-card--wide">
+            <section class="analytics-card analytics-card--wide" data-summary-section="comparison" hidden>
               <h3>作業区分別レポート</h3>
 
               <div class="comparison-controls">
@@ -458,7 +470,7 @@
               <div id="taskTypeReportList" class="task-report-list"></div>
             </section>
 
-            <section class="analytics-card analytics-card--wide">
+            <section class="analytics-card analytics-card--wide" data-summary-section="comparison" hidden>
               <h3>品種別レポート</h3>
 
               <div class="comparison-controls">
@@ -513,7 +525,7 @@
               <div id="varietyTypeReportList" class="task-report-list"></div>
             </section>
 
-            <section class="analytics-card analytics-card--wide">
+            <section class="analytics-card analytics-card--wide" data-summary-section="annual" hidden>
               <h3>年度レポート総合版（決算年度）</h3>
 
               <div class="comparison-controls">
@@ -548,87 +560,87 @@
               <div id="annualReportList" class="task-report-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="monthly" hidden>
               <h3>月別の記録件数</h3>
               <div id="monthlyCountList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="monthly" hidden>
               <h3>月別の総作業時間</h3>
               <div id="monthlyHoursList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>園地別の総作業時間</h3>
               <div id="orchardHoursList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>園地別の延べ人時</h3>
               <div id="orchardPersonHoursList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>園地別の概算人件費</h3>
               <div id="orchardLaborCostList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>区画別の総作業時間</h3>
               <div id="plotHoursList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>区画別の延べ人時</h3>
               <div id="plotPersonHoursList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>区画別の概算人件費</h3>
               <div id="plotLaborCostList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>作業内容別の総作業時間</h3>
               <div id="taskHoursList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>作業者別の総作業時間</h3>
               <div id="workerTotalHoursList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>グループ別・作業者別の総作業時間</h3>
               <div id="groupWorkerHoursList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>主所属別の総作業時間</h3>
               <div id="primaryGroupHoursList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card analytics-card--wide">
+            <section class="analytics-card analytics-card--wide" data-summary-section="comparison" hidden>
               <h3>グループ別の総作業件数</h3>
               <div id="groupCountList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>グループ別の総作業時間</h3>
               <div id="groupHoursList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card">
+            <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>グループ別の延べ人時</h3>
               <div id="groupPersonHoursList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card analytics-card--wide">
+            <section class="analytics-card analytics-card--wide" data-summary-section="comparison" hidden>
               <h3>グループ別の概算人件費</h3>
               <div id="groupLaborCostList" class="analytics-list"></div>
             </section>
 
-            <section class="analytics-card analytics-card--wide">
+            <section class="analytics-card analytics-card--wide" data-summary-section="comparison" hidden>
               <h3>品種別の総作業時間</h3>
               <div id="varietyHoursList" class="analytics-list"></div>
             </section>
