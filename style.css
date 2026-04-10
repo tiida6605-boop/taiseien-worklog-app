@@ -18,57 +18,32 @@
 
 html {
   -webkit-text-size-adjust: 100%;
-  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
   overflow-x: hidden;
 }
 
 body {
   margin: 0;
-  min-height: 100vh;
+  padding: 0;
   width: 100%;
-  max-width: 100%;
+  min-height: 100%;
   overflow-x: hidden;
-  display: flex;
-  justify-content: center;
   font-family: "Zen Kaku Gothic New", sans-serif;
   color: var(--text);
-  background:
-    radial-gradient(circle at top left, rgba(227, 167, 47, 0.28), transparent 30%),
-    radial-gradient(circle at top right, rgba(81, 108, 61, 0.25), transparent 26%),
-    linear-gradient(180deg, #f8f1e5 0%, #efe5d5 100%);
+  background: #f6f1e8;
 }
 
-body::before,
-body::after {
-  content: "";
-  position: fixed;
-  z-index: -1;
-  border-radius: 50%;
-  filter: blur(30px);
-  opacity: 0.5;
-}
-
-body::before {
-  top: 4rem;
-  left: -5rem;
-  width: 14rem;
-  height: 14rem;
-  background: rgba(198, 82, 47, 0.18);
-}
-
-body::after {
-  right: -3rem;
-  bottom: 8rem;
-  width: 12rem;
-  height: 12rem;
-  background: rgba(81, 108, 61, 0.2);
-}
-
+#app,
 .page-shell {
-  width: min(430px, 100vw);
-  margin: 0 auto;
-  padding: 0.82rem 0.62rem calc(96px + env(safe-area-inset-bottom));
+  width: 100%;
+  max-width: 430px;
   min-height: 100dvh;
+  margin: 0 auto;
+  padding: 12px 12px calc(88px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
   overflow-x: hidden;
 }
 
@@ -80,11 +55,12 @@ body::after {
 
 .bottom-nav {
   position: fixed;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: 0;
-  transform: translateX(-50%);
-  width: min(430px, 100vw);
-  padding: 0.4rem 0.5rem calc(0.42rem + env(safe-area-inset-bottom));
+  width: min(100%, 430px);
+  margin: 0 auto;
+  padding: 0.4rem 0.5rem env(safe-area-inset-bottom);
   border-top: 1px solid rgba(96, 68, 38, 0.16);
   background: rgba(255, 252, 247, 0.97);
   backdrop-filter: blur(10px);
@@ -99,9 +75,9 @@ body::after {
   background: #fff9ef;
   color: #5a4936;
   border-radius: 12px;
-  min-height: 46px;
+  min-height: 52px;
   padding: 0.36rem 0.25rem;
-  font-size: 0.8rem;
+  font-size: 0.98rem;
   font-weight: 700;
   line-height: 1.1;
 }
@@ -153,12 +129,27 @@ body::after {
   min-width: 0;
 }
 
+.hero,
+main,
+.layout,
+.content-stack,
+.panel,
+.summary-grid,
+.home-shortcuts,
+.master-grid,
+.qr-print-actions,
+.qr-filter-grid {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .summary-grid {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .home-summary-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .home-summary-grid > :last-child {
@@ -534,9 +525,10 @@ textarea {
 .button {
   border: 0;
   border-radius: 14px;
+  width: 100%;
   min-height: 56px;
   padding: 0.75rem 1rem;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
@@ -575,9 +567,9 @@ textarea {
 }
 
 .button--small {
-  min-height: 44px;
+  min-height: 56px;
   padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -1337,9 +1329,9 @@ textarea {
 
 @media (max-width: 640px) {
   .page-shell {
-    width: min(430px, 100vw);
-    padding-top: 0.9rem;
-    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+    width: 100%;
+    max-width: 430px;
+    padding: 12px 12px calc(88px + env(safe-area-inset-bottom));
   }
 
   .panel,
@@ -1366,7 +1358,7 @@ textarea {
   }
 
   .button--small {
-    min-height: 44px;
+    min-height: 56px;
   }
 
   .home-shortcut-button {
@@ -1391,9 +1383,9 @@ textarea {
 
 @media (max-width: 430px) {
   .page-shell {
-    width: min(430px, 100vw);
-    padding-top: 0.58rem;
-    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+    width: 100%;
+    max-width: 430px;
+    padding: 12px 12px calc(88px + env(safe-area-inset-bottom));
   }
 
   .hero {
@@ -1467,12 +1459,12 @@ textarea {
   .button {
     min-height: 56px;
     padding: 0.7rem 0.95rem;
-    font-size: 16px;
+    font-size: 18px;
   }
 
   .button--small {
-    min-height: 44px;
-    font-size: 0.9rem;
+    min-height: 56px;
+    font-size: 16px;
   }
 
   .worker-selection-item {
