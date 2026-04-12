@@ -150,6 +150,39 @@
             </div>
           </div>
 
+          <section class="record-subsection">
+            <h3 class="record-subsection__title">気象データ（自動取得＋手修正）</h3>
+            <div class="form-row form-row--triple">
+              <label>
+                最高気温（℃）
+                <input type="number" id="weatherTempMax" step="0.1" inputmode="decimal" placeholder="例: 18.4">
+              </label>
+              <label>
+                最低気温（℃）
+                <input type="number" id="weatherTempMin" step="0.1" inputmode="decimal" placeholder="例: 6.1">
+              </label>
+              <label>
+                降水量（mm）
+                <input type="number" id="weatherPrecipitation" min="0" step="0.1" inputmode="decimal" placeholder="例: 3.5">
+              </label>
+            </div>
+            <div class="form-row form-row--triple">
+              <label>
+                湿度（%）
+                <input type="number" id="weatherHumidity" min="0" max="100" step="1" inputmode="decimal" placeholder="例: 72">
+              </label>
+              <label>
+                風速（m/s）
+                <input type="number" id="weatherWindSpeed" min="0" step="0.1" inputmode="decimal" placeholder="例: 2.4">
+              </label>
+              <label>
+                天気コード
+                <input type="number" id="weatherCode" step="1" inputmode="numeric" placeholder="例: 3">
+              </label>
+            </div>
+            <p class="form-hint">自動取得後でも手修正できます。平均気温は「気温（℃）」欄を使います。</p>
+          </section>
+
           <div class="form-row">
             <label class="required-label">
               当日グループ
@@ -184,6 +217,72 @@
           </div>
 
           <p class="form-hint" id="timeHint">開始時刻と終了時刻を入れると、作業時間に自動で反映されます。</p>
+
+          <section class="record-subsection">
+            <h3 class="record-subsection__title">現場確認（手入力）</h3>
+            <div class="form-row form-row--triple">
+              <label class="checkbox-field">
+                <input type="checkbox" id="obsDiseaseObserved">
+                <span>病気の発生あり</span>
+              </label>
+              <label class="checkbox-field">
+                <input type="checkbox" id="obsPestObserved">
+                <span>害虫の発生あり</span>
+              </label>
+              <label class="checkbox-field">
+                <input type="checkbox" id="obsSprayApplied">
+                <span>薬剤散布を実施</span>
+              </label>
+            </div>
+            <div class="form-row form-row--triple">
+              <label>
+                病斑・食害
+                <select id="obsDamageLevel">
+                  <option value="">未選択</option>
+                  <option>なし</option>
+                  <option>軽微</option>
+                  <option>中程度</option>
+                  <option>強い</option>
+                </select>
+              </label>
+              <label>
+                葉や枝の濡れ具合
+                <select id="obsWetness">
+                  <option value="">未選択</option>
+                  <option>乾燥</option>
+                  <option>やや濡れ</option>
+                  <option>濡れ</option>
+                  <option>非常に濡れ</option>
+                </select>
+              </label>
+              <label>
+                ぬかるみ具合
+                <select id="obsMuddy">
+                  <option value="">未選択</option>
+                  <option>なし</option>
+                  <option>少しぬかるむ</option>
+                  <option>ぬかるむ</option>
+                  <option>深いぬかるみ</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                作業しにくさ
+                <select id="obsWorkDifficulty">
+                  <option value="">未選択</option>
+                  <option>作業しやすい</option>
+                  <option>普通</option>
+                  <option>ややしにくい</option>
+                  <option>しにくい</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              現場メモ
+              <textarea id="fieldObservationMemo" rows="3" placeholder="例: 黒星病らしき症状を数葉で確認"></textarea>
+            </label>
+          </section>
 
           <label>
             使用資材・数量
@@ -1232,6 +1331,10 @@
         <div>
           <dt>天気</dt>
           <dd class="record-card__weather"></dd>
+        </div>
+        <div>
+          <dt>現場確認</dt>
+          <dd class="record-card__observation"></dd>
         </div>
         <div>
           <dt>資材</dt>

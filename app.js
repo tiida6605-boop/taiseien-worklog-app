@@ -195,6 +195,20 @@ const temperatureInput = document.getElementById("temperatureC");
 const weatherInput = document.getElementById("weather");
 const fetchWeatherButton = document.getElementById("fetchWeatherButton");
 const weatherFetchStatus = document.getElementById("weatherFetchStatus");
+const weatherTempMaxInput = document.getElementById("weatherTempMax");
+const weatherTempMinInput = document.getElementById("weatherTempMin");
+const weatherPrecipitationInput = document.getElementById("weatherPrecipitation");
+const weatherHumidityInput = document.getElementById("weatherHumidity");
+const weatherWindSpeedInput = document.getElementById("weatherWindSpeed");
+const weatherCodeInput = document.getElementById("weatherCode");
+const observationDiseaseInput = document.getElementById("obsDiseaseObserved");
+const observationPestInput = document.getElementById("obsPestObserved");
+const observationSprayInput = document.getElementById("obsSprayApplied");
+const observationDamageLevelInput = document.getElementById("obsDamageLevel");
+const observationWetnessInput = document.getElementById("obsWetness");
+const observationMuddyInput = document.getElementById("obsMuddy");
+const observationWorkDifficultyInput = document.getElementById("obsWorkDifficulty");
+const observationMemoInput = document.getElementById("fieldObservationMemo");
 const materialsInput = document.getElementById("materials");
 const notesInput = document.getElementById("notes");
 const orchardFilterInput = document.getElementById("orchardFilter");
@@ -552,23 +566,50 @@ function normalizeLongitude(value) {
 
 function normalizeRecordWeatherInfo(rawInfo, fallback = {}) {
   if (!rawInfo || typeof rawInfo !== "object") return null;
-  const currentTemperatureC = normalizeOptionalNumber(
-    rawInfo.currentTemperatureC ?? rawInfo.temperatureC ?? rawInfo.temperature
+  const tempAvg = normalizeOptionalNumber(
+    rawInfo.tempAvg ??
+    rawInfo.averageTemperatureC ??
+    rawInfo.temperatureC ??
+    rawInfo.temperature ??
+    rawInfo.currentTemperatureC
   );
-  const maxTemperatureC = normalizeOptionalNumber(
-    rawInfo.maxTemperatureC ?? rawInfo.temperatureMaxC ?? rawInfo.highTemperatureC
+  const tempMax = normalizeOptionalNumber(
+    rawInfo.tempMax ??
+    rawInfo.maxTemperatureC ??
+    rawInfo.temperatureMaxC ??
+    rawInfo.highTemperatureC
   );
-  const minTemperatureC = normalizeOptionalNumber(
-    rawInfo.minTemperatureC ?? rawInfo.temperatureMinC ?? rawInfo.lowTemperatureC
+  const tempMin = normalizeOptionalNumber(
+    rawInfo.tempMin ??
+    rawInfo.minTemperatureC ??
+    rawInfo.temperatureMinC ??
+    rawInfo.lowTemperatureC
   );
-  const precipitationMm = normalizeOptionalNumber(
-    rawInfo.precipitationMm ?? rawInfo.precipitation ?? rawInfo.rainMm
+  const precipitation = normalizeOptionalNumber(
+    rawInfo.precipitation ??
+    rawInfo.precipitationMm ??
+    rawInfo.rainMm
+  );
+  const humidity = normalizeOptionalNumber(
+    rawInfo.humidity ??
+    rawInfo.relativeHumidity ??
+    rawInfo.relativeHumidityPercent
+  );
+  const windSpeed = normalizeOptionalNumber(
+    rawInfo.windSpeed ??
+    rawInfo.windSpeedMs ??
+    rawInfo.windSpeedMps
   );
   const latitude = normalizeLatitude(rawInfo.latitude ?? rawInfo.lat);
   const longitude = normalizeLongitude(rawInfo.longitude ?? rawInfo.lng ?? rawInfo.lon);
   const weatherCodeRaw = normalizeOptionalNumber(rawInfo.weatherCode);
   const weatherCode = Number.isFinite(weatherCodeRaw) ? Math.trunc(weatherCodeRaw) : null;
-  const weatherLabel = normalizeText(rawInfo.weatherLabel ?? rawInfo.weather ?? rawInfo.condition);
+  const weatherText = normalizeText(
+    rawInfo.weatherText ??
+    rawInfo.weatherLabel ??
+    rawInfo.weather ??
+    rawInfo.condition
+  );
   const source = normalizeText(rawInfo.source ?? rawInfo.provider);
   const fetchedAt = normalizeText(rawInfo.fetchedAt ?? rawInfo.observedAt ?? rawInfo.retrievedAt);
   const targetDate = normalizeText(rawInfo.targetDate ?? rawInfo.workDate ?? rawInfo.date);
@@ -576,32 +617,60 @@ function normalizeRecordWeatherInfo(rawInfo, fallback = {}) {
   const orchardName = normalizeText(rawInfo.orchardName ?? fallback.orchardName);
 
   const hasNumbers = [
-    currentTemperatureC,
-    maxTemperatureC,
-    minTemperatureC,
-    precipitationMm,
+    tempAvg,
+    tempMax,
+    tempMin,
+    precipitation,
+    humidity,
+    windSpeed,
     latitude,
     longitude
   ].some((value) => Number.isFinite(value));
 
-  if (!hasNumbers && weatherCode === null && !weatherLabel && !source && !fetchedAt && !targetDate && !orchardId && !orchardName) {
+  if (!hasNumbers && weatherCode === null && !weatherText && !source && !fetchedAt && !targetDate && !orchardId && !orchardName) {
     return null;
   }
 
+  const normalizedTempAvg = Number.isFinite(tempAvg)
+    ? tempAvg
+    : (Number.isFinite(tempMax) && Number.isFinite(tempMin) ? Number(((tempMax + tempMin) / 2).toFixed(1)) : null);
+
   return {
-    currentTemperatureC,
-    maxTemperatureC,
-    minTemperatureC,
-    precipitationMm,
+    tempAvg: normalizedTempAvg,
+    tempMax,
+    tempMin,
+    precipitation,
+    humidity,
+    windSpeed,
     latitude,
     longitude,
     weatherCode,
-    weatherLabel,
+    weatherText,
     source,
     fetchedAt,
     targetDate,
     orchardId,
-    orchardName
+    orchardName,
+    // Legacy aliases kept for backward compatibility with previous code paths.
+    currentTemperatureC: normalizedTempAvg,
+    maxTemperatureC: tempMax,
+    minTemperatureC: tempMin,
+    precipitationMm: precipitation,
+    weatherLabel: weatherText
+  };
+}
+
+function normalizeFieldObservation(rawObservation) {
+  const source = rawObservation && typeof rawObservation === "object" ? rawObservation : {};
+  return {
+    diseaseObserved: normalizeBoolean(source.diseaseObserved, false),
+    pestObserved: normalizeBoolean(source.pestObserved, false),
+    sprayApplied: normalizeBoolean(source.sprayApplied, false),
+    damageLevel: normalizeText(source.damageLevel),
+    wetness: normalizeText(source.wetness),
+    muddy: normalizeText(source.muddy),
+    workDifficulty: normalizeText(source.workDifficulty),
+    memo: normalizeText(source.memo)
   };
 }
 
@@ -613,21 +682,28 @@ function normalizeRecordEnvironment(record) {
     conditions.temperatureC ??
     conditions.temperature;
   const weatherRaw = record?.weather ?? conditions.weather;
+  const weatherTextRaw =
+    weatherRaw && typeof weatherRaw === "object"
+      ? (weatherRaw.weatherText ?? weatherRaw.weatherLabel ?? weatherRaw.condition ?? "")
+      : weatherRaw;
   const weatherInfoRaw =
     conditions.weatherInfo ??
+    conditions.weatherData ??
     conditions.weatherMetrics ??
     record?.weatherInfo ??
+    record?.weatherData ??
     record?.weatherMetrics;
   const weatherInfo = normalizeRecordWeatherInfo(weatherInfoRaw, {
     orchardId: record?.orchardId,
     orchardName: record?.orchardName
   });
   const temperatureC = normalizeOptionalNumber(temperatureRaw);
+  const weatherText = normalizeText(weatherTextRaw);
   return {
     temperatureC: Number.isFinite(temperatureC)
       ? temperatureC
-      : (weatherInfo?.currentTemperatureC ?? null),
-    weather: normalizeText(weatherRaw),
+      : (weatherInfo?.tempAvg ?? weatherInfo?.currentTemperatureC ?? null),
+    weather: weatherText || weatherInfo?.weatherText || weatherInfo?.weatherLabel || "",
     weatherInfo
   };
 }
@@ -839,6 +915,11 @@ function normalizeRecord(record) {
   const workerId = normalizeText(record.workerId || assignedWorkers[0]?.workerId || "");
   const normalizedAssignedWorkers = workerId && !assignedWorkers.length ? [{ workerId }] : assignedWorkers;
   const environment = normalizeRecordEnvironment(record);
+  const fieldObservation = normalizeFieldObservation(
+    record.fieldObservation ??
+    record.observation ??
+    record.conditions?.fieldObservation
+  );
   return {
     id: String(record.id || createId("record")),
     workDate: String(record.workDate || today),
@@ -867,11 +948,16 @@ function normalizeRecord(record) {
     endTime: normalizeText(record.endTime),
     temperatureC: environment.temperatureC,
     weather: environment.weather,
+    weatherData: environment.weatherInfo,
+    weatherMetrics: environment.weatherInfo,
     weatherInfo: environment.weatherInfo,
+    fieldObservation,
     conditions: {
       temperatureC: environment.temperatureC,
       weather: environment.weather,
-      weatherInfo: environment.weatherInfo
+      weatherData: environment.weatherInfo,
+      weatherInfo: environment.weatherInfo,
+      fieldObservation
     },
     materials: normalizeText(record.materials),
     notes: normalizeText(record.notes),
@@ -1296,18 +1382,38 @@ function formatWeatherInfoSummary(weatherInfo, includeCurrent = false) {
   const normalized = normalizeRecordWeatherInfo(weatherInfo);
   if (!normalized) return "";
   const parts = [];
-  if (includeCurrent && Number.isFinite(normalized.currentTemperatureC)) {
-    parts.push(`現在 ${formatTemperature(normalized.currentTemperatureC)}`);
+  if (includeCurrent && Number.isFinite(normalized.tempAvg)) {
+    parts.push(`平均 ${formatTemperature(normalized.tempAvg)}`);
   }
-  if (Number.isFinite(normalized.maxTemperatureC)) {
-    parts.push(`最高 ${formatTemperature(normalized.maxTemperatureC)}`);
+  if (Number.isFinite(normalized.tempMax)) {
+    parts.push(`最高 ${formatTemperature(normalized.tempMax)}`);
   }
-  if (Number.isFinite(normalized.minTemperatureC)) {
-    parts.push(`最低 ${formatTemperature(normalized.minTemperatureC)}`);
+  if (Number.isFinite(normalized.tempMin)) {
+    parts.push(`最低 ${formatTemperature(normalized.tempMin)}`);
   }
-  if (Number.isFinite(normalized.precipitationMm)) {
-    parts.push(`降水 ${formatPrecipitationMm(normalized.precipitationMm)}`);
+  if (Number.isFinite(normalized.precipitation)) {
+    parts.push(`降水 ${formatPrecipitationMm(normalized.precipitation)}`);
   }
+  if (Number.isFinite(normalized.humidity)) {
+    parts.push(`湿度 ${Math.round(normalized.humidity)}%`);
+  }
+  if (Number.isFinite(normalized.windSpeed)) {
+    parts.push(`風速 ${Number(normalized.windSpeed).toFixed(1).replace(/\.0$/, "")}m/s`);
+  }
+  return parts.join(" / ");
+}
+
+function formatFieldObservationSummary(observation) {
+  const normalized = normalizeFieldObservation(observation);
+  const parts = [];
+  if (normalized.diseaseObserved) parts.push("病気あり");
+  if (normalized.pestObserved) parts.push("害虫あり");
+  if (normalized.sprayApplied) parts.push("散布実施");
+  if (normalized.damageLevel) parts.push(`病斑/食害: ${normalized.damageLevel}`);
+  if (normalized.wetness) parts.push(`濡れ: ${normalized.wetness}`);
+  if (normalized.muddy) parts.push(`ぬかるみ: ${normalized.muddy}`);
+  if (normalized.workDifficulty) parts.push(`作業性: ${normalized.workDifficulty}`);
+  if (normalized.memo) parts.push(`現場メモ: ${normalized.memo}`);
   return parts.join(" / ");
 }
 
@@ -1401,12 +1507,25 @@ function setWeatherFetchLoading(isLoading) {
   fetchWeatherButton.textContent = isLoading ? "取得中…" : "天気を取得";
 }
 
+function clearWeatherDetailInputs(options = {}) {
+  const keepAverage = options.keepAverage === true;
+  const keepWeatherText = options.keepWeatherText === true;
+  if (!keepAverage && temperatureInput) temperatureInput.value = "";
+  if (!keepWeatherText && weatherInput) weatherInput.value = "";
+  if (weatherTempMaxInput) weatherTempMaxInput.value = "";
+  if (weatherTempMinInput) weatherTempMinInput.value = "";
+  if (weatherPrecipitationInput) weatherPrecipitationInput.value = "";
+  if (weatherHumidityInput) weatherHumidityInput.value = "";
+  if (weatherWindSpeedInput) weatherWindSpeedInput.value = "";
+  if (weatherCodeInput) weatherCodeInput.value = "";
+}
+
 async function fetchOpenMeteoWeather({ latitude, longitude }) {
   const params = new URLSearchParams({
     latitude: String(latitude),
     longitude: String(longitude),
-    current: "temperature_2m,weather_code",
-    daily: "temperature_2m_max,temperature_2m_min,precipitation_sum",
+    current: "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code",
+    daily: "temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum",
     timezone: "Asia/Tokyo",
     forecast_days: "1"
   });
@@ -1423,6 +1542,7 @@ async function fetchOpenMeteoWeather({ latitude, longitude }) {
     const daily = payload?.daily && typeof payload.daily === "object" ? payload.daily : {};
     const weatherCodeRaw = normalizeOptionalNumber(current.weather_code);
     const weatherCode = Number.isFinite(weatherCodeRaw) ? Math.trunc(weatherCodeRaw) : null;
+    const tempAvgRaw = Array.isArray(daily.temperature_2m_mean) ? daily.temperature_2m_mean[0] : null;
     const maxTemperatureRaw = Array.isArray(daily.temperature_2m_max) ? daily.temperature_2m_max[0] : null;
     const minTemperatureRaw = Array.isArray(daily.temperature_2m_min) ? daily.temperature_2m_min[0] : null;
     const precipitationRaw = Array.isArray(daily.precipitation_sum) ? daily.precipitation_sum[0] : null;
@@ -1433,12 +1553,14 @@ async function fetchOpenMeteoWeather({ latitude, longitude }) {
       targetDate: normalizeText(targetDateRaw),
       latitude,
       longitude,
-      currentTemperatureC: normalizeOptionalNumber(current.temperature_2m),
-      maxTemperatureC: normalizeOptionalNumber(maxTemperatureRaw),
-      minTemperatureC: normalizeOptionalNumber(minTemperatureRaw),
-      precipitationMm: normalizeOptionalNumber(precipitationRaw),
+      tempAvg: normalizeOptionalNumber(tempAvgRaw) ?? normalizeOptionalNumber(current.temperature_2m),
+      tempMax: normalizeOptionalNumber(maxTemperatureRaw),
+      tempMin: normalizeOptionalNumber(minTemperatureRaw),
+      precipitation: normalizeOptionalNumber(precipitationRaw),
+      humidity: normalizeOptionalNumber(current.relative_humidity_2m),
+      windSpeed: normalizeOptionalNumber(current.wind_speed_10m),
       weatherCode,
-      weatherLabel: getWeatherLabelFromCode(weatherCode)
+      weatherText: getWeatherLabelFromCode(weatherCode)
     });
   } finally {
     window.clearTimeout(timeoutId);
@@ -1447,10 +1569,16 @@ async function fetchOpenMeteoWeather({ latitude, longitude }) {
 
 function applyFetchedWeatherToForm(weatherInfo) {
   if (!weatherInfo) return;
-  if (Number.isFinite(weatherInfo.currentTemperatureC) && temperatureInput) {
-    temperatureInput.value = String(Number(weatherInfo.currentTemperatureC.toFixed(1)));
+  if (Number.isFinite(weatherInfo.tempAvg) && temperatureInput) {
+    temperatureInput.value = String(Number(weatherInfo.tempAvg.toFixed(1)));
   }
-  const mappedWeather = normalizeText(weatherInfo.weatherLabel);
+  if (weatherTempMaxInput) weatherTempMaxInput.value = weatherInfo.tempMax ?? "";
+  if (weatherTempMinInput) weatherTempMinInput.value = weatherInfo.tempMin ?? "";
+  if (weatherPrecipitationInput) weatherPrecipitationInput.value = weatherInfo.precipitation ?? "";
+  if (weatherHumidityInput) weatherHumidityInput.value = weatherInfo.humidity ?? "";
+  if (weatherWindSpeedInput) weatherWindSpeedInput.value = weatherInfo.windSpeed ?? "";
+  if (weatherCodeInput) weatherCodeInput.value = weatherInfo.weatherCode ?? "";
+  const mappedWeather = normalizeText(weatherInfo.weatherText);
   if (mappedWeather && weatherInput) {
     weatherInput.value = mappedWeather;
     if (weatherInput.value !== mappedWeather) {
@@ -1475,8 +1603,8 @@ async function handleFetchWeatherClick() {
   setWeatherFetchStatus("取得中…", "loading");
   try {
     const fetched = await fetchOpenMeteoWeather({ latitude, longitude });
-    if (!fetched || !Number.isFinite(fetched.currentTemperatureC)) {
-      throw new Error("Current temperature not available");
+    if (!fetched || !Number.isFinite(fetched.tempAvg)) {
+      throw new Error("Average temperature not available");
     }
     const merged = normalizeRecordWeatherInfo({
       ...(recordWeatherInfo || {}),
@@ -1496,19 +1624,36 @@ async function handleFetchWeatherClick() {
   }
 }
 
-function resolveWeatherInfoForRecord(environment, orchard) {
+function resolveWeatherInfoForRecord(environment, orchard, manualWeather = {}) {
   const baseInfo = normalizeRecordWeatherInfo(recordWeatherInfo, {
     orchardId: orchard?.id,
     orchardName: orchard?.name
   });
-  if (!baseInfo) return null;
-  if (orchard?.id && baseInfo.orchardId && baseInfo.orchardId !== orchard.id) return null;
+  const manualInfo = normalizeRecordWeatherInfo(manualWeather, {
+    orchardId: orchard?.id,
+    orchardName: orchard?.name
+  });
+  if (!baseInfo && !manualInfo && !Number.isFinite(environment.temperatureC) && !environment.weather) return null;
+  if (orchard?.id && baseInfo?.orchardId && baseInfo.orchardId !== orchard.id) {
+    return manualInfo || normalizeRecordWeatherInfo({
+      ...manualWeather,
+      tempAvg: Number.isFinite(environment.temperatureC) ? environment.temperatureC : null,
+      weatherText: environment.weather
+    }, {
+      orchardId: orchard?.id,
+      orchardName: orchard?.name
+    });
+  }
   return normalizeRecordWeatherInfo({
-    ...baseInfo,
-    orchardId: orchard?.id || baseInfo.orchardId,
-    orchardName: orchard?.name || baseInfo.orchardName,
-    currentTemperatureC: Number.isFinite(environment.temperatureC) ? environment.temperatureC : baseInfo.currentTemperatureC,
-    weatherLabel: environment.weather || baseInfo.weatherLabel
+    ...(baseInfo || {}),
+    ...(manualInfo || {}),
+    ...manualWeather,
+    orchardId: orchard?.id || baseInfo?.orchardId || "",
+    orchardName: orchard?.name || baseInfo?.orchardName || "",
+    tempAvg: Number.isFinite(environment.temperatureC)
+      ? environment.temperatureC
+      : (manualInfo?.tempAvg ?? baseInfo?.tempAvg ?? null),
+    weatherText: environment.weather || manualInfo?.weatherText || baseInfo?.weatherText || ""
   });
 }
 
@@ -2967,7 +3112,26 @@ function getFormData() {
     temperatureC: temperatureInput?.value,
     weather: weatherInput.value
   });
-  const weatherInfo = resolveWeatherInfoForRecord(environment, orchard);
+  const manualWeather = {
+    tempMax: weatherTempMaxInput?.value,
+    tempMin: weatherTempMinInput?.value,
+    precipitation: weatherPrecipitationInput?.value,
+    humidity: weatherHumidityInput?.value,
+    windSpeed: weatherWindSpeedInput?.value,
+    weatherCode: weatherCodeInput?.value,
+    weatherText: weatherInput?.value
+  };
+  const weatherInfo = resolveWeatherInfoForRecord(environment, orchard, manualWeather);
+  const fieldObservation = normalizeFieldObservation({
+    diseaseObserved: observationDiseaseInput?.checked,
+    pestObserved: observationPestInput?.checked,
+    sprayApplied: observationSprayInput?.checked,
+    damageLevel: observationDamageLevelInput?.value,
+    wetness: observationWetnessInput?.value,
+    muddy: observationMuddyInput?.value,
+    workDifficulty: observationWorkDifficultyInput?.value,
+    memo: observationMemoInput?.value
+  });
 
   return {
     id: recordIdInput.value || createId("record"),
@@ -2997,11 +3161,16 @@ function getFormData() {
     endTime: endTimeInput.value,
     temperatureC: environment.temperatureC,
     weather: environment.weather,
+    weatherData: weatherInfo,
+    weatherMetrics: weatherInfo,
     weatherInfo,
+    fieldObservation,
     conditions: {
       temperatureC: environment.temperatureC,
       weather: environment.weather,
-      weatherInfo
+      weatherData: weatherInfo,
+      weatherInfo,
+      fieldObservation
     },
     materials: materialsInput.value.trim(),
     notes: notesInput.value.trim(),
@@ -3373,6 +3542,7 @@ function getFilteredRecords(options = {}) {
 
 function fillRecordForm(record) {
   const environment = normalizeRecordEnvironment(record);
+  const observation = normalizeFieldObservation(record.fieldObservation);
   recordIdInput.value = record.id;
   workDateInput.value = record.workDate;
   orchardSelect.value = record.orchardId || "";
@@ -3392,6 +3562,12 @@ function fillRecordForm(record) {
   }
   weatherInput.value = environment.weather;
   recordWeatherInfo = environment.weatherInfo ? { ...environment.weatherInfo } : null;
+  if (weatherTempMaxInput) weatherTempMaxInput.value = recordWeatherInfo?.tempMax ?? "";
+  if (weatherTempMinInput) weatherTempMinInput.value = recordWeatherInfo?.tempMin ?? "";
+  if (weatherPrecipitationInput) weatherPrecipitationInput.value = recordWeatherInfo?.precipitation ?? "";
+  if (weatherHumidityInput) weatherHumidityInput.value = recordWeatherInfo?.humidity ?? "";
+  if (weatherWindSpeedInput) weatherWindSpeedInput.value = recordWeatherInfo?.windSpeed ?? "";
+  if (weatherCodeInput) weatherCodeInput.value = recordWeatherInfo?.weatherCode ?? "";
   setWeatherFetchLoading(false);
   if (recordWeatherInfo) {
     const summary = formatWeatherInfoSummary(recordWeatherInfo, true);
@@ -3401,6 +3577,14 @@ function fillRecordForm(record) {
   }
   materialsInput.value = record.materials;
   notesInput.value = record.notes;
+  if (observationDiseaseInput) observationDiseaseInput.checked = observation.diseaseObserved;
+  if (observationPestInput) observationPestInput.checked = observation.pestObserved;
+  if (observationSprayInput) observationSprayInput.checked = observation.sprayApplied;
+  if (observationDamageLevelInput) observationDamageLevelInput.value = observation.damageLevel;
+  if (observationWetnessInput) observationWetnessInput.value = observation.wetness;
+  if (observationMuddyInput) observationMuddyInput.value = observation.muddy;
+  if (observationWorkDifficultyInput) observationWorkDifficultyInput.value = observation.workDifficulty;
+  if (observationMemoInput) observationMemoInput.value = observation.memo;
   formMode.textContent = "編集中";
   renderWorkerSelectionList();
   updateTimeHint();
@@ -3419,6 +3603,20 @@ function resetRecordForm() {
   recordAppliedTeamSetName = "";
   recordWeatherInfo = null;
   selectedWorkerIds = [];
+  if (weatherTempMaxInput) weatherTempMaxInput.value = "";
+  if (weatherTempMinInput) weatherTempMinInput.value = "";
+  if (weatherPrecipitationInput) weatherPrecipitationInput.value = "";
+  if (weatherHumidityInput) weatherHumidityInput.value = "";
+  if (weatherWindSpeedInput) weatherWindSpeedInput.value = "";
+  if (weatherCodeInput) weatherCodeInput.value = "";
+  if (observationDiseaseInput) observationDiseaseInput.checked = false;
+  if (observationPestInput) observationPestInput.checked = false;
+  if (observationSprayInput) observationSprayInput.checked = false;
+  if (observationDamageLevelInput) observationDamageLevelInput.value = "";
+  if (observationWetnessInput) observationWetnessInput.value = "";
+  if (observationMuddyInput) observationMuddyInput.value = "";
+  if (observationWorkDifficultyInput) observationWorkDifficultyInput.value = "";
+  if (observationMemoInput) observationMemoInput.value = "";
   renderPlotOptions("");
   renderWorkerSelectionList();
   updateTimeHint();
@@ -3471,9 +3669,14 @@ function renderRecords() {
     fragment.querySelector(".record-card__worker-rate").textContent = formatCurrency(names.workerHourlyRate);
     fragment.querySelector(".record-card__time-range").textContent = record.startTime && record.endTime ? `${record.startTime} - ${record.endTime}` : "未入力";
     fragment.querySelector(".record-card__temperature").textContent = formatTemperature(environment.temperatureC);
-    const weatherBaseLabel = environment.weather || environment.weatherInfo?.weatherLabel || "未入力";
+    const weatherBaseLabel = environment.weather || environment.weatherInfo?.weatherText || "未入力";
     const weatherDetail = formatWeatherInfoSummary(environment.weatherInfo);
     fragment.querySelector(".record-card__weather").textContent = weatherDetail ? `${weatherBaseLabel} / ${weatherDetail}` : weatherBaseLabel;
+    const observationSummary = formatFieldObservationSummary(record.fieldObservation);
+    const observationNode = fragment.querySelector(".record-card__observation");
+    if (observationNode) {
+      observationNode.textContent = observationSummary || "未入力";
+    }
     fragment.querySelector(".record-card__materials").textContent = record.materials || "未入力";
     fragment.querySelector(".record-card__notes").textContent = record.notes || "メモはありません。";
     fragment.querySelector(".record-edit").addEventListener("click", () => fillRecordForm(record));
@@ -4787,7 +4990,9 @@ function buildDailyReportRowsHtml(dayRecords) {
     const weatherDetail = formatWeatherInfoSummary(environment.weatherInfo);
     const weather = weatherDetail ? `${weatherBase} / ${weatherDetail}` : weatherBase;
     const materials = record.materials || text.none;
-    const notes = record.notes || text.none;
+    const observationSummary = formatFieldObservationSummary(record.fieldObservation);
+    const noteParts = [record.notes, observationSummary ? `現場確認: ${observationSummary}` : ""].filter(Boolean);
+    const notes = noteParts.length ? noteParts.join(" / ") : text.none;
 
     return `
       <article class="daily-report-card">
@@ -6218,6 +6423,7 @@ function applyQrLocation({ orchardId, plotId }) {
   orchardSelect.value = orchard.id;
   renderPlotOptions(orchard.id, "");
   recordWeatherInfo = null;
+  clearWeatherDetailInputs();
   setWeatherFetchStatus("園地が選択されました。必要に応じて「天気を取得」を押してください。");
   if (plotId) {
     const plot = getPlotById(plotId);
@@ -6501,7 +6707,19 @@ function exportCsvWithTemperature() {
     "\u6700\u9ad8\u6c17\u6e29\uff08\u2103\uff09",
     "\u6700\u4f4e\u6c17\u6e29\uff08\u2103\uff09",
     "\u964d\u6c34\u91cf\uff08mm\uff09",
+    "\u6e7f\u5ea6\uff08%\uff09",
+    "\u98a8\u901f\uff08m/s\uff09",
+    "\u5929\u6c17\u30b3\u30fc\u30c9",
     "\u5929\u6c17\u53d6\u5f97\u6642\u523b",
+    "\u73fe\u5834\u78ba\u8a8d\u30b5\u30de\u30ea\u30fc",
+    "\u75c5\u6c17\u767a\u751f",
+    "\u5bb3\u866b\u767a\u751f",
+    "\u85ac\u5264\u6563\u5e03",
+    "\u75c5\u6591\u30fb\u98df\u5bb3",
+    "\u8449\u679d\u306e\u6ffe\u308c",
+    "\u306c\u304b\u308b\u307f",
+    "\u4f5c\u696d\u3057\u306b\u304f\u3055",
+    "\u73fe\u5834\u30e1\u30e2",
     "\u4f7f\u7528\u8cc7\u6750",
     "\u30e1\u30e2"
   ];
@@ -6514,6 +6732,8 @@ function exportCsvWithTemperature() {
       const metrics = getRecordMetrics(record);
       const environment = normalizeRecordEnvironment(record);
       const weatherInfo = environment.weatherInfo || null;
+      const observation = normalizeFieldObservation(record.fieldObservation);
+      const observationSummary = formatFieldObservationSummary(observation);
       const teamPlan = getTeamPlan(record.workDate, record.dailyGroupId);
       const teamPlanText = teamPlan
         ? teamPlan.workerIds.map((workerId) => getWorkerById(workerId)?.displayName).filter(Boolean).join("\u3001")
@@ -6540,10 +6760,22 @@ function exportCsvWithTemperature() {
         record.endTime,
         environment.temperatureC ?? "",
         environment.weather,
-        weatherInfo?.maxTemperatureC ?? "",
-        weatherInfo?.minTemperatureC ?? "",
-        weatherInfo?.precipitationMm ?? "",
+        weatherInfo?.tempMax ?? "",
+        weatherInfo?.tempMin ?? "",
+        weatherInfo?.precipitation ?? "",
+        weatherInfo?.humidity ?? "",
+        weatherInfo?.windSpeed ?? "",
+        weatherInfo?.weatherCode ?? "",
         weatherInfo?.fetchedAt ?? "",
+        observationSummary,
+        observation.diseaseObserved ? "\u3042\u308a" : "\u306a\u3057",
+        observation.pestObserved ? "\u3042\u308a" : "\u306a\u3057",
+        observation.sprayApplied ? "\u5b9f\u65bd" : "\u672a\u5b9f\u65bd",
+        observation.damageLevel,
+        observation.wetness,
+        observation.muddy,
+        observation.workDifficulty,
+        observation.memo,
         record.materials,
         record.notes
       ];
@@ -6593,6 +6825,7 @@ form.addEventListener("submit", (event) => {
 orchardSelect.addEventListener("change", () => {
   renderPlotOptions(orchardSelect.value);
   recordWeatherInfo = null;
+  clearWeatherDetailInputs();
   if (orchardSelect.value) {
     setWeatherFetchStatus("園地が変わりました。必要に応じて「天気を取得」を押してください。");
   } else {
@@ -7359,3 +7592,4 @@ resetMembershipForm();
 resetTeamPlanForm();
 render();
 setAppView(activeAppViewKey, { scrollIntoView: false });
+setWeatherFetchStatus(WEATHER_FETCH_HINT_TEXT);
