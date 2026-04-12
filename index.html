@@ -130,6 +130,11 @@
             </label>
 
             <label>
+              気温（℃）
+              <input type="number" id="temperatureC" min="-30" max="60" step="0.1" inputmode="decimal" placeholder="例: 18">
+            </label>
+
+            <label>
               天気
               <select id="weather">
                 <option value="">未選択</option>
@@ -139,6 +144,10 @@
                 <option>雪</option>
               </select>
             </label>
+            <div class="weather-fetch-field">
+              <button type="button" class="button button--view" id="fetchWeatherButton">天気を取得</button>
+              <p class="form-hint weather-fetch-status" id="weatherFetchStatus" aria-live="polite">園地を選んで「天気を取得」を押すと、気温を自動入力できます。</p>
+            </div>
           </div>
 
           <div class="form-row">
@@ -596,6 +605,16 @@
               <div id="monthlyHoursList" class="analytics-list"></div>
             </section>
 
+            <section class="analytics-card" data-summary-section="monthly" hidden>
+              <h3>月別の平均気温</h3>
+              <div id="monthlyAverageTemperatureList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card" data-summary-section="monthly" hidden>
+              <h3>月別の積算温度（℃日）</h3>
+              <div id="monthlyDegreeDayList" class="analytics-list"></div>
+            </section>
+
             <section class="analytics-card" data-summary-section="comparison" hidden>
               <h3>園地別の総作業時間</h3>
               <div id="orchardHoursList" class="analytics-list"></div>
@@ -764,6 +783,11 @@
                     決算締日
                     <input type="number" id="fiscalClosingDay" min="1" max="31" step="1" required>
                   </label>
+                  
+                  <label>
+                    積算温度の基準温度（℃）
+                    <input type="number" id="degreeDayBaseTemperature" min="-30" max="60" step="0.1" inputmode="decimal" placeholder="例: 10">
+                  </label>
                 </div>
 
                 <p class="form-hint" id="companyFiscalYearPreview">現在の決算年度範囲を表示します。</p>
@@ -792,6 +816,17 @@
                   管理コード（短縮）
                   <input type="text" id="orchardCode" placeholder="例: O-01" maxlength="32">
                 </label>
+
+                <label>
+                  緯度 (latitude)
+                  <input type="number" id="orchardLatitude" placeholder="例: 40.7588" min="-90" max="90" step="0.000001" inputmode="decimal">
+                </label>
+
+                <label>
+                  経度 (longitude)
+                  <input type="number" id="orchardLongitude" placeholder="例: 140.4651" min="-180" max="180" step="0.000001" inputmode="decimal">
+                </label>
+                <p class="form-hint">天気の自動取得に使います。未設定でも手入力で記録できます。</p>
 
                 <label>
                   メモ
@@ -1189,6 +1224,10 @@
         <div>
           <dt>開始 / 終了</dt>
           <dd class="record-card__time-range"></dd>
+        </div>
+        <div>
+          <dt>気温（℃）</dt>
+          <dd class="record-card__temperature"></dd>
         </div>
         <div>
           <dt>天気</dt>

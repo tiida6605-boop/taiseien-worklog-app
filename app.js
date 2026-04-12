@@ -5,9 +5,9 @@ const LAST_BACKUP_AT_KEY = "capple-farm-last-backup-at";
 
 const sampleMasters = {
   orchards: [
-    { id: "orchard-north", name: "北園地", managementCode: "O-01", note: "主力のふじ中心" },
-    { id: "orchard-east", name: "東園地", managementCode: "O-02", note: "つがる中心の園地" },
-    { id: "orchard-south", name: "南園地", managementCode: "O-03", note: "傾斜があり作業量が多い" }
+    { id: "orchard-north", name: "北園地", managementCode: "O-01", latitude: 40.760812, longitude: 140.467915, note: "主力のふじ中心" },
+    { id: "orchard-east", name: "東園地", managementCode: "O-02", latitude: 40.762734, longitude: 140.475901, note: "つがる中心の園地" },
+    { id: "orchard-south", name: "南園地", managementCode: "O-03", latitude: 40.754329, longitude: 140.469842, note: "傾斜があり作業量が多い" }
   ],
   plots: [
     { id: "plot-north-a1", orchardId: "orchard-north", name: "A-1", managementCode: "K-01", note: "防風ネット沿い" },
@@ -79,6 +79,7 @@ const sampleRecords = [
     workerHourlyRate: 0,
     startTime: "07:30",
     endTime: "10:00",
+    temperatureC: 18,
     weather: "晴れ",
     materials: "摘果用はさみ 2本",
     notes: "混み合っている枝を優先して整理。",
@@ -107,6 +108,7 @@ const sampleRecords = [
     workerHourlyRate: 1500,
     startTime: "08:00",
     endTime: "09:30",
+    temperatureC: 21.5,
     weather: "くもり",
     materials: "",
     notes: "開花が進んでいる列を先に対応。",
@@ -135,6 +137,7 @@ const sampleRecords = [
     workerHourlyRate: 1200,
     startTime: "05:30",
     endTime: "08:30",
+    temperatureC: 24.5,
     weather: "晴れ",
     materials: "作業手袋 3組",
     notes: "南面の着色を見ながら実施。",
@@ -165,8 +168,10 @@ const sampleTeamPlans = [
 
 const defaultCompanySettings = {
   fiscalClosingMonth: 3,
-  fiscalClosingDay: 31
+  fiscalClosingDay: 31,
+  degreeDayBaseTemperatureC: 10
 };
+const WEATHER_FETCH_HINT_TEXT = "園地を選んで「天気を取得」を押すと、気温を自動入力できます。";
 
 const form = document.getElementById("recordForm");
 const recordIdInput = document.getElementById("recordId");
@@ -186,7 +191,10 @@ const workerSelectionList = document.getElementById("workerSelectionList");
 const startTimeInput = document.getElementById("startTime");
 const endTimeInput = document.getElementById("endTime");
 const timeHint = document.getElementById("timeHint");
+const temperatureInput = document.getElementById("temperatureC");
 const weatherInput = document.getElementById("weather");
+const fetchWeatherButton = document.getElementById("fetchWeatherButton");
+const weatherFetchStatus = document.getElementById("weatherFetchStatus");
 const materialsInput = document.getElementById("materials");
 const notesInput = document.getElementById("notes");
 const orchardFilterInput = document.getElementById("orchardFilter");
@@ -303,6 +311,8 @@ const teamPlanResetButton = document.getElementById("teamPlanResetButton");
 const teamPlanList = document.getElementById("teamPlanList");
 const monthlyCountList = document.getElementById("monthlyCountList");
 const monthlyHoursList = document.getElementById("monthlyHoursList");
+const monthlyAverageTemperatureList = document.getElementById("monthlyAverageTemperatureList");
+const monthlyDegreeDayList = document.getElementById("monthlyDegreeDayList");
 const orchardHoursList = document.getElementById("orchardHoursList");
 const orchardPersonHoursList = document.getElementById("orchardPersonHoursList");
 const orchardLaborCostList = document.getElementById("orchardLaborCostList");
@@ -381,6 +391,8 @@ const orchardForm = document.getElementById("orchardForm");
 const orchardIdInput = document.getElementById("orchardId");
 const orchardNameInput = document.getElementById("orchardName");
 const orchardCodeInput = document.getElementById("orchardCode");
+const orchardLatitudeInput = document.getElementById("orchardLatitude");
+const orchardLongitudeInput = document.getElementById("orchardLongitude");
 const orchardNoteInput = document.getElementById("orchardNote");
 const orchardList = document.getElementById("orchardList");
 const orchardCount = document.getElementById("orchardCount");
@@ -442,6 +454,7 @@ const membershipResetButton = document.getElementById("membershipResetButton");
 const companySettingsForm = document.getElementById("companySettingsForm");
 const fiscalClosingMonthInput = document.getElementById("fiscalClosingMonth");
 const fiscalClosingDayInput = document.getElementById("fiscalClosingDay");
+const degreeDayBaseTemperatureInput = document.getElementById("degreeDayBaseTemperature");
 const companyFiscalYearPreview = document.getElementById("companyFiscalYearPreview");
 
 const today = getTodayString();
@@ -469,6 +482,7 @@ let selectedTeamPlanWorkerIds = [];
 let selectedTeamSetWorkerIds = [];
 let recordAppliedTeamSetId = "";
 let recordAppliedTeamSetName = "";
+let recordWeatherInfo = null;
 let historySelectedDate = today;
 let historyVisibleMonth = today.slice(0, 7);
 let qrScannerStream = null;
@@ -516,12 +530,220 @@ function normalizeBoolean(value, fallback = true) {
   return fallback;
 }
 
+function normalizeOptionalNumber(value) {
+  if (value === "" || value === null || value === undefined) return null;
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
+}
+
+function normalizeLatitude(value) {
+  const numberValue = normalizeOptionalNumber(value);
+  if (!Number.isFinite(numberValue)) return null;
+  if (numberValue < -90 || numberValue > 90) return null;
+  return Number(numberValue.toFixed(6));
+}
+
+function normalizeLongitude(value) {
+  const numberValue = normalizeOptionalNumber(value);
+  if (!Number.isFinite(numberValue)) return null;
+  if (numberValue < -180 || numberValue > 180) return null;
+  return Number(numberValue.toFixed(6));
+}
+
+function normalizeRecordWeatherInfo(rawInfo, fallback = {}) {
+  if (!rawInfo || typeof rawInfo !== "object") return null;
+  const currentTemperatureC = normalizeOptionalNumber(
+    rawInfo.currentTemperatureC ?? rawInfo.temperatureC ?? rawInfo.temperature
+  );
+  const maxTemperatureC = normalizeOptionalNumber(
+    rawInfo.maxTemperatureC ?? rawInfo.temperatureMaxC ?? rawInfo.highTemperatureC
+  );
+  const minTemperatureC = normalizeOptionalNumber(
+    rawInfo.minTemperatureC ?? rawInfo.temperatureMinC ?? rawInfo.lowTemperatureC
+  );
+  const precipitationMm = normalizeOptionalNumber(
+    rawInfo.precipitationMm ?? rawInfo.precipitation ?? rawInfo.rainMm
+  );
+  const latitude = normalizeLatitude(rawInfo.latitude ?? rawInfo.lat);
+  const longitude = normalizeLongitude(rawInfo.longitude ?? rawInfo.lng ?? rawInfo.lon);
+  const weatherCodeRaw = normalizeOptionalNumber(rawInfo.weatherCode);
+  const weatherCode = Number.isFinite(weatherCodeRaw) ? Math.trunc(weatherCodeRaw) : null;
+  const weatherLabel = normalizeText(rawInfo.weatherLabel ?? rawInfo.weather ?? rawInfo.condition);
+  const source = normalizeText(rawInfo.source ?? rawInfo.provider);
+  const fetchedAt = normalizeText(rawInfo.fetchedAt ?? rawInfo.observedAt ?? rawInfo.retrievedAt);
+  const targetDate = normalizeText(rawInfo.targetDate ?? rawInfo.workDate ?? rawInfo.date);
+  const orchardId = normalizeText(rawInfo.orchardId ?? fallback.orchardId);
+  const orchardName = normalizeText(rawInfo.orchardName ?? fallback.orchardName);
+
+  const hasNumbers = [
+    currentTemperatureC,
+    maxTemperatureC,
+    minTemperatureC,
+    precipitationMm,
+    latitude,
+    longitude
+  ].some((value) => Number.isFinite(value));
+
+  if (!hasNumbers && weatherCode === null && !weatherLabel && !source && !fetchedAt && !targetDate && !orchardId && !orchardName) {
+    return null;
+  }
+
+  return {
+    currentTemperatureC,
+    maxTemperatureC,
+    minTemperatureC,
+    precipitationMm,
+    latitude,
+    longitude,
+    weatherCode,
+    weatherLabel,
+    source,
+    fetchedAt,
+    targetDate,
+    orchardId,
+    orchardName
+  };
+}
+
+function normalizeRecordEnvironment(record) {
+  const conditions = record?.conditions && typeof record.conditions === "object" ? record.conditions : {};
+  const temperatureRaw =
+    record?.temperatureC ??
+    record?.temperature ??
+    conditions.temperatureC ??
+    conditions.temperature;
+  const weatherRaw = record?.weather ?? conditions.weather;
+  const weatherInfoRaw =
+    conditions.weatherInfo ??
+    conditions.weatherMetrics ??
+    record?.weatherInfo ??
+    record?.weatherMetrics;
+  const weatherInfo = normalizeRecordWeatherInfo(weatherInfoRaw, {
+    orchardId: record?.orchardId,
+    orchardName: record?.orchardName
+  });
+  const temperatureC = normalizeOptionalNumber(temperatureRaw);
+  return {
+    temperatureC: Number.isFinite(temperatureC)
+      ? temperatureC
+      : (weatherInfo?.currentTemperatureC ?? null),
+    weather: normalizeText(weatherRaw),
+    weatherInfo
+  };
+}
+
+function getRecordTemperatureC(record) {
+  return normalizeRecordEnvironment(record).temperatureC;
+}
+
+function getDegreeDayBaseTemperature(settings = companySettings) {
+  const normalized = normalizeCompanySettings(settings || companySettings);
+  return Number(normalized.degreeDayBaseTemperatureC);
+}
+
+function calculateDegreeDay(averageTemperatureC, baseTemperatureC = getDegreeDayBaseTemperature()) {
+  const average = normalizeOptionalNumber(averageTemperatureC);
+  const base = normalizeOptionalNumber(baseTemperatureC);
+  if (!Number.isFinite(average) || !Number.isFinite(base)) return 0;
+  return Math.max(0, average - base);
+}
+
+function getDailyTemperatureStats(sourceRecords = records) {
+  const byDate = new Map();
+  sourceRecords.forEach((record) => {
+    const workDate = normalizeText(record?.workDate);
+    if (!workDate) return;
+    const temperatureC = getRecordTemperatureC(record);
+    if (!Number.isFinite(temperatureC)) return;
+    const current = byDate.get(workDate) || { workDate, count: 0, sumTemperatureC: 0 };
+    current.count += 1;
+    current.sumTemperatureC += temperatureC;
+    byDate.set(workDate, current);
+  });
+  return Array.from(byDate.values())
+    .map((item) => ({
+      workDate: item.workDate,
+      count: item.count,
+      averageTemperatureC: item.count ? Number((item.sumTemperatureC / item.count).toFixed(2)) : null
+    }))
+    .sort((a, b) => a.workDate.localeCompare(b.workDate));
+}
+
+function getMonthlyTemperatureStats(sourceRecords = records) {
+  const byMonth = new Map();
+  sourceRecords.forEach((record) => {
+    const workDate = normalizeText(record?.workDate);
+    if (!workDate || !workDate.includes("-")) return;
+    const monthKey = workDate.slice(0, 7);
+    const temperatureC = getRecordTemperatureC(record);
+    if (!Number.isFinite(temperatureC)) return;
+    const current = byMonth.get(monthKey) || { month: monthKey, count: 0, sumTemperatureC: 0 };
+    current.count += 1;
+    current.sumTemperatureC += temperatureC;
+    byMonth.set(monthKey, current);
+  });
+  return Array.from(byMonth.values())
+    .map((item) => ({
+      month: item.month,
+      count: item.count,
+      averageTemperatureC: item.count ? Number((item.sumTemperatureC / item.count).toFixed(2)) : null
+    }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+}
+
+function getDailyDegreeDayStats(sourceRecords = records, baseTemperatureC = getDegreeDayBaseTemperature()) {
+  return getDailyTemperatureStats(sourceRecords).map((item) => ({
+    ...item,
+    degreeDay: Number(calculateDegreeDay(item.averageTemperatureC, baseTemperatureC).toFixed(2))
+  }));
+}
+
+function getMonthlyDegreeDayStats(sourceRecords = records, baseTemperatureC = getDegreeDayBaseTemperature()) {
+  const byMonth = new Map();
+  getDailyDegreeDayStats(sourceRecords, baseTemperatureC).forEach((item) => {
+    if (!item.workDate || !item.workDate.includes("-")) return;
+    const monthKey = item.workDate.slice(0, 7);
+    const current = byMonth.get(monthKey) || { month: monthKey, degreeDay: 0 };
+    current.degreeDay += Number(item.degreeDay || 0);
+    byMonth.set(monthKey, current);
+  });
+  return Array.from(byMonth.values())
+    .map((item) => ({ month: item.month, degreeDay: Number(item.degreeDay.toFixed(2)) }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+}
+
+function getTemperatureAnalyticsSnapshot(sourceRecords = records, settings = companySettings) {
+  const baseTemperatureC = getDegreeDayBaseTemperature(settings);
+  const dailyAverage = getDailyTemperatureStats(sourceRecords);
+  const monthlyAverage = getMonthlyTemperatureStats(sourceRecords);
+  const dailyDegreeDays = getDailyDegreeDayStats(sourceRecords, baseTemperatureC);
+  const monthlyDegreeDays = getMonthlyDegreeDayStats(sourceRecords, baseTemperatureC);
+  const totalDegreeDays = Number(
+    dailyDegreeDays.reduce((sum, item) => sum + Number(item.degreeDay || 0), 0).toFixed(2)
+  );
+  return {
+    baseTemperatureC,
+    dailyAverage,
+    monthlyAverage,
+    dailyDegreeDays,
+    monthlyDegreeDays,
+    totalDegreeDays
+  };
+}
+
 function normalizeCompanySettings(settings) {
   const month = Number(settings?.fiscalClosingMonth ?? defaultCompanySettings.fiscalClosingMonth);
   const day = Number(settings?.fiscalClosingDay ?? defaultCompanySettings.fiscalClosingDay);
+  const baseTemperature = normalizeOptionalNumber(
+    settings?.degreeDayBaseTemperatureC ?? settings?.baseTemperatureC ?? defaultCompanySettings.degreeDayBaseTemperatureC
+  );
+  const normalizedBaseTemperature = Number.isFinite(baseTemperature)
+    ? Math.min(60, Math.max(-30, Number(baseTemperature)))
+    : defaultCompanySettings.degreeDayBaseTemperatureC;
   return {
     fiscalClosingMonth: Number.isFinite(month) ? Math.min(12, Math.max(1, Math.trunc(month))) : defaultCompanySettings.fiscalClosingMonth,
-    fiscalClosingDay: Number.isFinite(day) ? Math.min(31, Math.max(1, Math.trunc(day))) : defaultCompanySettings.fiscalClosingDay
+    fiscalClosingDay: Number.isFinite(day) ? Math.min(31, Math.max(1, Math.trunc(day))) : defaultCompanySettings.fiscalClosingDay,
+    degreeDayBaseTemperatureC: normalizedBaseTemperature
   };
 }
 
@@ -616,6 +838,7 @@ function normalizeRecord(record) {
     : [];
   const workerId = normalizeText(record.workerId || assignedWorkers[0]?.workerId || "");
   const normalizedAssignedWorkers = workerId && !assignedWorkers.length ? [{ workerId }] : assignedWorkers;
+  const environment = normalizeRecordEnvironment(record);
   return {
     id: String(record.id || createId("record")),
     workDate: String(record.workDate || today),
@@ -642,7 +865,14 @@ function normalizeRecord(record) {
     workerHourlyRate: Number(record.workerHourlyRate || 0),
     startTime: normalizeText(record.startTime),
     endTime: normalizeText(record.endTime),
-    weather: normalizeText(record.weather),
+    temperatureC: environment.temperatureC,
+    weather: environment.weather,
+    weatherInfo: environment.weatherInfo,
+    conditions: {
+      temperatureC: environment.temperatureC,
+      weather: environment.weather,
+      weatherInfo: environment.weatherInfo
+    },
     materials: normalizeText(record.materials),
     notes: normalizeText(record.notes),
     updatedAt: String(record.updatedAt || new Date().toISOString())
@@ -660,6 +890,8 @@ function normalizeState(rawState) {
               id: String(item.id || `orchard-${index + 1}`),
               name,
               managementCode: normalizeManagementCode(item.managementCode),
+              latitude: normalizeLatitude(item.latitude),
+              longitude: normalizeLongitude(item.longitude),
               note: normalizeText(item.note)
             }
           : null;
@@ -917,9 +1149,44 @@ function setBackupMessage(text) {
   backupMessage.textContent = text;
 }
 
+/*
+/*
 function updateBackupTimestamp(value) {
   if (!value) {
     backupTimestamp.textContent = "未実行";
+    // marker removed
+    window.alert("CSV出力できる作業記録がありません。");
+    return;
+  }
+  backupTimestamp.textContent = new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(value));
+}
+*/
+
+/*
+function updateBackupTimestamp(value) {
+  if (!value) {
+    backupTimestamp.textContent = "未実行";
+    return;
+  }
+  backupTimestamp.textContent = new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(value));
+}
+*/
+
+function updateBackupTimestamp(value) {
+  if (!value) {
+    backupTimestamp.textContent = "\u672a\u5b9f\u884c";
     return;
   }
   backupTimestamp.textContent = new Intl.DateTimeFormat("ja-JP", {
@@ -1005,6 +1272,45 @@ function formatHours(value) {
   return `${Number(value || 0).toFixed(1)}時間`;
 }
 
+function formatTemperature(value) {
+  if (value === null || value === undefined || value === "") return "未入力";
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return "未入力";
+  return `${numericValue.toFixed(1).replace(/\.0$/, "")}℃`;
+}
+
+function formatPrecipitationMm(value) {
+  if (value === null || value === undefined || value === "") return "未入力";
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return "未入力";
+  return `${numericValue.toFixed(1).replace(/\.0$/, "")}mm`;
+}
+
+function formatCoordinate(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return "未設定";
+  return numericValue.toFixed(6).replace(/\.?0+$/, "");
+}
+
+function formatWeatherInfoSummary(weatherInfo, includeCurrent = false) {
+  const normalized = normalizeRecordWeatherInfo(weatherInfo);
+  if (!normalized) return "";
+  const parts = [];
+  if (includeCurrent && Number.isFinite(normalized.currentTemperatureC)) {
+    parts.push(`現在 ${formatTemperature(normalized.currentTemperatureC)}`);
+  }
+  if (Number.isFinite(normalized.maxTemperatureC)) {
+    parts.push(`最高 ${formatTemperature(normalized.maxTemperatureC)}`);
+  }
+  if (Number.isFinite(normalized.minTemperatureC)) {
+    parts.push(`最低 ${formatTemperature(normalized.minTemperatureC)}`);
+  }
+  if (Number.isFinite(normalized.precipitationMm)) {
+    parts.push(`降水 ${formatPrecipitationMm(normalized.precipitationMm)}`);
+  }
+  return parts.join(" / ");
+}
+
 function formatPersonHours(value) {
   return `${Number(value || 0).toFixed(1)}人時`;
 }
@@ -1070,6 +1376,140 @@ function getPlotById(id) {
 
 function getVarietyById(id) {
   return masters.varieties.find((item) => item.id === id) || null;
+}
+
+function getWeatherLabelFromCode(weatherCode) {
+  if (!Number.isFinite(weatherCode)) return "";
+  const snowCodes = new Set([71, 73, 75, 77, 85, 86]);
+  const rainCodes = new Set([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99]);
+  if (snowCodes.has(weatherCode)) return "雪";
+  if (rainCodes.has(weatherCode)) return "雨";
+  if (weatherCode === 0) return "晴れ";
+  return "くもり";
+}
+
+function setWeatherFetchStatus(message = WEATHER_FETCH_HINT_TEXT, state = "") {
+  if (!weatherFetchStatus) return;
+  weatherFetchStatus.textContent = message;
+  if (state) weatherFetchStatus.dataset.state = state;
+  else delete weatherFetchStatus.dataset.state;
+}
+
+function setWeatherFetchLoading(isLoading) {
+  if (!fetchWeatherButton) return;
+  fetchWeatherButton.disabled = isLoading;
+  fetchWeatherButton.textContent = isLoading ? "取得中…" : "天気を取得";
+}
+
+async function fetchOpenMeteoWeather({ latitude, longitude }) {
+  const params = new URLSearchParams({
+    latitude: String(latitude),
+    longitude: String(longitude),
+    current: "temperature_2m,weather_code",
+    daily: "temperature_2m_max,temperature_2m_min,precipitation_sum",
+    timezone: "Asia/Tokyo",
+    forecast_days: "1"
+  });
+  const endpoint = `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(endpoint, { method: "GET", cache: "no-store", signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`Open-Meteo API error: ${response.status}`);
+    }
+    const payload = await response.json();
+    const current = payload?.current && typeof payload.current === "object" ? payload.current : {};
+    const daily = payload?.daily && typeof payload.daily === "object" ? payload.daily : {};
+    const weatherCodeRaw = normalizeOptionalNumber(current.weather_code);
+    const weatherCode = Number.isFinite(weatherCodeRaw) ? Math.trunc(weatherCodeRaw) : null;
+    const maxTemperatureRaw = Array.isArray(daily.temperature_2m_max) ? daily.temperature_2m_max[0] : null;
+    const minTemperatureRaw = Array.isArray(daily.temperature_2m_min) ? daily.temperature_2m_min[0] : null;
+    const precipitationRaw = Array.isArray(daily.precipitation_sum) ? daily.precipitation_sum[0] : null;
+    const targetDateRaw = Array.isArray(daily.time) ? daily.time[0] : "";
+    return normalizeRecordWeatherInfo({
+      source: "open-meteo",
+      fetchedAt: new Date().toISOString(),
+      targetDate: normalizeText(targetDateRaw),
+      latitude,
+      longitude,
+      currentTemperatureC: normalizeOptionalNumber(current.temperature_2m),
+      maxTemperatureC: normalizeOptionalNumber(maxTemperatureRaw),
+      minTemperatureC: normalizeOptionalNumber(minTemperatureRaw),
+      precipitationMm: normalizeOptionalNumber(precipitationRaw),
+      weatherCode,
+      weatherLabel: getWeatherLabelFromCode(weatherCode)
+    });
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+function applyFetchedWeatherToForm(weatherInfo) {
+  if (!weatherInfo) return;
+  if (Number.isFinite(weatherInfo.currentTemperatureC) && temperatureInput) {
+    temperatureInput.value = String(Number(weatherInfo.currentTemperatureC.toFixed(1)));
+  }
+  const mappedWeather = normalizeText(weatherInfo.weatherLabel);
+  if (mappedWeather && weatherInput) {
+    weatherInput.value = mappedWeather;
+    if (weatherInput.value !== mappedWeather) {
+      weatherInput.value = "";
+    }
+  }
+}
+
+async function handleFetchWeatherClick() {
+  const orchard = getOrchardById(orchardSelect.value);
+  if (!orchard) {
+    setWeatherFetchStatus("先に園地を選択してください。", "error");
+    return;
+  }
+  const latitude = normalizeLatitude(orchard.latitude);
+  const longitude = normalizeLongitude(orchard.longitude);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    setWeatherFetchStatus("この園地は緯度・経度が未設定です。設定画面で入力してください。", "error");
+    return;
+  }
+  setWeatherFetchLoading(true);
+  setWeatherFetchStatus("取得中…", "loading");
+  try {
+    const fetched = await fetchOpenMeteoWeather({ latitude, longitude });
+    if (!fetched || !Number.isFinite(fetched.currentTemperatureC)) {
+      throw new Error("Current temperature not available");
+    }
+    const merged = normalizeRecordWeatherInfo({
+      ...(recordWeatherInfo || {}),
+      ...fetched,
+      orchardId: orchard.id,
+      orchardName: orchard.name
+    });
+    recordWeatherInfo = merged;
+    applyFetchedWeatherToForm(merged);
+    const summary = formatWeatherInfoSummary(merged, true);
+    setWeatherFetchStatus(summary ? `取得完了: ${summary}` : "天気情報を取得しました。", "success");
+  } catch (error) {
+    console.error(error);
+    setWeatherFetchStatus("天気の取得に失敗しました。手入力で続けてください。", "error");
+  } finally {
+    setWeatherFetchLoading(false);
+  }
+}
+
+function resolveWeatherInfoForRecord(environment, orchard) {
+  const baseInfo = normalizeRecordWeatherInfo(recordWeatherInfo, {
+    orchardId: orchard?.id,
+    orchardName: orchard?.name
+  });
+  if (!baseInfo) return null;
+  if (orchard?.id && baseInfo.orchardId && baseInfo.orchardId !== orchard.id) return null;
+  return normalizeRecordWeatherInfo({
+    ...baseInfo,
+    orchardId: orchard?.id || baseInfo.orchardId,
+    orchardName: orchard?.name || baseInfo.orchardName,
+    currentTemperatureC: Number.isFinite(environment.temperatureC) ? environment.temperatureC : baseInfo.currentTemperatureC,
+    weatherLabel: environment.weather || baseInfo.weatherLabel
+  });
 }
 
 function getGroupById(id) {
@@ -2523,6 +2963,11 @@ function getFormData() {
   const appliedTeamSetId = teamPlan?.fixedTeamSetId || recordAppliedTeamSetId;
   const appliedTeamSet = getTeamSetById(appliedTeamSetId);
   const appliedTeamSetName = teamPlan?.fixedTeamSetName || appliedTeamSet?.name || recordAppliedTeamSetName;
+  const environment = normalizeRecordEnvironment({
+    temperatureC: temperatureInput?.value,
+    weather: weatherInput.value
+  });
+  const weatherInfo = resolveWeatherInfoForRecord(environment, orchard);
 
   return {
     id: recordIdInput.value || createId("record"),
@@ -2550,7 +2995,14 @@ function getFormData() {
     workerHourlyRate: Number(primaryWorker?.hourlyRate || 0),
     startTime: startTimeInput.value,
     endTime: endTimeInput.value,
-    weather: weatherInput.value,
+    temperatureC: environment.temperatureC,
+    weather: environment.weather,
+    weatherInfo,
+    conditions: {
+      temperatureC: environment.temperatureC,
+      weather: environment.weather,
+      weatherInfo
+    },
     materials: materialsInput.value.trim(),
     notes: notesInput.value.trim(),
     updatedAt: new Date().toISOString()
@@ -2920,6 +3372,7 @@ function getFilteredRecords(options = {}) {
 }
 
 function fillRecordForm(record) {
+  const environment = normalizeRecordEnvironment(record);
   recordIdInput.value = record.id;
   workDateInput.value = record.workDate;
   orchardSelect.value = record.orchardId || "";
@@ -2934,7 +3387,18 @@ function fillRecordForm(record) {
   selectedWorkerIds = getAssignedWorkers(record).map((worker) => worker.id);
   startTimeInput.value = record.startTime || "";
   endTimeInput.value = record.endTime || "";
-  weatherInput.value = record.weather;
+  if (temperatureInput) {
+    temperatureInput.value = environment.temperatureC ?? "";
+  }
+  weatherInput.value = environment.weather;
+  recordWeatherInfo = environment.weatherInfo ? { ...environment.weatherInfo } : null;
+  setWeatherFetchLoading(false);
+  if (recordWeatherInfo) {
+    const summary = formatWeatherInfoSummary(recordWeatherInfo, true);
+    setWeatherFetchStatus(summary ? `保存済み: ${summary}` : "保存済みの天気情報があります。必要に応じて再取得してください。", "success");
+  } else {
+    setWeatherFetchStatus(WEATHER_FETCH_HINT_TEXT);
+  }
   materialsInput.value = record.materials;
   notesInput.value = record.notes;
   formMode.textContent = "編集中";
@@ -2953,10 +3417,13 @@ function resetRecordForm() {
   groupSelect.value = "";
   recordAppliedTeamSetId = "";
   recordAppliedTeamSetName = "";
+  recordWeatherInfo = null;
   selectedWorkerIds = [];
   renderPlotOptions("");
   renderWorkerSelectionList();
   updateTimeHint();
+  setWeatherFetchLoading(false);
+  setWeatherFetchStatus(WEATHER_FETCH_HINT_TEXT);
 }
 
 function deleteRecord(id) {
@@ -2984,6 +3451,7 @@ function renderRecords() {
   filteredRecords.forEach((record) => {
     const names = getRecordDisplay(record);
     const metrics = getRecordMetrics(record);
+    const environment = normalizeRecordEnvironment(record);
     const fragment = cardTemplate.content.cloneNode(true);
     const card = fragment.querySelector(".record-card");
     fragment.querySelector(".record-card__date").textContent = formatDate(record.workDate);
@@ -3002,7 +3470,10 @@ function renderRecords() {
     fragment.querySelector(".record-card__worker-category").textContent = names.workerCategory;
     fragment.querySelector(".record-card__worker-rate").textContent = formatCurrency(names.workerHourlyRate);
     fragment.querySelector(".record-card__time-range").textContent = record.startTime && record.endTime ? `${record.startTime} - ${record.endTime}` : "未入力";
-    fragment.querySelector(".record-card__weather").textContent = record.weather || "未入力";
+    fragment.querySelector(".record-card__temperature").textContent = formatTemperature(environment.temperatureC);
+    const weatherBaseLabel = environment.weather || environment.weatherInfo?.weatherLabel || "未入力";
+    const weatherDetail = formatWeatherInfoSummary(environment.weatherInfo);
+    fragment.querySelector(".record-card__weather").textContent = weatherDetail ? `${weatherBaseLabel} / ${weatherDetail}` : weatherBaseLabel;
     fragment.querySelector(".record-card__materials").textContent = record.materials || "未入力";
     fragment.querySelector(".record-card__notes").textContent = record.notes || "メモはありません。";
     fragment.querySelector(".record-edit").addEventListener("click", () => fillRecordForm(record));
@@ -3120,10 +3591,15 @@ function renderMasterLists() {
     masters.orchards.forEach((orchard) => {
       const plotTotal = masters.plots.filter((plot) => plot.orchardId === orchard.id).length;
       const codeLabel = orchard.managementCode ? orchard.managementCode : "未設定（要設定）";
-      orchardList.appendChild(createMasterRow(orchard, `管理コード: ${codeLabel} / 登録区画数: ${plotTotal}件`, orchard.note, () => {
+      const coordinateLabel = Number.isFinite(orchard.latitude) && Number.isFinite(orchard.longitude)
+        ? `${formatCoordinate(orchard.latitude)}, ${formatCoordinate(orchard.longitude)}`
+        : "未設定";
+      orchardList.appendChild(createMasterRow(orchard, `管理コード: ${codeLabel} / 位置: ${coordinateLabel} / 登録区画数: ${plotTotal}件`, orchard.note, () => {
         orchardIdInput.value = orchard.id;
         orchardNameInput.value = orchard.name;
         orchardCodeInput.value = orchard.managementCode || "";
+        if (orchardLatitudeInput) orchardLatitudeInput.value = orchard.latitude ?? "";
+        if (orchardLongitudeInput) orchardLongitudeInput.value = orchard.longitude ?? "";
         orchardNoteInput.value = orchard.note;
         orchardNameInput.focus();
       }, () => deleteOrchard(orchard.id)));
@@ -3354,6 +3830,7 @@ function deleteWorkerMembershipSettings(workerId) {
 }
 
 function buildSummaryRows(container, entries, valueFormatter, emptyMessage) {
+  if (!container) return;
   container.innerHTML = "";
   if (!entries.length) {
     container.appendChild(buildEmptyState(emptyMessage));
@@ -3391,6 +3868,25 @@ function renderAnalytics() {
   }));
   const monthlyCountEntries = aggregateBy(records, (record) => record.workDate.slice(0, 7), () => 1).sort((a, b) => b[0].localeCompare(a[0]));
   const monthlyHourEntries = aggregateBy(recordsWithMetrics, (item) => item.record.workDate.slice(0, 7), (item) => item.metrics.hours).sort((a, b) => b[0].localeCompare(a[0]));
+  const monthlyTemperatureEntries = getMonthlyTemperatureStats(records)
+    .map((item) => [item.month, item.averageTemperatureC])
+    .sort((a, b) => b[0].localeCompare(a[0]));
+  const baseTemperatureC = getDegreeDayBaseTemperature(companySettings);
+  const monthlyDegreeDayEntries = getMonthlyDegreeDayStats(records, baseTemperatureC)
+    .map((item) => [item.month, item.degreeDay])
+    .sort((a, b) => b[0].localeCompare(a[0]));
+  buildSummaryRows(
+    monthlyAverageTemperatureList,
+    monthlyTemperatureEntries.map(([month, value]) => [formatMonth(month), value]),
+    (value) => Number(value || 0).toFixed(1).replace(/\.0$/, "") + "\u2103",
+    "\u6c17\u6e29\u30c7\u30fc\u30bf\u304c\u3042\u308a\u307e\u305b\u3093\u3002"
+  );
+  buildSummaryRows(
+    monthlyDegreeDayList,
+    monthlyDegreeDayEntries.map(([month, value]) => [formatMonth(month), value]),
+    (value) => Number(value || 0).toFixed(1).replace(/\.0$/, "") + "\u2103\u65e5",
+    "\u6c17\u6e29\u30c7\u30fc\u30bf\u304c\u3042\u308a\u307e\u305b\u3093\u3002"
+  );
   const orchardEntries = aggregateBy(recordsWithMetrics, (item) => item.names.orchardName, (item) => item.metrics.hours).sort((a, b) => b[1] - a[1]);
   const orchardPersonHoursEntries = aggregateBy(recordsWithMetrics, (item) => item.names.orchardName, (item) => item.metrics.personHours).sort((a, b) => b[1] - a[1]);
   const orchardLaborCostEntries = aggregateBy(recordsWithMetrics, (item) => item.names.orchardName, (item) => item.metrics.laborCost).sort((a, b) => b[1] - a[1]);
@@ -4274,6 +4770,7 @@ function buildDailyReportRowsHtml(dayRecords) {
     workHours: "\u4f5c\u696d\u6642\u9593",
     personHours: "\u5ef6\u3079\u4eba\u6642",
     laborCost: "\u6982\u7b97\u4eba\u4ef6\u8cbb",
+    temperature: "\u6c17\u6e29\uff08\u2103\uff09",
     weather: "\u5929\u6c17",
     materials: "\u4f7f\u7528\u8cc7\u6750",
     notes: "\u30e1\u30e2"
@@ -4282,9 +4779,13 @@ function buildDailyReportRowsHtml(dayRecords) {
   return dayRecords.map((record, index) => {
     const names = getRecordDisplay(record);
     const metrics = getRecordMetrics(record);
+    const environment = normalizeRecordEnvironment(record);
     const startTime = record.startTime || text.none;
     const endTime = record.endTime || text.none;
-    const weather = record.weather || text.none;
+    const temperature = formatTemperature(environment.temperatureC);
+    const weatherBase = environment.weather || text.none;
+    const weatherDetail = formatWeatherInfoSummary(environment.weatherInfo);
+    const weather = weatherDetail ? `${weatherBase} / ${weatherDetail}` : weatherBase;
     const materials = record.materials || text.none;
     const notes = record.notes || text.none;
 
@@ -4309,6 +4810,7 @@ function buildDailyReportRowsHtml(dayRecords) {
           <div class="daily-report-item"><span>${text.workHours}</span><strong>${escapeHtml(formatHours(metrics.hours))}</strong></div>
           <div class="daily-report-item"><span>${text.personHours}</span><strong>${escapeHtml(formatPersonHours(metrics.personHours))}</strong></div>
           <div class="daily-report-item"><span>${text.laborCost}</span><strong>${escapeHtml(formatCurrency(metrics.laborCost))}</strong></div>
+          <div class="daily-report-item"><span>${text.temperature}</span><strong>${escapeHtml(temperature)}</strong></div>
           <div class="daily-report-item"><span>${text.weather}</span><strong>${escapeHtml(weather)}</strong></div>
           <div class="daily-report-item daily-report-item--full"><span>${text.materials}</span><strong>${escapeHtml(materials)}</strong></div>
           <div class="daily-report-item daily-report-item--full"><span>${text.notes}</span><strong>${escapeHtml(notes)}</strong></div>
@@ -5715,6 +6217,8 @@ function applyQrLocation({ orchardId, plotId }) {
   }
   orchardSelect.value = orchard.id;
   renderPlotOptions(orchard.id, "");
+  recordWeatherInfo = null;
+  setWeatherFetchStatus("園地が選択されました。必要に応じて「天気を取得」を押してください。");
   if (plotId) {
     const plot = getPlotById(plotId);
     if (!plot || plot.orchardId !== orchard.id) {
@@ -5823,6 +6327,7 @@ function escapeCsvValue(value) {
   return text;
 }
 
+/*
 function exportCsv() {
   if (!records.length) {
     window.alert("CSV出力できる作業記録がありません。");
@@ -5846,6 +6351,8 @@ function exportCsv() {
   URL.revokeObjectURL(url);
 }
 
+*/
+/*
 function exportCumulativeComparisonCsvLegacy() {
   const comparisonData = getCumulativeComparisonData();
   if (!comparisonData.periodConfig.isValid) {
@@ -5870,6 +6377,184 @@ function exportCumulativeComparisonCsvLegacy() {
   const link = document.createElement("a");
   link.href = url;
   link.download = "taiseien-cumulative-comparison.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}
+*/
+
+/*
+function exportCsvWithTemperature() {
+  if (!records.length) {
+    // legacy-disabled
+    window.alert("CSV出力できる作業記録がありません。");
+    return;
+    // legacy-disabled-end
+    window.alert("CSV出力できる作業記録がありません。");
+    return;
+  }
+
+  const header = [
+    "作業日",
+    "園地",
+    "区画",
+    "品種",
+    "作業区分",
+    "当日グループ",
+    "使用固定チームセット",
+    "日別チーム編成",
+    "作業時間",
+    "作業人数",
+    "延べ人時",
+    "概算人件費",
+    "代表作業者名",
+    "作業者一覧",
+    "所属区分",
+    "時給単価",
+    "開始時刻",
+    "終了時刻",
+    "気温（℃）",
+    "天気",
+    "使用資材",
+    "メモ"
+  ];
+
+  const rows = records
+    .slice()
+    .sort((a, b) => new Date(b.workDate) - new Date(a.workDate))
+    .map((record) => {
+      const names = getRecordDisplay(record);
+      const metrics = getRecordMetrics(record);
+      const environment = normalizeRecordEnvironment(record);
+      const teamPlan = getTeamPlan(record.workDate, record.dailyGroupId);
+      const teamPlanText = teamPlan
+        ? teamPlan.workerIds
+            .map((workerId) => getWorkerById(workerId)?.displayName)
+            .filter(Boolean)
+            .join("、")
+        : "";
+
+      return [
+        record.workDate,
+        names.orchardName,
+        names.plotName,
+        names.varietyName,
+        record.taskType,
+        names.dailyGroupName,
+        names.fixedTeamSetName,
+        teamPlanText,
+        metrics.hours,
+        metrics.workerCount,
+        metrics.personHours,
+        metrics.laborCost,
+        names.workerFullName,
+        names.workerListText,
+        names.workerCategory,
+        names.workerHourlyRate,
+        record.startTime,
+        record.endTime,
+        environment.temperatureC ?? "",
+        environment.weather,
+        record.materials,
+        record.notes
+      ];
+    });
+
+  const csv = [header, ...rows].map((row) => row.map(escapeCsvValue).join(",")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "taiseien-work-records-v5.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+*/
+
+function exportCsvWithTemperature() {
+  if (!records.length) {
+    window.alert("\u0043\u0053\u0056\u51fa\u529b\u3067\u304d\u308b\u4f5c\u696d\u8a18\u9332\u304c\u3042\u308a\u307e\u305b\u3093\u3002");
+    return;
+  }
+
+  const header = [
+    "\u4f5c\u696d\u65e5",
+    "\u5712\u5730",
+    "\u533a\u753b",
+    "\u54c1\u7a2e",
+    "\u4f5c\u696d\u533a\u5206",
+    "\u5f53\u65e5\u30b0\u30eb\u30fc\u30d7",
+    "\u4f7f\u7528\u56fa\u5b9a\u30c1\u30fc\u30e0\u30bb\u30c3\u30c8",
+    "\u65e5\u5225\u30c1\u30fc\u30e0\u7de8\u6210",
+    "\u4f5c\u696d\u6642\u9593",
+    "\u4f5c\u696d\u4eba\u6570",
+    "\u5ef6\u3079\u4eba\u6642",
+    "\u6982\u7b97\u4eba\u4ef6\u8cbb",
+    "\u4ee3\u8868\u4f5c\u696d\u8005\u540d",
+    "\u4f5c\u696d\u8005\u4e00\u89a7",
+    "\u6240\u5c5e\u533a\u5206",
+    "\u6642\u7d66\u5358\u4fa1",
+    "\u958b\u59cb\u6642\u523b",
+    "\u7d42\u4e86\u6642\u523b",
+    "\u6c17\u6e29\uff08\u2103\uff09",
+    "\u5929\u6c17",
+    "\u6700\u9ad8\u6c17\u6e29\uff08\u2103\uff09",
+    "\u6700\u4f4e\u6c17\u6e29\uff08\u2103\uff09",
+    "\u964d\u6c34\u91cf\uff08mm\uff09",
+    "\u5929\u6c17\u53d6\u5f97\u6642\u523b",
+    "\u4f7f\u7528\u8cc7\u6750",
+    "\u30e1\u30e2"
+  ];
+
+  const rows = records
+    .slice()
+    .sort((a, b) => new Date(b.workDate) - new Date(a.workDate))
+    .map((record) => {
+      const names = getRecordDisplay(record);
+      const metrics = getRecordMetrics(record);
+      const environment = normalizeRecordEnvironment(record);
+      const weatherInfo = environment.weatherInfo || null;
+      const teamPlan = getTeamPlan(record.workDate, record.dailyGroupId);
+      const teamPlanText = teamPlan
+        ? teamPlan.workerIds.map((workerId) => getWorkerById(workerId)?.displayName).filter(Boolean).join("\u3001")
+        : "";
+
+      return [
+        record.workDate,
+        names.orchardName,
+        names.plotName,
+        names.varietyName,
+        record.taskType,
+        names.dailyGroupName,
+        names.fixedTeamSetName,
+        teamPlanText,
+        metrics.hours,
+        metrics.workerCount,
+        metrics.personHours,
+        metrics.laborCost,
+        names.workerFullName,
+        names.workerListText,
+        names.workerCategory,
+        names.workerHourlyRate,
+        record.startTime,
+        record.endTime,
+        environment.temperatureC ?? "",
+        environment.weather,
+        weatherInfo?.maxTemperatureC ?? "",
+        weatherInfo?.minTemperatureC ?? "",
+        weatherInfo?.precipitationMm ?? "",
+        weatherInfo?.fetchedAt ?? "",
+        record.materials,
+        record.notes
+      ];
+    });
+
+  const csv = [header, ...rows].map((row) => row.map(escapeCsvValue).join(",")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "taiseien-work-records-v5.csv";
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -5905,7 +6590,18 @@ form.addEventListener("submit", (event) => {
   render();
 });
 
-orchardSelect.addEventListener("change", () => renderPlotOptions(orchardSelect.value));
+orchardSelect.addEventListener("change", () => {
+  renderPlotOptions(orchardSelect.value);
+  recordWeatherInfo = null;
+  if (orchardSelect.value) {
+    setWeatherFetchStatus("園地が変わりました。必要に応じて「天気を取得」を押してください。");
+  } else {
+    setWeatherFetchStatus(WEATHER_FETCH_HINT_TEXT);
+  }
+});
+if (fetchWeatherButton) {
+  fetchWeatherButton.addEventListener("click", handleFetchWeatherClick);
+}
 workDateInput.addEventListener("change", () => {
   const teamPlan = getTeamPlan(workDateInput.value, groupSelect.value);
   if (teamPlan) {
@@ -5968,7 +6664,7 @@ if (historyCalendarTodayButton) {
     renderRecords();
   });
 }
-exportButton.addEventListener("click", exportCsv);
+exportButton.addEventListener("click", exportCsvWithTemperature);
 if (shortcutRecordFormButton) {
   shortcutRecordFormButton.addEventListener("click", () => moveToShortcut(recordFormPanel, workDateInput));
 }
@@ -6220,6 +6916,10 @@ orchardForm.addEventListener("submit", (event) => {
   const id = orchardIdInput.value || createId("orchard");
   const name = orchardNameInput.value.trim();
   const managementCode = normalizeManagementCode(orchardCodeInput.value);
+  const latitudeText = normalizeText(orchardLatitudeInput?.value);
+  const longitudeText = normalizeText(orchardLongitudeInput?.value);
+  const latitude = latitudeText ? normalizeLatitude(latitudeText) : null;
+  const longitude = longitudeText ? normalizeLongitude(longitudeText) : null;
   const note = orchardNoteInput.value.trim();
   if (masters.orchards.some((item) => item.name === name && item.id !== id)) {
     window.alert("同じ園地名がすでに登録されています。");
@@ -6229,7 +6929,15 @@ orchardForm.addEventListener("submit", (event) => {
     window.alert("同じ園地管理コードがすでに登録されています。");
     return;
   }
-  const orchard = { id, name, managementCode, note };
+  if (latitudeText && !Number.isFinite(latitude)) {
+    window.alert("緯度は -90 〜 90 の範囲で入力してください。");
+    return;
+  }
+  if (longitudeText && !Number.isFinite(longitude)) {
+    window.alert("経度は -180 〜 180 の範囲で入力してください。");
+    return;
+  }
+  const orchard = { id, name, managementCode, latitude, longitude, note };
   const index = masters.orchards.findIndex((item) => item.id === id);
   if (index >= 0) masters.orchards[index] = orchard;
   else masters.orchards.push(orchard);
@@ -6513,6 +7221,9 @@ if (companySettingsForm) {
     event.preventDefault();
     const monthValue = Number(fiscalClosingMonthInput.value || 0);
     const dayValue = Number(fiscalClosingDayInput.value || 0);
+    const baseTemperatureValue = normalizeOptionalNumber(
+      degreeDayBaseTemperatureInput?.value ?? companySettings.degreeDayBaseTemperatureC
+    );
     if (!Number.isFinite(monthValue) || monthValue < 1 || monthValue > 12) {
       window.alert("決算締月は1〜12で入力してください。");
       return;
@@ -6521,9 +7232,14 @@ if (companySettingsForm) {
       window.alert("決算締日は1〜31で入力してください。");
       return;
     }
+    if (!Number.isFinite(baseTemperatureValue)) {
+      window.alert("\u7a4d\u7b97\u6e29\u5ea6\u306e\u57fa\u6e96\u6e29\u5ea6\u3092\u6570\u5024\u3067\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
+      return;
+    }
     companySettings = normalizeCompanySettings({
       fiscalClosingMonth: monthValue,
-      fiscalClosingDay: dayValue
+      fiscalClosingDay: dayValue,
+      degreeDayBaseTemperatureC: baseTemperatureValue
     });
     saveState();
     render();
@@ -6532,15 +7248,28 @@ if (companySettingsForm) {
   const updatePreview = () => {
     const previewMonth = Number(fiscalClosingMonthInput.value || companySettings.fiscalClosingMonth);
     const previewDay = Number(fiscalClosingDayInput.value || companySettings.fiscalClosingDay);
-    const previewSettings = normalizeCompanySettings({ fiscalClosingMonth: previewMonth, fiscalClosingDay: previewDay });
+    const previewBaseTemperature = normalizeOptionalNumber(
+      degreeDayBaseTemperatureInput?.value ?? companySettings.degreeDayBaseTemperatureC
+    );
+    const previewSettings = normalizeCompanySettings({
+      fiscalClosingMonth: previewMonth,
+      fiscalClosingDay: previewDay,
+      degreeDayBaseTemperatureC: previewBaseTemperature
+    });
     const currentSettings = companySettings;
     companySettings = previewSettings;
     const fiscalRange = getFiscalYearRange(today);
     companySettings = currentSettings;
+    const baseTemperatureText = Number(previewSettings.degreeDayBaseTemperatureC).toFixed(1).replace(/\.0$/, "");
+    companyFiscalYearPreview.textContent = `\u73fe\u5728\u306e\u6c7a\u7b97\u5e74\u5ea6: ${formatDateYmd(fiscalRange.from)}\u301c${formatDateYmd(fiscalRange.to)} / \u7a4d\u7b97\u6e29\u5ea6\u57fa\u6e96: ${baseTemperatureText}\u2103`;
+    return;
     companyFiscalYearPreview.textContent = `現在の決算年度: ${formatDateYmd(fiscalRange.from)}〜${formatDateYmd(fiscalRange.to)}`;
   };
   fiscalClosingMonthInput.addEventListener("input", updatePreview);
   fiscalClosingDayInput.addEventListener("input", updatePreview);
+  if (degreeDayBaseTemperatureInput) {
+    degreeDayBaseTemperatureInput.addEventListener("input", updatePreview);
+  }
 }
 
 function renderCompanySettings() {
@@ -6548,7 +7277,14 @@ function renderCompanySettings() {
   const normalized = normalizeCompanySettings(companySettings);
   fiscalClosingMonthInput.value = String(normalized.fiscalClosingMonth);
   fiscalClosingDayInput.value = String(normalized.fiscalClosingDay);
+  if (degreeDayBaseTemperatureInput) {
+    degreeDayBaseTemperatureInput.value = String(normalized.degreeDayBaseTemperatureC);
+  }
   const fiscalRange = getFiscalYearRange(today);
+  const baseTemperatureText = Number(normalized.degreeDayBaseTemperatureC).toFixed(1).replace(/\.0$/, "");
+  companyFiscalYearPreview.textContent = `\u73fe\u5728\u306e\u6c7a\u7b97\u5e74\u5ea6: ${formatDateYmd(fiscalRange.from)}\u301c${formatDateYmd(fiscalRange.to)} / \u7a4d\u7b97\u6e29\u5ea6\u57fa\u6e96: ${baseTemperatureText}\u2103`;
+  return;
+  const legacyFiscalRange = getFiscalYearRange(today);
   companyFiscalYearPreview.textContent = `現在の決算年度: ${formatDateYmd(fiscalRange.from)}〜${formatDateYmd(fiscalRange.to)}`;
 }
 

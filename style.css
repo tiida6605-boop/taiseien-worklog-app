@@ -447,6 +447,33 @@ textarea {
   overflow-wrap: anywhere;
 }
 
+.weather-fetch-field {
+  display: grid;
+  gap: 0.45rem;
+  align-content: end;
+}
+
+.weather-fetch-field .button {
+  width: 100%;
+}
+
+.weather-fetch-status {
+  margin-top: 0;
+}
+
+.weather-fetch-status[data-state="loading"] {
+  color: var(--leaf);
+}
+
+.weather-fetch-status[data-state="success"] {
+  color: #205720;
+}
+
+.weather-fetch-status[data-state="error"] {
+  color: #8f351e;
+  font-weight: 600;
+}
+
 .print-mobile-guide {
   margin-top: -0.35rem;
   padding: 0.62rem 0.74rem;
