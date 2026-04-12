@@ -262,7 +262,31 @@
           <p class="panel__lead">過去の作業記録を見たり、絞り込みで探したりできます。</p>
           <p class="form-hint">条件を選んで、見たい記録を確認してください。</p>
 
-          <div class="filters filters--quad">
+          <section class="history-calendar" aria-label="履歴カレンダー">
+            <div class="history-calendar__toolbar">
+              <div class="history-calendar__month-row">
+                <button type="button" class="button button--settings button--small" id="historyCalendarPrevButton" aria-label="前の月へ">前月</button>
+                <p class="history-calendar__month" id="historyCalendarMonthLabel">----</p>
+                <button type="button" class="button button--settings button--small" id="historyCalendarNextButton" aria-label="次の月へ">次月</button>
+              </div>
+              <button type="button" class="button button--view button--small" id="historyCalendarTodayButton">今日へ戻る</button>
+            </div>
+            <div class="history-calendar__weekdays" aria-hidden="true">
+              <span>日</span>
+              <span>月</span>
+              <span>火</span>
+              <span>水</span>
+              <span>木</span>
+              <span>金</span>
+              <span>土</span>
+            </div>
+            <div id="historyCalendarGrid" class="history-calendar__grid" role="grid" aria-label="月間カレンダー"></div>
+            <p class="form-hint history-calendar__hint">● がある日は作業記録があります。</p>
+          </section>
+
+          <details class="history-filter-details">
+            <summary>しぼりこみ（任意）</summary>
+            <div class="filters filters--quad">
             <label>
               園地で絞り込み
               <select id="orchardFilter"></select>
@@ -294,8 +318,10 @@
               作業者で絞り込み
               <select id="workerFilter"></select>
             </label>
-          </div>
+            </div>
+          </details>
 
+          <h3 class="history-selected-date" id="historySelectedDateLabel">--</h3>
           <div id="recordList" class="record-list" aria-live="polite"></div>
         </section>
 

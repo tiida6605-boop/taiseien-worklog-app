@@ -737,6 +737,126 @@ textarea {
   color: var(--accent-dark);
 }
 
+.history-calendar {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.85rem;
+  margin-bottom: 0.85rem;
+  padding: 0.8rem;
+  border-radius: 16px;
+  border: 1px solid rgba(96, 68, 38, 0.12);
+  background: rgba(255, 250, 241, 0.82);
+}
+
+.history-calendar__toolbar {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.history-calendar__month-row {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 1.2fr) 1fr;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.history-calendar__month {
+  margin: 0;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.history-calendar__weekdays,
+.history-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.history-calendar__weekdays span {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.history-calendar__blank {
+  min-height: 50px;
+}
+
+.history-calendar__day {
+  position: relative;
+  width: 100%;
+  min-height: 52px;
+  border-radius: 12px;
+  border: 1px solid rgba(96, 68, 38, 0.16);
+  background: #fff8ec;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.35rem;
+  cursor: pointer;
+}
+
+.history-calendar__day:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(198, 82, 47, 0.2);
+}
+
+.history-calendar__day.is-today {
+  border-color: rgba(81, 108, 61, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(81, 108, 61, 0.18);
+}
+
+.history-calendar__day.is-selected {
+  border-color: rgba(198, 82, 47, 0.55);
+  background: linear-gradient(135deg, rgba(198, 82, 47, 0.2) 0%, rgba(217, 121, 61, 0.22) 100%);
+  color: #6f2f1d;
+}
+
+.history-calendar__day.has-record::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0.36rem;
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  background: var(--accent);
+}
+
+.history-calendar__hint {
+  margin: 0;
+}
+
+.history-filter-details {
+  margin: 0.2rem 0 0.85rem;
+  border: 1px solid rgba(96, 68, 38, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.2rem 0.65rem 0.65rem;
+}
+
+.history-filter-details summary {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 700;
+  color: #5b4b38;
+  padding: 0.65rem 0;
+}
+
+.history-filter-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.history-selected-date {
+  margin: 0;
+  font-size: 1rem;
+}
+
 .record-list {
   display: grid;
   gap: 0.9rem;
@@ -1470,6 +1590,20 @@ textarea {
 
   .home-summary-grid > :last-child {
     grid-column: 1 / -1;
+  }
+
+  .history-calendar {
+    padding: 0.72rem;
+    gap: 0.62rem;
+  }
+
+  .history-calendar__month {
+    font-size: 1rem;
+  }
+
+  .history-calendar__day {
+    min-height: 48px;
+    font-size: 0.95rem;
   }
 
   input,

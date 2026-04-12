@@ -193,6 +193,12 @@ const orchardFilterInput = document.getElementById("orchardFilter");
 const varietyFilterInput = document.getElementById("varietyFilter");
 const taskFilterInput = document.getElementById("taskFilter");
 const workerFilterInput = document.getElementById("workerFilter");
+const historyCalendarMonthLabel = document.getElementById("historyCalendarMonthLabel");
+const historyCalendarPrevButton = document.getElementById("historyCalendarPrevButton");
+const historyCalendarNextButton = document.getElementById("historyCalendarNextButton");
+const historyCalendarTodayButton = document.getElementById("historyCalendarTodayButton");
+const historyCalendarGrid = document.getElementById("historyCalendarGrid");
+const historySelectedDateLabel = document.getElementById("historySelectedDateLabel");
 const recordList = document.getElementById("recordList");
 const resetButton = document.getElementById("resetButton");
 const exportButton = document.getElementById("exportButton");
@@ -463,6 +469,8 @@ let selectedTeamPlanWorkerIds = [];
 let selectedTeamSetWorkerIds = [];
 let recordAppliedTeamSetId = "";
 let recordAppliedTeamSetName = "";
+let historySelectedDate = today;
+let historyVisibleMonth = today.slice(0, 7);
 let qrScannerStream = null;
 let qrScanFrameId = 0;
 let qrDetector = null;
@@ -1175,6 +1183,108 @@ function getCurrentMonthRange(baseDate = today) {
   const lastDay = new Date(year, month, 0).getDate();
   const to = `${yearText}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
   return { from, to };
+}
+
+function normalizeDateString(value, fallback = today) {
+  if (typeof value !== "string") return fallback;
+  const trimmed = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  return fallback;
+}
+
+function normalizeMonthString(value, fallback = today.slice(0, 7)) {
+  if (typeof value !== "string") return fallback;
+  const trimmed = value.trim();
+  if (/^\d{4}-\d{2}$/.test(trimmed)) return trimmed;
+  return fallback;
+}
+
+function shiftMonthString(monthString, amount) {
+  const [yearText, monthText] = normalizeMonthString(monthString).split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const date = new Date(year, month - 1, 1);
+  date.setMonth(date.getMonth() + amount);
+  const nextYear = date.getFullYear();
+  const nextMonth = String(date.getMonth() + 1).padStart(2, "0");
+  return `${nextYear}-${nextMonth}`;
+}
+
+function buildDateString(year, month, day) {
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function getSelectedHistoryDateLabel() {
+  return `${formatDate(historySelectedDate)} の履歴`;
+}
+
+function renderHistoryCalendar() {
+  if (!historyCalendarGrid || !historyCalendarMonthLabel) return;
+
+  historySelectedDate = normalizeDateString(historySelectedDate);
+  historyVisibleMonth = normalizeMonthString(historyVisibleMonth, historySelectedDate.slice(0, 7));
+  const selectedMonth = historySelectedDate.slice(0, 7);
+  if (!historyVisibleMonth) {
+    historyVisibleMonth = selectedMonth || today.slice(0, 7);
+  }
+
+  const [yearText, monthText] = historyVisibleMonth.split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  if (!Number.isFinite(year) || !Number.isFinite(month)) return;
+
+  historyCalendarMonthLabel.textContent = `${year}年${month}月`;
+  historyCalendarGrid.innerHTML = "";
+  if (historySelectedDateLabel) {
+    historySelectedDateLabel.textContent = getSelectedHistoryDateLabel();
+  }
+
+  const monthStartDay = new Date(year, month - 1, 1).getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const totalCellCount = Math.ceil((monthStartDay + daysInMonth) / 7) * 7;
+  const recordDateSet = new Set(getFilteredRecords().map((record) => record.workDate));
+
+  for (let index = 0; index < totalCellCount; index += 1) {
+    const day = index - monthStartDay + 1;
+    if (day < 1 || day > daysInMonth) {
+      const blank = document.createElement("div");
+      blank.className = "history-calendar__blank";
+      blank.setAttribute("aria-hidden", "true");
+      historyCalendarGrid.appendChild(blank);
+      continue;
+    }
+
+    const dateKey = buildDateString(year, month, day);
+    const dayButton = document.createElement("button");
+    dayButton.type = "button";
+    dayButton.className = "history-calendar__day";
+    dayButton.textContent = String(day);
+    dayButton.dataset.date = dateKey;
+    dayButton.setAttribute("role", "gridcell");
+
+    const hasRecord = recordDateSet.has(dateKey);
+    if (hasRecord) {
+      dayButton.classList.add("has-record");
+      dayButton.setAttribute("aria-label", `${day}日（記録あり）`);
+    } else {
+      dayButton.setAttribute("aria-label", `${day}日`);
+    }
+
+    if (dateKey === today) {
+      dayButton.classList.add("is-today");
+    }
+    if (dateKey === historySelectedDate) {
+      dayButton.classList.add("is-selected");
+      dayButton.setAttribute("aria-current", "date");
+    }
+
+    dayButton.addEventListener("click", () => {
+      historySelectedDate = dateKey;
+      historyVisibleMonth = dateKey.slice(0, 7);
+      renderRecords();
+    });
+    historyCalendarGrid.appendChild(dayButton);
+  }
 }
 
 function getComparisonPeriodConfig() {
@@ -2787,7 +2897,8 @@ function moveToShortcut(targetPanel, focusElement) {
   scrollToElement(targetPanel);
 }
 
-function getFilteredRecords() {
+function getFilteredRecords(options = {}) {
+  const { workDate = "" } = options;
   const orchardId = orchardFilterInput.value;
   const varietyId = varietyFilterInput.value;
   const taskType = taskFilterInput.value;
@@ -2799,11 +2910,12 @@ function getFilteredRecords() {
       return dateCompare || new Date(b.updatedAt) - new Date(a.updatedAt);
     })
     .filter((record) => {
+      const matchesDate = !workDate || record.workDate === workDate;
       const matchesOrchard = !orchardId || record.orchardId === orchardId;
       const matchesVariety = !varietyId || record.varietyId === varietyId;
       const matchesTask = !taskType || record.taskType === taskType;
       const matchesWorker = !workerId || record.assignedWorkers.some((item) => item.workerId === workerId);
-      return matchesOrchard && matchesVariety && matchesTask && matchesWorker;
+      return matchesDate && matchesOrchard && matchesVariety && matchesTask && matchesWorker;
     });
 }
 
@@ -2856,8 +2968,15 @@ function deleteRecord(id) {
 
 function renderRecords() {
   recordList.innerHTML = "";
-  const filteredRecords = getFilteredRecords();
+  historySelectedDate = normalizeDateString(historySelectedDate);
+  historyVisibleMonth = normalizeMonthString(historyVisibleMonth, historySelectedDate.slice(0, 7));
+  renderHistoryCalendar();
+  const filteredRecords = getFilteredRecords({ workDate: historySelectedDate });
   if (!filteredRecords.length) {
+    recordList.appendChild(buildEmptyState("この日の記録はありません。"));
+    return;
+  }
+  if (!filteredRecords.length && records.length < 0) {
     recordList.appendChild(buildEmptyState(records.length ? "条件に合う作業記録がありません。絞り込み条件を見直してください。" : "サンプルを参考に、最初の作業記録を登録してください。"));
     return;
   }
@@ -5824,6 +5943,31 @@ orchardFilterInput.addEventListener("change", renderRecords);
 varietyFilterInput.addEventListener("change", renderRecords);
 taskFilterInput.addEventListener("change", renderRecords);
 workerFilterInput.addEventListener("change", renderRecords);
+if (historyCalendarPrevButton) {
+  historyCalendarPrevButton.addEventListener("click", () => {
+    historyVisibleMonth = shiftMonthString(historyVisibleMonth, -1);
+    if (!historySelectedDate.startsWith(historyVisibleMonth)) {
+      historySelectedDate = `${historyVisibleMonth}-01`;
+    }
+    renderRecords();
+  });
+}
+if (historyCalendarNextButton) {
+  historyCalendarNextButton.addEventListener("click", () => {
+    historyVisibleMonth = shiftMonthString(historyVisibleMonth, 1);
+    if (!historySelectedDate.startsWith(historyVisibleMonth)) {
+      historySelectedDate = `${historyVisibleMonth}-01`;
+    }
+    renderRecords();
+  });
+}
+if (historyCalendarTodayButton) {
+  historyCalendarTodayButton.addEventListener("click", () => {
+    historySelectedDate = today;
+    historyVisibleMonth = today.slice(0, 7);
+    renderRecords();
+  });
+}
 exportButton.addEventListener("click", exportCsv);
 if (shortcutRecordFormButton) {
   shortcutRecordFormButton.addEventListener("click", () => moveToShortcut(recordFormPanel, workDateInput));
