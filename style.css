@@ -474,6 +474,8 @@ textarea {
 
 .weather-fetch-status {
   margin-top: 0;
+  line-height: 1.45;
+  font-size: 0.94rem;
 }
 
 .weather-fetch-status[data-state="loading"] {
