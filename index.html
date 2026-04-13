@@ -130,7 +130,7 @@
             </label>
 
             <label>
-              気温（℃）
+              現在気温（℃）
               <input type="number" id="temperatureC" min="-30" max="60" step="0.1" inputmode="decimal" placeholder="例: 18">
             </label>
 
@@ -146,13 +146,17 @@
             </label>
             <div class="weather-fetch-field">
               <button type="button" class="button button--view" id="fetchWeatherButton">天気を取得</button>
-              <p class="form-hint weather-fetch-status" id="weatherFetchStatus" aria-live="polite">園地を選んで「天気を取得」を押すと、気温を自動入力できます。</p>
+              <p class="form-hint weather-fetch-status" id="weatherFetchStatus" aria-live="polite">園地を選んで「天気を取得」を押すと、現在気温を自動入力できます。</p>
             </div>
           </div>
 
           <section class="record-subsection">
             <h3 class="record-subsection__title">気象データ（自動取得＋手修正）</h3>
             <div class="form-row form-row--triple">
+              <label>
+                平均気温（℃）
+                <input type="number" id="weatherTempAvg" step="0.1" inputmode="decimal" placeholder="例: 12.8">
+              </label>
               <label>
                 最高気温（℃）
                 <input type="number" id="weatherTempMax" step="0.1" inputmode="decimal" placeholder="例: 18.4">
@@ -161,12 +165,12 @@
                 最低気温（℃）
                 <input type="number" id="weatherTempMin" step="0.1" inputmode="decimal" placeholder="例: 6.1">
               </label>
+            </div>
+            <div class="form-row form-row--triple">
               <label>
                 降水量（mm）
                 <input type="number" id="weatherPrecipitation" min="0" step="0.1" inputmode="decimal" placeholder="例: 3.5">
               </label>
-            </div>
-            <div class="form-row form-row--triple">
               <label>
                 湿度（%）
                 <input type="number" id="weatherHumidity" min="0" max="100" step="1" inputmode="decimal" placeholder="例: 72">
@@ -175,12 +179,14 @@
                 風速（m/s）
                 <input type="number" id="weatherWindSpeed" min="0" step="0.1" inputmode="decimal" placeholder="例: 2.4">
               </label>
+            </div>
+            <div class="form-row">
               <label>
                 天気コード
                 <input type="number" id="weatherCode" step="1" inputmode="numeric" placeholder="例: 3">
               </label>
             </div>
-            <p class="form-hint">自動取得後でも手修正できます。平均気温は「気温（℃）」欄を使います。</p>
+            <p class="form-hint">自動取得後でも手修正できます。「現在気温（℃）」は比較用、「平均気温（℃）」は分析用に使えます。</p>
           </section>
 
           <div class="form-row">
@@ -1325,7 +1331,7 @@
           <dd class="record-card__time-range"></dd>
         </div>
         <div>
-          <dt>気温（℃）</dt>
+          <dt>現在気温（℃）</dt>
           <dd class="record-card__temperature"></dd>
         </div>
         <div>
