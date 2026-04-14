@@ -171,7 +171,13 @@ const defaultCompanySettings = {
   fiscalClosingDay: 31,
   degreeDayBaseTemperatureC: 10
 };
-const WEATHER_FETCH_HINT_TEXT = "園地を選んで「天気を取得」を押すと、現在気温を自動入力できます。";
+const FIXED_WEATHER_SOURCE = {
+  locationName: "弘前市",
+  latitude: 40.6031,
+  longitude: 140.4639
+};
+const WEATHER_FETCH_BUTTON_TEXT = `${FIXED_WEATHER_SOURCE.locationName}の天気を取得`;
+const WEATHER_FETCH_HINT_TEXT = `「${WEATHER_FETCH_BUTTON_TEXT}」を押すと、現在気温を自動入力できます。`;
 
 const form = document.getElementById("recordForm");
 const recordIdInput = document.getElementById("recordId");
@@ -619,6 +625,7 @@ function normalizeRecordWeatherInfo(rawInfo, fallback = {}) {
   const source = normalizeText(rawInfo.source ?? rawInfo.provider);
   const fetchedAt = normalizeText(rawInfo.fetchedAt ?? rawInfo.observedAt ?? rawInfo.retrievedAt);
   const targetDate = normalizeText(rawInfo.targetDate ?? rawInfo.workDate ?? rawInfo.date);
+  const locationName = normalizeText(rawInfo.locationName ?? rawInfo.location ?? rawInfo.city ?? fallback.locationName);
   const orchardId = normalizeText(rawInfo.orchardId ?? fallback.orchardId);
   const orchardName = normalizeText(rawInfo.orchardName ?? fallback.orchardName);
 
@@ -660,6 +667,7 @@ function normalizeRecordWeatherInfo(rawInfo, fallback = {}) {
     source,
     fetchedAt,
     targetDate,
+    locationName,
     orchardId,
     orchardName,
     // Legacy aliases kept for backward compatibility with previous code paths.
@@ -667,6 +675,7 @@ function normalizeRecordWeatherInfo(rawInfo, fallback = {}) {
     maxTemperatureC: tempMax,
     minTemperatureC: tempMin,
     precipitationMm: precipitation,
+    location: locationName,
     weatherLabel: weatherText
   };
 }
@@ -1521,7 +1530,7 @@ function setWeatherFetchStatus(message = WEATHER_FETCH_HINT_TEXT, state = "") {
 function setWeatherFetchLoading(isLoading) {
   if (!fetchWeatherButton) return;
   fetchWeatherButton.disabled = isLoading;
-  fetchWeatherButton.textContent = isLoading ? "取得中…" : "天気を取得";
+  fetchWeatherButton.textContent = isLoading ? "取得中…" : WEATHER_FETCH_BUTTON_TEXT;
 }
 
 function clearWeatherDetailInputs(options = {}) {
@@ -1538,7 +1547,15 @@ function clearWeatherDetailInputs(options = {}) {
   if (weatherCodeInput) weatherCodeInput.value = "";
 }
 
-async function fetchOpenMeteoWeather({ latitude, longitude }) {
+function getWeatherFetchTarget() {
+  return {
+    locationName: FIXED_WEATHER_SOURCE.locationName,
+    latitude: FIXED_WEATHER_SOURCE.latitude,
+    longitude: FIXED_WEATHER_SOURCE.longitude
+  };
+}
+
+async function fetchOpenMeteoWeather({ latitude, longitude, locationName = FIXED_WEATHER_SOURCE.locationName }) {
   const params = new URLSearchParams({
     latitude: String(latitude),
     longitude: String(longitude),
@@ -1571,6 +1588,7 @@ async function fetchOpenMeteoWeather({ latitude, longitude }) {
       source: "open-meteo",
       fetchedAt: new Date().toISOString(),
       targetDate: normalizeText(targetDateRaw),
+      locationName,
       latitude,
       longitude,
       currentTemp: currentTempRaw,
@@ -1610,37 +1628,27 @@ function applyFetchedWeatherToForm(weatherInfo) {
 }
 
 async function handleFetchWeatherClick() {
-  const orchard = getOrchardById(orchardSelect.value);
-  if (!orchard) {
-    setWeatherFetchStatus("先に園地を選択してください。", "error");
-    return;
-  }
-  const latitude = normalizeLatitude(orchard.latitude);
-  const longitude = normalizeLongitude(orchard.longitude);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    setWeatherFetchStatus("この園地は緯度・経度が未設定です。設定画面で入力してください。", "error");
-    return;
-  }
+  const weatherTarget = getWeatherFetchTarget();
   setWeatherFetchLoading(true);
   setWeatherFetchStatus("取得中…", "loading");
   try {
-    const fetched = await fetchOpenMeteoWeather({ latitude, longitude });
+    const fetched = await fetchOpenMeteoWeather(weatherTarget);
     if (!fetched || !Number.isFinite(fetched.currentTemp)) {
       throw new Error("Current temperature not available");
     }
     const merged = normalizeRecordWeatherInfo({
       ...(recordWeatherInfo || {}),
       ...fetched,
-      orchardId: orchard.id,
-      orchardName: orchard.name
+      locationName: weatherTarget.locationName
     });
     recordWeatherInfo = merged;
     applyFetchedWeatherToForm(merged);
     const summary = formatWeatherInfoSummary(merged, true);
-    setWeatherFetchStatus(summary ? `取得完了: ${summary}` : "天気情報を取得しました。", "success");
+    const locationLabel = merged?.locationName || weatherTarget.locationName;
+    setWeatherFetchStatus(summary ? `${locationLabel} 取得完了: ${summary}` : `${locationLabel}の天気情報を取得しました。`, "success");
   } catch (error) {
     console.error(error);
-    setWeatherFetchStatus("天気の取得に失敗しました。手入力で続けてください。", "error");
+    setWeatherFetchStatus(`${weatherTarget.locationName}の天気取得に失敗しました。手入力で続けてください。`, "error");
   } finally {
     setWeatherFetchLoading(false);
   }
@@ -1649,21 +1657,25 @@ async function handleFetchWeatherClick() {
 function resolveWeatherInfoForRecord(environment, orchard, manualWeather = {}) {
   const baseInfo = normalizeRecordWeatherInfo(recordWeatherInfo, {
     orchardId: orchard?.id,
-    orchardName: orchard?.name
+    orchardName: orchard?.name,
+    locationName: FIXED_WEATHER_SOURCE.locationName
   });
   const manualInfo = normalizeRecordWeatherInfo(manualWeather, {
     orchardId: orchard?.id,
-    orchardName: orchard?.name
+    orchardName: orchard?.name,
+    locationName: FIXED_WEATHER_SOURCE.locationName
   });
   if (!baseInfo && !manualInfo && !Number.isFinite(environment.temperatureC) && !environment.weather) return null;
   if (orchard?.id && baseInfo?.orchardId && baseInfo.orchardId !== orchard.id) {
     return manualInfo || normalizeRecordWeatherInfo({
       ...manualWeather,
       currentTemp: Number.isFinite(environment.temperatureC) ? environment.temperatureC : null,
-      weatherText: environment.weather
+      weatherText: environment.weather,
+      locationName: FIXED_WEATHER_SOURCE.locationName
     }, {
       orchardId: orchard?.id,
-      orchardName: orchard?.name
+      orchardName: orchard?.name,
+      locationName: FIXED_WEATHER_SOURCE.locationName
     });
   }
   return normalizeRecordWeatherInfo({
@@ -1672,6 +1684,7 @@ function resolveWeatherInfoForRecord(environment, orchard, manualWeather = {}) {
     ...manualWeather,
     orchardId: orchard?.id || baseInfo?.orchardId || "",
     orchardName: orchard?.name || baseInfo?.orchardName || "",
+    locationName: manualInfo?.locationName || baseInfo?.locationName || FIXED_WEATHER_SOURCE.locationName,
     currentTemp: Number.isFinite(environment.temperatureC)
       ? environment.temperatureC
       : (manualInfo?.currentTemp ?? baseInfo?.currentTemp ?? baseInfo?.currentTemperatureC ?? null),
@@ -3136,6 +3149,7 @@ function getFormData() {
     weather: weatherInput.value
   });
   const manualWeather = {
+    locationName: FIXED_WEATHER_SOURCE.locationName,
     currentTemp: temperatureInput?.value,
     tempAvg: weatherTempAvgInput?.value,
     tempMax: weatherTempMaxInput?.value,
@@ -6451,7 +6465,7 @@ function applyQrLocation({ orchardId, plotId }) {
   renderPlotOptions(orchard.id, "");
   recordWeatherInfo = null;
   clearWeatherDetailInputs();
-  setWeatherFetchStatus("園地が選択されました。必要に応じて「天気を取得」を押してください。");
+    setWeatherFetchStatus(`必要に応じて「${WEATHER_FETCH_BUTTON_TEXT}」を押してください。`);
   if (plotId) {
     const plot = getPlotById(plotId);
     if (!plot || plot.orchardId !== orchard.id) {
@@ -6858,7 +6872,7 @@ orchardSelect.addEventListener("change", () => {
   recordWeatherInfo = null;
   clearWeatherDetailInputs();
   if (orchardSelect.value) {
-    setWeatherFetchStatus("園地が変わりました。必要に応じて「天気を取得」を押してください。");
+    setWeatherFetchStatus(`入力内容が変わりました。必要に応じて「${WEATHER_FETCH_BUTTON_TEXT}」を押してください。`);
   } else {
     setWeatherFetchStatus(WEATHER_FETCH_HINT_TEXT);
   }
