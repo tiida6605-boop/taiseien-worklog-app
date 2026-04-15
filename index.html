@@ -459,6 +459,7 @@
             <button type="button" class="button button--view summary-menu__button" data-summary-target="monthly">月報</button>
             <button type="button" class="button button--view summary-menu__button" data-summary-target="annual">年度レポート</button>
             <button type="button" class="button button--save summary-menu__button" data-summary-target="comparison">比較表</button>
+            <button type="button" class="button button--save summary-menu__button" data-summary-target="payroll">簡易給与明細</button>
           </nav>
 
           <section class="summary-report-tools" data-summary-section="daily" hidden>
@@ -492,7 +493,64 @@
             <p class="form-hint print-mobile-guide">Androidでは「月報をPDF保存」→「月報を共有」で印刷アプリへ渡す運用が安定します。</p>
           </section>
 
+          <section class="summary-report-tools" data-summary-section="payroll" hidden>
+            <h3>簡易給与明細</h3>
+            <div class="payroll-tools">
+              <label>
+                対象年月
+                <input type="month" id="payrollTargetMonth">
+              </label>
+
+              <label>
+                締め区分
+                <select id="payrollCloseType">
+                  <option value="monthly">月締め（1日〜月末）</option>
+                  <option value="half-first">半月締め 前半（1日〜15日）</option>
+                  <option value="half-second">半月締め 後半（16日〜月末）</option>
+                  <option value="custom">任意期間</option>
+                </select>
+              </label>
+
+              <label>
+                対象作業者
+                <select id="payrollWorkerScope">
+                  <option value="part" selected>パートのみ</option>
+                  <option value="all">全作業者</option>
+                </select>
+              </label>
+
+              <button class="button button--view" id="payrollRefreshButton" type="button">給与集計を更新</button>
+              <button class="button button--save" id="payrollExportButton" type="button">給与一覧をCSV出力</button>
+              <button class="button button--view" id="payrollPrintButton" type="button">給与一覧を印刷</button>
+            </div>
+
+            <div class="payroll-custom-range" id="payrollCustomRange" hidden>
+              <label>
+                開始日
+                <input type="date" id="payrollFromDate">
+              </label>
+              <label>
+                終了日
+                <input type="date" id="payrollToDate">
+              </label>
+            </div>
+
+            <p class="form-hint" id="payrollPeriodInfo">対象期間を選ぶと、作業記録から簡易給与明細を計算します。</p>
+            <p class="form-hint">手当と控除は個別明細で手入力できます。税金・社会保険の自動計算は行いません。</p>
+          </section>
+
           <div class="analytics-grid" id="summaryAnalyticsGrid" hidden>
+            <section class="analytics-card analytics-card--wide" data-summary-section="payroll" hidden>
+              <h3>給与集計一覧</h3>
+              <div class="payroll-summary-cards" id="payrollSummaryCards"></div>
+              <div id="payrollList" class="payroll-list"></div>
+            </section>
+
+            <section class="analytics-card analytics-card--wide" data-summary-section="payroll" hidden>
+              <h3>個別明細</h3>
+              <div id="payrollDetail" class="payroll-detail"></div>
+            </section>
+
             <section class="analytics-card analytics-card--wide" data-summary-section="comparison" hidden>
               <h3>園地別・区画別の累積比較</h3>
 

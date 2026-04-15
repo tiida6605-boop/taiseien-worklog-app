@@ -721,6 +721,154 @@ textarea {
   margin-bottom: 0.65rem;
 }
 
+.payroll-tools {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+  align-items: end;
+  margin-bottom: 0.65rem;
+}
+
+.payroll-custom-range {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.payroll-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 0.8rem;
+}
+
+.payroll-summary-card {
+  border-radius: 14px;
+  padding: 0.62rem 0.68rem;
+  border: 1px solid rgba(96, 68, 38, 0.12);
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.payroll-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.payroll-row {
+  border-radius: 14px;
+  border: 1px solid rgba(96, 68, 38, 0.12);
+  background: rgba(255, 250, 241, 0.8);
+  padding: 0.72rem;
+  display: grid;
+  gap: 0.62rem;
+  cursor: pointer;
+}
+
+.payroll-row.is-active {
+  border-color: rgba(198, 82, 47, 0.32);
+  background: rgba(255, 244, 235, 0.88);
+}
+
+.payroll-row__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.payroll-row__header h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.payroll-row__actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.payroll-row__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 0.6rem;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.payroll-row__metrics strong {
+  color: var(--accent-dark);
+}
+
+.payroll-detail-card {
+  border-radius: 16px;
+  border: 1px solid rgba(96, 68, 38, 0.12);
+  background: rgba(255, 250, 241, 0.8);
+  padding: 0.82rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.payroll-detail-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.payroll-detail-card__header h4 {
+  margin: 0;
+}
+
+.payroll-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.payroll-detail-grid > div {
+  border-radius: 12px;
+  border: 1px solid rgba(96, 68, 38, 0.1);
+  background: rgba(255, 255, 255, 0.64);
+  padding: 0.58rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.payroll-detail-grid span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.payroll-detail-grid strong {
+  color: var(--accent-dark);
+}
+
+.payroll-adjustment-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.payroll-detail-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.55rem;
+}
+
+.payroll-netpay {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--accent-dark);
+}
+
+.payroll-netpay strong {
+  font-size: 1.08rem;
+}
+
 .platform-android #dailyReportPdfButton,
 .platform-android #monthlyReportPdfButton,
 .platform-android #annualReportPdfButton {
@@ -1495,6 +1643,8 @@ textarea {
   .record-meta,
   .analytics-grid,
   .daily-report-tools,
+  .payroll-tools,
+  .payroll-custom-range,
   .monthly-report-tools,
   .toolbar-actions {
     grid-template-columns: 1fr;
@@ -1510,6 +1660,10 @@ textarea {
   .comparison-range,
   .annual-report-summary,
   .comparison-grid,
+  .payroll-summary-cards,
+  .payroll-row__metrics,
+  .payroll-detail-grid,
+  .payroll-adjustment-row,
   .task-report-card__summary,
   .comparison-row__metrics,
   .qr-print-actions,
@@ -1544,6 +1698,7 @@ textarea {
   .master-item,
   .master-item__actions,
   .worker-picker__header,
+  .payroll-row__header,
   .analytics-row {
     flex-direction: column;
   }
@@ -1622,7 +1777,13 @@ textarea {
   .comparison-controls,
   .comparison-range,
   .daily-report-tools,
+  .payroll-tools,
+  .payroll-custom-range,
   .monthly-report-tools,
+  .payroll-summary-cards,
+  .payroll-row__metrics,
+  .payroll-detail-grid,
+  .payroll-adjustment-row,
   .qr-print-actions,
   .qr-filter-grid,
   .qr-code-list,

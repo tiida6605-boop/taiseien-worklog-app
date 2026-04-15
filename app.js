@@ -240,6 +240,19 @@ const monthlyReportPreviewButton = document.getElementById("monthlyReportPreview
 const monthlyReportPdfButton = document.getElementById("monthlyReportPdfButton");
 const monthlyReportShareButton = document.getElementById("monthlyReportShareButton");
 const monthlyReportExportButton = document.getElementById("monthlyReportExportButton");
+const payrollTargetMonthInput = document.getElementById("payrollTargetMonth");
+const payrollCloseTypeInput = document.getElementById("payrollCloseType");
+const payrollWorkerScopeInput = document.getElementById("payrollWorkerScope");
+const payrollRefreshButton = document.getElementById("payrollRefreshButton");
+const payrollExportButton = document.getElementById("payrollExportButton");
+const payrollPrintButton = document.getElementById("payrollPrintButton");
+const payrollCustomRange = document.getElementById("payrollCustomRange");
+const payrollFromDateInput = document.getElementById("payrollFromDate");
+const payrollToDateInput = document.getElementById("payrollToDate");
+const payrollPeriodInfo = document.getElementById("payrollPeriodInfo");
+const payrollSummaryCards = document.getElementById("payrollSummaryCards");
+const payrollList = document.getElementById("payrollList");
+const payrollDetail = document.getElementById("payrollDetail");
 const backupButton = document.getElementById("backupButton");
 const restoreButton = document.getElementById("restoreButton");
 const restoreInput = document.getElementById("restoreInput");
@@ -486,9 +499,16 @@ if (dailyReportDateInput) {
 if (monthlyReportMonthInput) {
   monthlyReportMonthInput.value = today.slice(0, 7);
 }
+if (payrollTargetMonthInput) {
+  payrollTargetMonthInput.value = today.slice(0, 7);
+}
 const defaultMonthRange = getCurrentMonthRange(today);
 comparisonFromDateInput.value = defaultMonthRange.from;
 comparisonToDateInput.value = defaultMonthRange.to;
+if (payrollFromDateInput && payrollToDateInput) {
+  payrollFromDateInput.value = defaultMonthRange.from;
+  payrollToDateInput.value = defaultMonthRange.to;
+}
 if (taskReportFromDateInput && taskReportToDateInput) {
   taskReportFromDateInput.value = defaultMonthRange.from;
   taskReportToDateInput.value = defaultMonthRange.to;
@@ -515,6 +535,8 @@ let records = state.records;
 let masters = state.masters;
 let teamPlans = state.teamPlans || [];
 let companySettings = state.companySettings || { ...defaultCompanySettings };
+let payrollAdjustments = Array.isArray(state.payrollAdjustments) ? state.payrollAdjustments : [];
+let activePayrollWorkerId = "";
 
 function getTodayString() {
   const now = new Date();
@@ -850,6 +872,39 @@ function normalizeMasterItems(items, mapper) {
   return Array.isArray(items) ? items.map(mapper).filter(Boolean) : [];
 }
 
+function normalizePayrollCloseType(value) {
+  const normalized = normalizeText(value);
+  return ["monthly", "half-first", "half-second", "custom"].includes(normalized) ? normalized : "monthly";
+}
+
+function buildPayrollAdjustmentKey(workerId, closeType, from, to) {
+  return [normalizeText(workerId), normalizePayrollCloseType(closeType), normalizeText(from), normalizeText(to)].join("|");
+}
+
+function normalizePayrollAdjustment(adjustment, index) {
+  const workerId = normalizeText(adjustment?.workerId);
+  const periodFrom = normalizeText(adjustment?.periodFrom || adjustment?.from);
+  const periodTo = normalizeText(adjustment?.periodTo || adjustment?.to);
+  if (!workerId || !periodFrom || !periodTo) {
+    return null;
+  }
+  const closeType = normalizePayrollCloseType(adjustment?.closeType || adjustment?.periodType);
+  const allowance = Number(adjustment?.allowance ?? 0);
+  const deduction = Number(adjustment?.deduction ?? 0);
+  const key = buildPayrollAdjustmentKey(workerId, closeType, periodFrom, periodTo);
+  return {
+    id: String(adjustment?.id || `payroll-adjustment-${index + 1}`),
+    key,
+    workerId,
+    closeType,
+    periodFrom,
+    periodTo,
+    allowance: Number.isFinite(allowance) ? allowance : 0,
+    deduction: Number.isFinite(deduction) ? deduction : 0,
+    updatedAt: String(adjustment?.updatedAt || new Date().toISOString())
+  };
+}
+
 function normalizeWorker(worker, index) {
   const fullName = normalizeText(worker.fullName || worker.name || worker.workerName);
   const displayName = normalizeText(worker.displayName || fullName);
@@ -1027,7 +1082,8 @@ function normalizeState(rawState) {
       fixedTeamSets: normalizeMasterItems(rawState?.masters?.fixedTeamSets, normalizeTeamSet)
     },
     records: Array.isArray(rawState?.records) ? rawState.records.map(normalizeRecord) : [],
-    teamPlans: normalizeMasterItems(rawState?.teamPlans, normalizeTeamPlan)
+    teamPlans: normalizeMasterItems(rawState?.teamPlans, normalizeTeamPlan),
+    payrollAdjustments: normalizeMasterItems(rawState?.payrollAdjustments, normalizePayrollAdjustment)
   };
 }
 
@@ -1215,7 +1271,7 @@ function loadState() {
 }
 
 function saveState() {
-  state = { companySettings, masters, records, teamPlans };
+  state = { companySettings, masters, records, teamPlans, payrollAdjustments };
   localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(state));
 }
 
@@ -1315,6 +1371,17 @@ function mergeItemsById(currentItems, incomingItems) {
   return Array.from(map.values());
 }
 
+function mergePayrollAdjustmentsByKey(currentItems, incomingItems) {
+  const mergedMap = new Map();
+  [...(currentItems || []), ...(incomingItems || [])]
+    .map((item, index) => normalizePayrollAdjustment(item, index))
+    .filter(Boolean)
+    .forEach((item) => {
+      mergedMap.set(item.key, item);
+    });
+  return Array.from(mergedMap.values());
+}
+
 function mergeStateForAppend(currentState, incomingState) {
   return {
     companySettings: normalizeCompanySettings(incomingState.companySettings || currentState.companySettings),
@@ -1328,7 +1395,8 @@ function mergeStateForAppend(currentState, incomingState) {
       fixedTeamSets: mergeItemsById(currentState.masters.fixedTeamSets || [], incomingState.masters.fixedTeamSets || [])
     },
     records: mergeItemsById(currentState.records, incomingState.records),
-    teamPlans: mergeItemsById(currentState.teamPlans || [], incomingState.teamPlans || [])
+    teamPlans: mergeItemsById(currentState.teamPlans || [], incomingState.teamPlans || []),
+    payrollAdjustments: mergePayrollAdjustmentsByKey(currentState.payrollAdjustments || [], incomingState.payrollAdjustments || [])
   };
 }
 
@@ -1336,7 +1404,7 @@ function parseRestorePayload(payload) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     throw new Error("JSONの形式が不正です。バックアップファイルを確認してください。");
   }
-  const hasStateLikeData = Boolean(payload.data) || Boolean(payload.companySettings) || Boolean(payload.masters) || Boolean(payload.records) || Boolean(payload.teamPlans);
+  const hasStateLikeData = Boolean(payload.data) || Boolean(payload.companySettings) || Boolean(payload.masters) || Boolean(payload.records) || Boolean(payload.teamPlans) || Boolean(payload.payrollAdjustments);
   if (!hasStateLikeData) {
     throw new Error("JSONの形式が不正です。必要なデータ項目が見つかりません。");
   }
@@ -1977,6 +2045,706 @@ function filterRecordsByPeriod(config) {
   if (!config.isValid) return [];
   if (!config.from || !config.to) return records.slice();
   return records.filter((record) => record.workDate >= config.from && record.workDate <= config.to);
+}
+
+function getPayrollCloseTypeLabel(closeType) {
+  if (closeType === "half-first") return "半月締め（前半）";
+  if (closeType === "half-second") return "半月締め（後半）";
+  if (closeType === "custom") return "任意期間";
+  return "月締め";
+}
+
+function getPayrollWorkerScopeLabel(scope) {
+  return scope === "all" ? "全作業者" : "パートのみ";
+}
+
+function isPartTimeWorker(worker) {
+  if (!worker) return false;
+  const category = normalizeText(worker.category).toLocaleLowerCase("ja-JP");
+  const workerId = normalizeText(worker.id).toLocaleLowerCase("ja-JP");
+  return category.includes("パート") || category.includes("part") || workerId.includes("part");
+}
+
+function getPayrollPeriodConfig() {
+  const closeType = normalizePayrollCloseType(payrollCloseTypeInput?.value || "monthly");
+  const closeLabel = getPayrollCloseTypeLabel(closeType);
+  const workerScope = payrollWorkerScopeInput?.value === "all" ? "all" : "part";
+  const targetMonth = normalizeMonthString(payrollTargetMonthInput?.value || today.slice(0, 7), today.slice(0, 7));
+
+  if (closeType === "custom") {
+    const from = normalizeDateString(payrollFromDateInput?.value || "", "");
+    const to = normalizeDateString(payrollToDateInput?.value || "", "");
+    if (!from || !to) {
+      return {
+        closeType,
+        closeLabel,
+        workerScope,
+        targetMonth,
+        from,
+        to,
+        rangeText: "",
+        isValid: false,
+        error: "任意期間では開始日と終了日を入力してください。"
+      };
+    }
+    if (from > to) {
+      return {
+        closeType,
+        closeLabel,
+        workerScope,
+        targetMonth,
+        from,
+        to,
+        rangeText: "",
+        isValid: false,
+        error: "任意期間の終了日は開始日以降の日付を指定してください。"
+      };
+    }
+    return {
+      closeType,
+      closeLabel,
+      workerScope,
+      targetMonth,
+      from,
+      to,
+      rangeText: `${formatDateYmd(from)}〜${formatDateYmd(to)}`,
+      isValid: true
+    };
+  }
+
+  if (!/^\d{4}-\d{2}$/.test(targetMonth)) {
+    return {
+      closeType,
+      closeLabel,
+      workerScope,
+      targetMonth,
+      from: "",
+      to: "",
+      rangeText: "",
+      isValid: false,
+      error: "対象年月を指定してください。"
+    };
+  }
+
+  const [yearText, monthText] = targetMonth.split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const lastDay = new Date(year, month, 0).getDate();
+  const fromDay = closeType === "half-second" ? 16 : 1;
+  const toDay = closeType === "half-first" ? 15 : lastDay;
+  const from = buildDateString(year, month, fromDay);
+  const to = buildDateString(year, month, toDay);
+
+  return {
+    closeType,
+    closeLabel,
+    workerScope,
+    targetMonth,
+    from,
+    to,
+    rangeText: `${formatDateYmd(from)}〜${formatDateYmd(to)}`,
+    isValid: true
+  };
+}
+
+function getPayrollAdjustment(workerId, periodConfig) {
+  const key = buildPayrollAdjustmentKey(workerId, periodConfig.closeType, periodConfig.from, periodConfig.to);
+  return payrollAdjustments.find((item) => item.key === key) || null;
+}
+
+function upsertPayrollAdjustment(workerId, periodConfig, allowance, deduction) {
+  const key = buildPayrollAdjustmentKey(workerId, periodConfig.closeType, periodConfig.from, periodConfig.to);
+  const currentIndex = payrollAdjustments.findIndex((item) => item.key === key);
+  const normalizedAllowance = Number.isFinite(Number(allowance)) ? Number(allowance) : 0;
+  const normalizedDeduction = Number.isFinite(Number(deduction)) ? Number(deduction) : 0;
+
+  if (normalizedAllowance === 0 && normalizedDeduction === 0) {
+    if (currentIndex >= 0) {
+      payrollAdjustments.splice(currentIndex, 1);
+      saveState();
+    }
+    return;
+  }
+
+  const candidate = normalizePayrollAdjustment({
+    id: currentIndex >= 0 ? payrollAdjustments[currentIndex].id : createId("payroll-adjustment"),
+    key,
+    workerId,
+    closeType: periodConfig.closeType,
+    periodFrom: periodConfig.from,
+    periodTo: periodConfig.to,
+    allowance: normalizedAllowance,
+    deduction: normalizedDeduction,
+    updatedAt: new Date().toISOString()
+  }, currentIndex >= 0 ? currentIndex : payrollAdjustments.length);
+
+  if (!candidate) return;
+  if (currentIndex >= 0) {
+    payrollAdjustments[currentIndex] = candidate;
+  } else {
+    payrollAdjustments.push(candidate);
+  }
+  saveState();
+}
+
+function buildPayrollRows(periodConfig) {
+  const filteredRecords = records.filter((record) => record.workDate >= periodConfig.from && record.workDate <= periodConfig.to);
+  const rowMap = new Map();
+
+  filteredRecords.forEach((record) => {
+    const hours = Number(record.workHours || 0);
+    const assignedWorkers = getAssignedWorkers(record);
+    assignedWorkers.forEach((worker) => {
+      if (!worker) return;
+      if (periodConfig.workerScope === "part" && !isPartTimeWorker(worker)) return;
+      const current = rowMap.get(worker.id) || {
+        worker,
+        attendanceDates: new Set(),
+        totalHours: 0
+      };
+      current.attendanceDates.add(record.workDate);
+      current.totalHours += Number.isFinite(hours) ? hours : 0;
+      rowMap.set(worker.id, current);
+    });
+  });
+
+  const rows = Array.from(rowMap.values()).map((item) => {
+    const adjustment = getPayrollAdjustment(item.worker.id, periodConfig);
+    const hourlyRate = Number(item.worker.hourlyRate || 0);
+    const totalHours = Number(item.totalHours.toFixed(2));
+    const attendanceDays = item.attendanceDates.size;
+    const basicPay = totalHours * hourlyRate;
+    const allowance = Number(adjustment?.allowance || 0);
+    const deduction = Number(adjustment?.deduction || 0);
+    const netPay = basicPay + allowance - deduction;
+    return {
+      workerId: item.worker.id,
+      fullName: item.worker.fullName || item.worker.displayName || "未設定",
+      displayName: item.worker.displayName || item.worker.fullName || "未設定",
+      category: item.worker.category || "",
+      attendanceDays,
+      totalHours,
+      hourlyRate,
+      basicPay,
+      allowance,
+      deduction,
+      netPay
+    };
+  }).sort((a, b) => a.displayName.localeCompare(b.displayName, "ja"));
+
+  const summary = rows.reduce((acc, row) => {
+    acc.workerCount += 1;
+    acc.attendanceDays += row.attendanceDays;
+    acc.totalHours += row.totalHours;
+    acc.basicPay += row.basicPay;
+    acc.allowance += row.allowance;
+    acc.deduction += row.deduction;
+    acc.netPay += row.netPay;
+    return acc;
+  }, {
+    workerCount: 0,
+    attendanceDays: 0,
+    totalHours: 0,
+    basicPay: 0,
+    allowance: 0,
+    deduction: 0,
+    netPay: 0
+  });
+
+  return {
+    filteredRecords,
+    rows,
+    summary
+  };
+}
+
+function getPayrollData(periodConfig = getPayrollPeriodConfig()) {
+  const normalizedConfig = periodConfig || getPayrollPeriodConfig();
+  if (!normalizedConfig.isValid) {
+    return {
+      periodConfig: normalizedConfig,
+      rows: [],
+      filteredRecords: [],
+      summary: {
+        workerCount: 0,
+        attendanceDays: 0,
+        totalHours: 0,
+        basicPay: 0,
+        allowance: 0,
+        deduction: 0,
+        netPay: 0
+      }
+    };
+  }
+  const result = buildPayrollRows(normalizedConfig);
+  return {
+    periodConfig: normalizedConfig,
+    ...result
+  };
+}
+
+function renderPayrollSummaryCards(data) {
+  if (!payrollSummaryCards) return;
+  const summary = data.summary;
+  const cards = [
+    { label: "対象者数", value: formatCount(summary.workerCount) },
+    { label: "総労働時間", value: formatHours(summary.totalHours) },
+    { label: "基本支給額合計", value: formatCurrency(summary.basicPay) },
+    { label: "差引支給額合計", value: formatCurrency(summary.netPay) }
+  ];
+  payrollSummaryCards.innerHTML = "";
+  cards.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "summary-card payroll-summary-card";
+    const label = document.createElement("span");
+    label.className = "summary-card__label";
+    label.textContent = item.label;
+    const value = document.createElement("strong");
+    value.textContent = item.value;
+    card.append(label, value);
+    payrollSummaryCards.appendChild(card);
+  });
+}
+
+function renderPayrollList(data) {
+  if (!payrollList) return;
+  payrollList.innerHTML = "";
+  if (!data.rows.length) {
+    payrollList.appendChild(buildEmptyState("対象期間の給与集計データがありません。"));
+    return;
+  }
+
+  data.rows.forEach((row) => {
+    const card = document.createElement("article");
+    card.className = "payroll-row";
+    if (row.workerId === activePayrollWorkerId) {
+      card.classList.add("is-active");
+    }
+    card.addEventListener("click", () => {
+      activePayrollWorkerId = row.workerId;
+      renderPayrollSection();
+    });
+
+    const header = document.createElement("div");
+    header.className = "payroll-row__header";
+    const heading = document.createElement("h4");
+    heading.textContent = `${row.fullName}${row.category ? `（${row.category}）` : ""}`;
+    const actions = document.createElement("div");
+    actions.className = "payroll-row__actions";
+    const detailButton = document.createElement("button");
+    detailButton.type = "button";
+    detailButton.className = "button button--view button--small";
+    detailButton.textContent = "個別明細を開く";
+    detailButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      activePayrollWorkerId = row.workerId;
+      renderPayrollSection();
+    });
+    const printButton = document.createElement("button");
+    printButton.type = "button";
+    printButton.className = "button button--save button--small";
+    printButton.textContent = "この人を印刷";
+    printButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openPayrollIndividualReportWindow(row, data.periodConfig);
+    });
+    actions.append(detailButton, printButton);
+    header.append(heading, actions);
+
+    const metrics = document.createElement("div");
+    metrics.className = "payroll-row__metrics";
+    metrics.innerHTML = `
+      <span>出勤日数: <strong>${formatCount(row.attendanceDays)}</strong></span>
+      <span>総労働時間: <strong>${formatHours(row.totalHours)}</strong></span>
+      <span>基本支給額: <strong>${formatCurrency(row.basicPay)}</strong></span>
+      <span>差引支給額: <strong>${formatCurrency(row.netPay)}</strong></span>
+    `;
+
+    card.append(header, metrics);
+    payrollList.appendChild(card);
+  });
+}
+
+function renderPayrollDetail(data) {
+  if (!payrollDetail) return;
+  if (!data.rows.length) {
+    payrollDetail.innerHTML = "";
+    payrollDetail.appendChild(buildEmptyState("個別明細を表示できるデータがありません。"));
+    return;
+  }
+
+  if (!data.rows.some((row) => row.workerId === activePayrollWorkerId)) {
+    activePayrollWorkerId = data.rows[0].workerId;
+  }
+  const selectedRow = data.rows.find((row) => row.workerId === activePayrollWorkerId) || data.rows[0];
+  const periodText = data.periodConfig.rangeText || `${formatDateYmd(data.periodConfig.from)}〜${formatDateYmd(data.periodConfig.to)}`;
+
+  payrollDetail.innerHTML = `
+    <article class="payroll-detail-card">
+      <div class="payroll-detail-card__header">
+        <h4>${escapeHtml(selectedRow.fullName)}</h4>
+        <span class="chip chip--soft">${escapeHtml(selectedRow.category || "区分未設定")}</span>
+      </div>
+
+      <div class="payroll-detail-grid">
+        <div><span>対象期間</span><strong>${escapeHtml(periodText)}</strong></div>
+        <div><span>締め区分</span><strong>${escapeHtml(data.periodConfig.closeLabel)}</strong></div>
+        <div><span>出勤日数</span><strong>${escapeHtml(formatCount(selectedRow.attendanceDays))}</strong></div>
+        <div><span>総労働時間</span><strong>${escapeHtml(formatHours(selectedRow.totalHours))}</strong></div>
+        <div><span>時給</span><strong>${escapeHtml(formatCurrency(selectedRow.hourlyRate))}</strong></div>
+        <div><span>基本支給額</span><strong>${escapeHtml(formatCurrency(selectedRow.basicPay))}</strong></div>
+      </div>
+
+      <div class="payroll-adjustment-row">
+        <label>
+          手当（円）
+          <input type="number" id="payrollAllowanceInput" min="0" step="1" value="${selectedRow.allowance}">
+        </label>
+        <label>
+          控除（円）
+          <input type="number" id="payrollDeductionInput" min="0" step="1" value="${selectedRow.deduction}">
+        </label>
+      </div>
+
+      <p class="payroll-netpay">差引支給額: <strong>${escapeHtml(formatCurrency(selectedRow.netPay))}</strong></p>
+      <p class="form-hint">差引支給額 = 基本支給額 + 手当 - 控除（税金・社会保険の自動計算はしません）</p>
+      <div class="payroll-detail-actions">
+        <button type="button" class="button button--save" id="payrollAdjustmentSaveButton">手当・控除を保存</button>
+        <button type="button" class="button button--view" id="payrollIndividualPrintButton">この人の明細を印刷</button>
+      </div>
+    </article>
+  `;
+
+  const allowanceInput = document.getElementById("payrollAllowanceInput");
+  const deductionInput = document.getElementById("payrollDeductionInput");
+  const saveButton = document.getElementById("payrollAdjustmentSaveButton");
+  const printButton = document.getElementById("payrollIndividualPrintButton");
+  if (!allowanceInput || !deductionInput || !saveButton || !printButton) return;
+
+  saveButton.addEventListener("click", () => {
+    const allowance = Number(allowanceInput.value || 0);
+    const deduction = Number(deductionInput.value || 0);
+    upsertPayrollAdjustment(selectedRow.workerId, data.periodConfig, allowance, deduction);
+    renderPayrollSection();
+  });
+  printButton.addEventListener("click", () => {
+    openPayrollIndividualReportWindow(selectedRow, data.periodConfig);
+  });
+}
+
+function renderPayrollSection() {
+  if (!payrollPeriodInfo || !payrollList || !payrollDetail) return;
+  const periodConfig = getPayrollPeriodConfig();
+  if (payrollCustomRange) {
+    payrollCustomRange.hidden = periodConfig.closeType !== "custom";
+  }
+
+  if (!periodConfig.isValid) {
+    payrollPeriodInfo.textContent = periodConfig.error || "給与集計の条件を設定してください。";
+    if (payrollSummaryCards) payrollSummaryCards.innerHTML = "";
+    payrollList.innerHTML = "";
+    payrollList.appendChild(buildEmptyState("条件を設定すると給与一覧が表示されます。"));
+    payrollDetail.innerHTML = "";
+    payrollDetail.appendChild(buildEmptyState("個別明細を表示する対象がありません。"));
+    return;
+  }
+
+  const data = getPayrollData(periodConfig);
+  const scopeLabel = getPayrollWorkerScopeLabel(periodConfig.workerScope);
+  payrollPeriodInfo.textContent = `${periodConfig.closeLabel} / ${periodConfig.rangeText} / 対象: ${scopeLabel} / 集計記録: ${formatCount(data.filteredRecords.length)}`;
+
+  renderPayrollSummaryCards(data);
+  renderPayrollList(data);
+  renderPayrollDetail(data);
+}
+
+function exportPayrollCsv() {
+  const data = getPayrollData(getPayrollPeriodConfig());
+  if (!data.periodConfig.isValid) {
+    window.alert(data.periodConfig.error || "給与集計の条件を確認してください。");
+    return;
+  }
+  if (!data.rows.length) {
+    window.alert("CSV出力できる給与データがありません。");
+    return;
+  }
+
+  const periodText = data.periodConfig.rangeText || `${formatDateYmd(data.periodConfig.from)}〜${formatDateYmd(data.periodConfig.to)}`;
+  const rows = [
+    ["氏名", "対象期間", "締め区分", "出勤日数", "総労働時間", "時給", "基本支給額", "手当", "控除", "差引支給額"]
+  ];
+  data.rows.forEach((row) => {
+    rows.push([
+      row.fullName,
+      periodText,
+      data.periodConfig.closeLabel,
+      row.attendanceDays,
+      row.totalHours,
+      row.hourlyRate,
+      row.basicPay,
+      row.allowance,
+      row.deduction,
+      row.netPay
+    ]);
+  });
+
+  rows.push([
+    "合計",
+    periodText,
+    data.periodConfig.closeLabel,
+    data.summary.attendanceDays,
+    Number(data.summary.totalHours.toFixed(2)),
+    "",
+    Math.round(data.summary.basicPay),
+    Math.round(data.summary.allowance),
+    Math.round(data.summary.deduction),
+    Math.round(data.summary.netPay)
+  ]);
+
+  const csv = rows.map((row) => row.map(escapeCsvValue).join(",")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `taiseien-simple-payroll-${data.periodConfig.from}_${data.periodConfig.to}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function buildPayrollReportHtml(data) {
+  const periodText = data.periodConfig.rangeText || `${formatDateYmd(data.periodConfig.from)}〜${formatDateYmd(data.periodConfig.to)}`;
+  const scopeLabel = getPayrollWorkerScopeLabel(data.periodConfig.workerScope);
+  const rowsHtml = data.rows.length
+    ? data.rows.map((row) => `
+      <tr>
+        <td>${escapeHtml(row.fullName)}</td>
+        <td>${escapeHtml(formatCount(row.attendanceDays))}</td>
+        <td>${escapeHtml(formatHours(row.totalHours))}</td>
+        <td>${escapeHtml(formatCurrency(row.hourlyRate))}</td>
+        <td>${escapeHtml(formatCurrency(row.basicPay))}</td>
+        <td>${escapeHtml(formatCurrency(row.allowance))}</td>
+        <td>${escapeHtml(formatCurrency(row.deduction))}</td>
+        <td>${escapeHtml(formatCurrency(row.netPay))}</td>
+      </tr>
+    `).join("")
+    : `<tr><td colspan="8">対象データがありません。</td></tr>`;
+
+  return `
+    <html lang="ja">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>(株)大成園 作業記録アプリ 簡易給与明細</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm; }
+          * { box-sizing: border-box; }
+          body { margin: 0; background: #f6f3ec; color: #2f2921; font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif; }
+          .toolbar { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #d8d2c8; background: #ffffffee; backdrop-filter: blur(6px); }
+          .toolbar h1 { margin: 0; font-size: 16px; }
+          .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+          .button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
+          .button--print { background: #3f6f3f; color: #fff; }
+          .button--close { background: #ece8de; color: #3c352f; }
+          .body { width: min(210mm, 100%); margin: 0 auto; padding: 7mm 0 12mm; }
+          .header { padding: 5mm; border-radius: 4mm; background: #fff; border: 1px solid #dfd8cd; }
+          .app { margin: 0; font-size: 20px; line-height: 1.3; }
+          .title { margin: 2mm 0 1mm; font-size: 18px; }
+          .meta { margin: 0.8mm 0; color: #5f564b; font-size: 13px; }
+          .summary { margin-top: 3mm; display: grid; gap: 2mm; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .summary div { border: 1px solid #dfd8cd; border-radius: 3mm; background: #fff; padding: 2.5mm 3mm; display: grid; gap: 1mm; }
+          .summary span { color: #61574b; font-size: 11px; }
+          .summary strong { font-size: 15px; }
+          .table-wrap { margin-top: 4mm; overflow-x: auto; border: 1px solid #dfd8cd; border-radius: 3mm; background: #fff; }
+          table { width: 100%; border-collapse: collapse; min-width: 760px; }
+          th, td { border: 1px solid #ddd3c3; padding: 6px 8px; text-align: right; font-size: 12px; white-space: nowrap; }
+          th:first-child, td:first-child { text-align: left; white-space: normal; }
+          thead th { background: #f3eee3; font-size: 11px; }
+          tfoot td { background: #faf6ee; font-weight: 700; }
+          @media (max-width: 720px) {
+            .toolbar { position: static; padding: 10px 12px; }
+            .actions { width: 100%; }
+            .button { flex: 1; }
+            .body { width: 100%; padding: 12px; }
+            .summary { grid-template-columns: 1fr; }
+          }
+          @media print {
+            body { background: #fff; }
+            .toolbar { display: none; }
+            .body { width: auto; margin: 0; padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <header class="toolbar">
+          <h1>簡易給与明細</h1>
+          <div class="actions">
+            <button class="button button--print" type="button" onclick="window.print()">この画面を印刷</button>
+            <button class="button button--close" type="button" onclick="window.close()">閉じる</button>
+          </div>
+        </header>
+        <main class="body">
+          <section class="header">
+            <p class="app">(株)大成園　作業記録アプリ</p>
+            <h2 class="title">簡易給与明細（一覧）</h2>
+            <p class="meta">対象期間: ${escapeHtml(periodText)}</p>
+            <p class="meta">締め区分: ${escapeHtml(data.periodConfig.closeLabel)} / 対象: ${escapeHtml(scopeLabel)}</p>
+            <div class="summary">
+              <div><span>対象者数</span><strong>${escapeHtml(formatCount(data.summary.workerCount))}</strong></div>
+              <div><span>総労働時間</span><strong>${escapeHtml(formatHours(data.summary.totalHours))}</strong></div>
+              <div><span>基本支給額合計</span><strong>${escapeHtml(formatCurrency(data.summary.basicPay))}</strong></div>
+              <div><span>差引支給額合計</span><strong>${escapeHtml(formatCurrency(data.summary.netPay))}</strong></div>
+            </div>
+          </section>
+
+          <section class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>氏名</th>
+                  <th>出勤日数</th>
+                  <th>総労働時間</th>
+                  <th>時給</th>
+                  <th>基本支給額</th>
+                  <th>手当</th>
+                  <th>控除</th>
+                  <th>差引支給額</th>
+                </tr>
+              </thead>
+              <tbody>${rowsHtml}</tbody>
+              <tfoot>
+                <tr>
+                  <td>合計</td>
+                  <td>${escapeHtml(formatCount(data.summary.attendanceDays))}</td>
+                  <td>${escapeHtml(formatHours(data.summary.totalHours))}</td>
+                  <td>-</td>
+                  <td>${escapeHtml(formatCurrency(data.summary.basicPay))}</td>
+                  <td>${escapeHtml(formatCurrency(data.summary.allowance))}</td>
+                  <td>${escapeHtml(formatCurrency(data.summary.deduction))}</td>
+                  <td>${escapeHtml(formatCurrency(data.summary.netPay))}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </section>
+        </main>
+      </body>
+    </html>
+  `;
+}
+
+function openPayrollReportWindow() {
+  const data = getPayrollData(getPayrollPeriodConfig());
+  if (!data.periodConfig.isValid) {
+    window.alert(data.periodConfig.error || "給与集計の条件を確認してください。");
+    return;
+  }
+  if (!data.rows.length) {
+    window.alert("表示・印刷できる給与データがありません。");
+    return;
+  }
+  openGeneratedDocumentWindow(buildPayrollReportHtml(data), {
+    width: 1280,
+    height: 920,
+    popupBlockedMessage: "簡易給与明細の表示画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
+  });
+}
+
+function buildPayrollIndividualReportHtml(row, periodConfig) {
+  const periodText = periodConfig.rangeText || `${formatDateYmd(periodConfig.from)}〜${formatDateYmd(periodConfig.to)}`;
+  const attendanceLabel = formatCount(row.attendanceDays);
+  const hoursLabel = formatHours(row.totalHours);
+  const hourlyRateLabel = formatCurrency(row.hourlyRate);
+  const basicPayLabel = formatCurrency(row.basicPay);
+  const allowanceLabel = formatCurrency(row.allowance);
+  const deductionLabel = formatCurrency(row.deduction);
+  const netPayLabel = formatCurrency(row.netPay);
+  return `
+    <html lang="ja">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>(株)大成園 作業記録アプリ 個人別簡易給与明細</title>
+        <style>
+          @page { size: A4 portrait; margin: 14mm; }
+          * { box-sizing: border-box; }
+          body { margin: 0; background: #f6f3ec; color: #2f2921; font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif; }
+          .toolbar { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #d8d2c8; background: #ffffffee; backdrop-filter: blur(6px); }
+          .toolbar h1 { margin: 0; font-size: 16px; }
+          .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+          .button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
+          .button--print { background: #3f6f3f; color: #fff; }
+          .button--close { background: #ece8de; color: #3c352f; }
+          .sheet { width: min(210mm, 100%); margin: 0 auto; padding: 8mm 0 12mm; }
+          .card { background: #fff; border: 1px solid #dfd8cd; border-radius: 4mm; padding: 6mm; }
+          .app-name { margin: 0; font-size: 18px; line-height: 1.35; }
+          .title { margin: 2mm 0 0; font-size: 20px; }
+          .meta { margin: 1.2mm 0; color: #5f564b; font-size: 13px; }
+          .name { margin-top: 3mm; font-size: 19px; font-weight: 700; }
+          .grid { margin-top: 4mm; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.2mm; }
+          .item { border: 1px solid #dfd8cd; border-radius: 3mm; background: #fff; padding: 2.8mm 3.2mm; display: grid; gap: 1.2mm; }
+          .item span { color: #61574b; font-size: 12px; }
+          .item strong { font-size: 16px; }
+          .net { margin-top: 4mm; padding: 3.2mm 3.6mm; border-radius: 3mm; border: 1px solid #dcb49b; background: #fff5ef; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+          .net span { color: #7a4a34; font-size: 13px; font-weight: 700; }
+          .net strong { color: #8f351e; font-size: 22px; }
+          .note { margin-top: 3mm; font-size: 11px; color: #6b5f52; }
+          @media (max-width: 720px) {
+            .toolbar { position: static; padding: 10px 12px; }
+            .actions { width: 100%; }
+            .button { flex: 1; }
+            .sheet { width: 100%; padding: 12px; }
+            .grid { grid-template-columns: 1fr; }
+          }
+          @media print {
+            body { background: #fff; }
+            .toolbar { display: none; }
+            .sheet { width: auto; margin: 0; padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <header class="toolbar">
+          <h1>個人別 簡易給与明細</h1>
+          <div class="actions">
+            <button class="button button--print" type="button" onclick="window.print()">この明細を印刷</button>
+            <button class="button button--close" type="button" onclick="window.close()">閉じる</button>
+          </div>
+        </header>
+        <main class="sheet">
+          <section class="card">
+            <p class="app-name">(株)大成園　作業記録アプリ</p>
+            <h2 class="title">個人別 簡易給与明細</h2>
+            <p class="meta">対象期間: ${escapeHtml(periodText)}</p>
+            <p class="meta">締め区分: ${escapeHtml(periodConfig.closeLabel)}</p>
+            <p class="name">${escapeHtml(row.fullName)}${row.category ? `（${escapeHtml(row.category)}）` : ""}</p>
+
+            <div class="grid">
+              <div class="item"><span>出勤日数</span><strong>${escapeHtml(attendanceLabel)}</strong></div>
+              <div class="item"><span>総労働時間</span><strong>${escapeHtml(hoursLabel)}</strong></div>
+              <div class="item"><span>時給</span><strong>${escapeHtml(hourlyRateLabel)}</strong></div>
+              <div class="item"><span>基本支給額</span><strong>${escapeHtml(basicPayLabel)}</strong></div>
+              <div class="item"><span>手当</span><strong>${escapeHtml(allowanceLabel)}</strong></div>
+              <div class="item"><span>控除</span><strong>${escapeHtml(deductionLabel)}</strong></div>
+            </div>
+
+            <div class="net">
+              <span>差引支給額</span>
+              <strong>${escapeHtml(netPayLabel)}</strong>
+            </div>
+            <p class="note">※ 簡易明細のため、税金・社会保険の計算は含みません。</p>
+          </section>
+        </main>
+      </body>
+    </html>
+  `;
+}
+
+function openPayrollIndividualReportWindow(row, periodConfig) {
+  if (!row || !periodConfig) return;
+  openGeneratedDocumentWindow(buildPayrollIndividualReportHtml(row, periodConfig), {
+    width: 1040,
+    height: 900,
+    popupBlockedMessage: "個人別明細の表示画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
+  });
 }
 
 function sortEntriesByMetric(entries, metric = "hours", sortOrder = "desc") {
@@ -3403,6 +4171,10 @@ const summarySectionMeta = {
   comparison: {
     title: "比較表",
     lead: "累積比較や分析結果を確認できます。"
+  },
+  payroll: {
+    title: "簡易給与明細",
+    lead: "作業記録から、月締め・半月締め・任意期間の簡易明細を作成できます。"
   }
 };
 
@@ -3411,7 +4183,8 @@ const summarySectionCardMap = {
   daily: ["daily"],
   monthly: ["monthly"],
   annual: ["annual"],
-  comparison: ["comparison"]
+  comparison: ["comparison"],
+  payroll: ["payroll"]
 };
 
 function getSummarySectionKey(sectionKey) {
@@ -3428,6 +4201,8 @@ function getSummarySectionFocus(sectionKey) {
       return annualReportSortMetricInput;
     case "comparison":
       return comparisonPeriodInput;
+    case "payroll":
+      return payrollTargetMonthInput || payrollCloseTypeInput;
     default:
       return summaryMenuDailyButton;
   }
@@ -3445,7 +4220,7 @@ function applySummarySectionState() {
     summaryPageNav.hidden = !inSummaryView || normalizedSection === "top";
   }
   if (summaryAnalyticsGrid) {
-    const showAnalyticsGrid = normalizedSection === "monthly" || normalizedSection === "comparison" || normalizedSection === "annual";
+    const showAnalyticsGrid = normalizedSection === "monthly" || normalizedSection === "comparison" || normalizedSection === "annual" || normalizedSection === "payroll";
     summaryAnalyticsGrid.hidden = !inSummaryView || !showAnalyticsGrid;
   }
   if (summaryTitle) {
@@ -4193,7 +4968,7 @@ function updateTimeHint() {
 }
 
 function downloadJsonBackup() {
-  const currentState = { companySettings, masters, records, teamPlans };
+  const currentState = { companySettings, masters, records, teamPlans, payrollAdjustments };
   const counts = getStateCounts(currentState);
   renderBackupSummary(counts);
   const confirmMessage = `JSONバックアップを保存します。\n\n${formatCountsSummary(counts)}\n\nこの内容で保存しますか？`;
@@ -4220,6 +4995,8 @@ function applyState(restoredState) {
   masters = restoredState.masters;
   records = restoredState.records;
   teamPlans = restoredState.teamPlans || [];
+  payrollAdjustments = restoredState.payrollAdjustments || [];
+  activePayrollWorkerId = "";
   saveState();
   resetRecordForm();
   resetOrchardForm();
@@ -4236,7 +5013,7 @@ function applyState(restoredState) {
 function restoreFromBackupObject(payload, mode) {
   const incomingState = parseRestorePayload(payload);
   const merged = mode === "append"
-    ? mergeStateForAppend({ companySettings, masters, records, teamPlans }, incomingState)
+    ? mergeStateForAppend({ companySettings, masters, records, teamPlans, payrollAdjustments }, incomingState)
     : incomingState;
   const restoredState = hydrateWorkerRelations(normalizeState(merged));
   applyState(restoredState);
@@ -6563,6 +7340,7 @@ function renderLegacy() {
   renderBackupPanel();
   renderRecords();
   renderAnalytics();
+  renderPayrollSection();
   renderCumulativeComparison();
   renderQrCodeList();
   renderMasterLists();
@@ -7066,6 +7844,15 @@ if (monthlyReportShareButton) {
 if (monthlyReportExportButton) {
   monthlyReportExportButton.addEventListener("click", exportMonthlyReportCsv);
 }
+if (payrollRefreshButton) {
+  payrollRefreshButton.addEventListener("click", renderPayrollSection);
+}
+if (payrollExportButton) {
+  payrollExportButton.addEventListener("click", exportPayrollCsv);
+}
+if (payrollPrintButton) {
+  payrollPrintButton.addEventListener("click", openPayrollReportWindow);
+}
 if (taskReportPreviewButton) {
   taskReportPreviewButton.addEventListener("click", openTaskTypeReportWindow);
 }
@@ -7142,6 +7929,21 @@ comparisonSortMetricInput.addEventListener("change", renderCumulativeComparison)
 comparisonSortOrderInput.addEventListener("change", renderCumulativeComparison);
 comparisonFromDateInput.addEventListener("change", renderCumulativeComparison);
 comparisonToDateInput.addEventListener("change", renderCumulativeComparison);
+if (payrollCloseTypeInput) {
+  payrollCloseTypeInput.addEventListener("change", renderPayrollSection);
+}
+if (payrollTargetMonthInput) {
+  payrollTargetMonthInput.addEventListener("change", renderPayrollSection);
+}
+if (payrollWorkerScopeInput) {
+  payrollWorkerScopeInput.addEventListener("change", renderPayrollSection);
+}
+if (payrollFromDateInput) {
+  payrollFromDateInput.addEventListener("change", renderPayrollSection);
+}
+if (payrollToDateInput) {
+  payrollToDateInput.addEventListener("change", renderPayrollSection);
+}
 if (taskReportPeriodInput) {
   taskReportPeriodInput.addEventListener("change", renderTaskTypeReport);
 }
@@ -7602,6 +8404,7 @@ function render() {
   renderBackupPanel();
   renderRecords();
   renderAnalytics();
+  renderPayrollSection();
   renderCumulativeComparison();
   renderTaskTypeReport();
   renderVarietyTypeReport();
