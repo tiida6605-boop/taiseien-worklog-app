@@ -257,6 +257,23 @@ const payrollPeriodInfo = document.getElementById("payrollPeriodInfo");
 const payrollSummaryCards = document.getElementById("payrollSummaryCards");
 const payrollList = document.getElementById("payrollList");
 const payrollDetail = document.getElementById("payrollDetail");
+const worktimePeriodModeInput = document.getElementById("worktimePeriodMode");
+const worktimeQuickButtons = Array.from(document.querySelectorAll("[data-worktime-period]"));
+const worktimeTabButtons = Array.from(document.querySelectorAll("[data-worktime-tab]"));
+const worktimeWorkerRow = document.getElementById("worktimeWorkerRow");
+const worktimeWorkerSelect = document.getElementById("worktimeWorkerSelect");
+const worktimeCustomRange = document.getElementById("worktimeCustomRange");
+const worktimeFromDateInput = document.getElementById("worktimeFromDate");
+const worktimeToDateInput = document.getElementById("worktimeToDate");
+const worktimePeriodInfo = document.getElementById("worktimePeriodInfo");
+const worktimeSummaryCards = document.getElementById("worktimeSummaryCards");
+const worktimeComparisonList = document.getElementById("worktimeComparisonList");
+const worktimeBreakdownTitle = document.getElementById("worktimeBreakdownTitle");
+const worktimeBreakdownList = document.getElementById("worktimeBreakdownList");
+const worktimePrintButton = document.getElementById("worktimePrintButton");
+const worktimePdfButton = document.getElementById("worktimePdfButton");
+const worktimePersonalCsvButton = document.getElementById("worktimePersonalCsvButton");
+const worktimeOverallCsvButton = document.getElementById("worktimeOverallCsvButton");
 const backupButton = document.getElementById("backupButton");
 const restoreButton = document.getElementById("restoreButton");
 const restoreInput = document.getElementById("restoreInput");
@@ -327,6 +344,8 @@ const appViewPanels = Array.from(
 let activeAppViewKey = "home";
 let activeSettingsSection = "top";
 let activeSummarySection = "top";
+let activeWorktimeTab = "personal";
+let activeWorktimeWorkerId = "";
 const shortcutRecordFormButton = document.getElementById("shortcutRecordFormButton");
 const shortcutTeamPlanButton = document.getElementById("shortcutTeamPlanButton");
 const shortcutDailyReportButton = document.getElementById("shortcutDailyReportButton");
@@ -524,6 +543,13 @@ if (taskReportFromDateInput && taskReportToDateInput) {
 if (varietyReportFromDateInput && varietyReportToDateInput) {
   varietyReportFromDateInput.value = defaultMonthRange.from;
   varietyReportToDateInput.value = defaultMonthRange.to;
+}
+if (worktimeFromDateInput && worktimeToDateInput) {
+  worktimeFromDateInput.value = defaultMonthRange.from;
+  worktimeToDateInput.value = defaultMonthRange.to;
+}
+if (worktimePeriodModeInput) {
+  worktimePeriodModeInput.value = "week";
 }
 let selectedWorkerIds = [];
 let selectedMembershipGroupIds = [];
@@ -1972,6 +1998,53 @@ function getCurrentMonthRange(baseDate = today) {
   return { from, to };
 }
 
+function parseYmdToDate(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [yearText, monthText, dayText] = value.split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+  const date = new Date(year, month - 1, day);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function toYmdString(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+  return buildDateString(date.getFullYear(), date.getMonth() + 1, date.getDate());
+}
+
+function getCurrentWeekRange(baseDate = today) {
+  const normalizedDate = normalizeDateString(baseDate, today);
+  const target = parseYmdToDate(normalizedDate);
+  if (!target) {
+    return getCurrentWeekRange(today);
+  }
+  const dayOfWeek = target.getDay();
+  const offsetToMonday = (dayOfWeek + 6) % 7;
+  const fromDate = new Date(target);
+  fromDate.setDate(fromDate.getDate() - offsetToMonday);
+  const toDate = new Date(fromDate);
+  toDate.setDate(toDate.getDate() + 6);
+  return {
+    from: toYmdString(fromDate),
+    to: toYmdString(toDate)
+  };
+}
+
+function getCurrentYearRange(baseDate = today) {
+  const normalizedDate = normalizeDateString(baseDate, today);
+  const [yearText] = normalizedDate.split("-");
+  const year = Number(yearText);
+  if (!Number.isFinite(year)) {
+    return getCurrentYearRange(today);
+  }
+  return {
+    from: `${year}-01-01`,
+    to: `${year}-12-31`
+  };
+}
+
 function normalizeDateString(value, fallback = today) {
   if (typeof value !== "string") return fallback;
   const trimmed = value.trim();
@@ -2426,6 +2499,455 @@ function getPayrollData(periodConfig = getPayrollPeriodConfig()) {
     periodConfig: normalizedConfig,
     ...result
   };
+}
+
+function normalizeWorktimePeriodMode(value) {
+  return ["week", "month", "year", "custom"].includes(value) ? value : "week";
+}
+
+function getWorktimePeriodLabel(mode) {
+  if (mode === "month") return "今月";
+  if (mode === "year") return "今年";
+  if (mode === "custom") return "任意期間";
+  return "今週";
+}
+
+function getWorktimePeriodConfig() {
+  const mode = normalizeWorktimePeriodMode(worktimePeriodModeInput?.value || "week");
+  if (mode === "custom") {
+    const from = normalizeDateString(worktimeFromDateInput?.value || "", "");
+    const to = normalizeDateString(worktimeToDateInput?.value || "", "");
+    const label = getWorktimePeriodLabel(mode);
+    if (!from || !to) {
+      return {
+        mode,
+        label,
+        from: "",
+        to: "",
+        rangeText: "",
+        isValid: false,
+        error: "任意期間を集計するには開始日と終了日を入力してください。"
+      };
+    }
+    if (from > to) {
+      return {
+        mode,
+        label,
+        from,
+        to,
+        rangeText: `${formatDateYmd(from)}〜${formatDateYmd(to)}`,
+        isValid: false,
+        error: "任意期間の終了日は開始日以降にしてください。"
+      };
+    }
+    return {
+      mode,
+      label,
+      from,
+      to,
+      rangeText: `${formatDateYmd(from)}〜${formatDateYmd(to)}`,
+      isValid: true
+    };
+  }
+
+  const range = mode === "week"
+    ? getCurrentWeekRange(today)
+    : mode === "month"
+      ? getCurrentMonthRange(today)
+      : getCurrentYearRange(today);
+  return {
+    mode,
+    label: getWorktimePeriodLabel(mode),
+    from: range.from,
+    to: range.to,
+    rangeText: `${formatDateYmd(range.from)}〜${formatDateYmd(range.to)}`,
+    isValid: true
+  };
+}
+
+function applyWorktimeControlState() {
+  const mode = normalizeWorktimePeriodMode(worktimePeriodModeInput?.value || "week");
+  worktimeQuickButtons.forEach((button) => {
+    const buttonMode = normalizeWorktimePeriodMode(button.dataset.worktimePeriod || "");
+    const isActive = buttonMode === mode;
+    button.classList.toggle("is-active", isActive);
+    button.classList.toggle("button--view", isActive);
+    button.classList.toggle("button--settings", !isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+  worktimeTabButtons.forEach((button) => {
+    const isActive = (button.dataset.worktimeTab || "personal") === activeWorktimeTab;
+    button.classList.toggle("is-active", isActive);
+    button.classList.toggle("button--view", isActive);
+    button.classList.toggle("button--settings", !isActive);
+    button.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+  if (worktimeCustomRange) {
+    worktimeCustomRange.hidden = mode !== "custom";
+  }
+  if (worktimeWorkerRow) {
+    worktimeWorkerRow.hidden = activeWorktimeTab !== "personal";
+  }
+}
+
+function renderWorktimeWorkerOptions() {
+  if (!worktimeWorkerSelect) return;
+  const workers = [...masters.workers].sort((a, b) => (a.displayName || "").localeCompare(b.displayName || "", "ja"));
+  worktimeWorkerSelect.innerHTML = "";
+  if (!workers.length) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "作業者が未登録です";
+    worktimeWorkerSelect.appendChild(option);
+    worktimeWorkerSelect.disabled = true;
+    activeWorktimeWorkerId = "";
+    return;
+  }
+  worktimeWorkerSelect.disabled = false;
+  workers.forEach((worker) => {
+    const option = document.createElement("option");
+    option.value = worker.id;
+    option.textContent = `${worker.displayName || worker.fullName}${worker.isActive ? "" : " (無効)"}`;
+    worktimeWorkerSelect.appendChild(option);
+  });
+  if (!workers.some((worker) => worker.id === activeWorktimeWorkerId)) {
+    const preferredWorker = workers.find((worker) => worker.isActive) || workers[0];
+    activeWorktimeWorkerId = preferredWorker.id;
+  }
+  worktimeWorkerSelect.value = activeWorktimeWorkerId;
+}
+
+function buildWorktimeWorkerDayEntries(sourceRecords = records) {
+  const entryMap = new Map();
+  sourceRecords.forEach((record) => {
+    const workDate = normalizeDateString(record.workDate, "");
+    const hours = Number(record.workHours || 0);
+    if (!workDate || !Number.isFinite(hours) || hours <= 0) return;
+    const assignedWorkers = getAssignedWorkers(record);
+    assignedWorkers.forEach((worker) => {
+      if (!worker) return;
+      const key = `${worker.id}|${workDate}`;
+      const current = entryMap.get(key) || {
+        workerId: worker.id,
+        worker,
+        workDate,
+        hours: 0
+      };
+      current.hours += hours;
+      entryMap.set(key, current);
+    });
+  });
+  return Array.from(entryMap.values()).map((item) => ({
+    ...item,
+    hours: Number(item.hours.toFixed(2))
+  }));
+}
+
+function filterWorktimeEntriesByRange(entries, from, to) {
+  return entries.filter((item) => item.workDate >= from && item.workDate <= to);
+}
+
+function summarizePersonalWorktime(entries, workerId) {
+  const workerEntries = entries.filter((entry) => entry.workerId === workerId);
+  const totalHours = Number(workerEntries.reduce((sum, entry) => sum + Number(entry.hours || 0), 0).toFixed(2));
+  const attendanceDays = workerEntries.length;
+  const averageHours = attendanceDays ? Number((totalHours / attendanceDays).toFixed(2)) : 0;
+  return {
+    totalHours,
+    attendanceDays,
+    averageHours
+  };
+}
+
+function summarizeOverallWorktime(entries) {
+  const totalHours = Number(entries.reduce((sum, entry) => sum + Number(entry.hours || 0), 0).toFixed(2));
+  const attendanceDays = entries.length;
+  const workerCount = new Set(entries.map((entry) => entry.workerId)).size;
+  const averageHoursPerWorker = workerCount ? Number((totalHours / workerCount).toFixed(2)) : 0;
+  return {
+    totalHours,
+    attendanceDays,
+    workerCount,
+    averageHoursPerWorker
+  };
+}
+
+function getDateSpanDays(from, to) {
+  const fromDate = parseYmdToDate(from);
+  const toDate = parseYmdToDate(to);
+  if (!fromDate || !toDate) return 0;
+  const diff = toDate.getTime() - fromDate.getTime();
+  return diff >= 0 ? Math.floor(diff / 86400000) + 1 : 0;
+}
+
+function getWeekRangeFromDateString(dateString) {
+  const normalized = normalizeDateString(dateString, "");
+  if (!normalized) return { from: "", to: "" };
+  return getCurrentWeekRange(normalized);
+}
+
+function getWorktimeComparisonRows(allEntries, tab, workerId) {
+  const periodRanges = [
+    { key: "week", label: "今週", range: getCurrentWeekRange(today) },
+    { key: "month", label: "今月", range: getCurrentMonthRange(today) },
+    { key: "year", label: "今年", range: getCurrentYearRange(today) }
+  ];
+  return periodRanges.map((period) => {
+    const periodEntries = filterWorktimeEntriesByRange(allEntries, period.range.from, period.range.to);
+    const stats = tab === "personal"
+      ? summarizePersonalWorktime(periodEntries, workerId)
+      : summarizeOverallWorktime(periodEntries);
+    return {
+      key: period.key,
+      label: period.label,
+      rangeText: `${formatDateYmd(period.range.from)}〜${formatDateYmd(period.range.to)}`,
+      stats
+    };
+  });
+}
+
+function buildWorktimeBreakdownRows(periodEntries, tab, workerId, periodConfig) {
+  const filteredEntries = tab === "personal"
+    ? periodEntries.filter((entry) => entry.workerId === workerId)
+    : periodEntries.slice();
+  if (!filteredEntries.length) {
+    return {
+      title: "期間内の内訳",
+      rows: []
+    };
+  }
+
+  const spanDays = getDateSpanDays(periodConfig.from, periodConfig.to);
+  let granularity = "day";
+  if (periodConfig.mode === "year" || (periodConfig.mode === "custom" && spanDays >= 90)) {
+    granularity = "month";
+  } else if (periodConfig.mode === "month" || (periodConfig.mode === "custom" && spanDays >= 21)) {
+    granularity = "week";
+  }
+
+  const rowsMap = new Map();
+  filteredEntries.forEach((entry) => {
+    let key = "";
+    let label = "";
+    if (granularity === "month") {
+      key = entry.workDate.slice(0, 7);
+      label = formatMonth(key);
+    } else if (granularity === "week") {
+      const weekRange = getWeekRangeFromDateString(entry.workDate);
+      key = weekRange.from;
+      label = `${formatDateYmd(weekRange.from)}〜${formatDateYmd(weekRange.to)}`;
+    } else {
+      key = entry.workDate;
+      label = formatDateYmd(entry.workDate);
+    }
+    const current = rowsMap.get(key) || {
+      key,
+      label,
+      totalHours: 0,
+      attendanceDays: 0,
+      workerIds: new Set()
+    };
+    current.totalHours += Number(entry.hours || 0);
+    current.attendanceDays += 1;
+    current.workerIds.add(entry.workerId);
+    rowsMap.set(key, current);
+  });
+
+  const rows = Array.from(rowsMap.values())
+    .sort((a, b) => b.key.localeCompare(a.key))
+    .map((row) => {
+      const totalHours = Number(row.totalHours.toFixed(2));
+      const averageHours = row.attendanceDays ? Number((totalHours / row.attendanceDays).toFixed(2)) : 0;
+      const averagePerWorker = row.workerIds.size ? Number((totalHours / row.workerIds.size).toFixed(2)) : 0;
+      return {
+        label: row.label,
+        totalHours,
+        attendanceDays: row.attendanceDays,
+        workerCount: row.workerIds.size,
+        averageHours,
+        averagePerWorker
+      };
+    });
+
+  const title = granularity === "month"
+    ? "期間内の月別内訳"
+    : granularity === "week"
+      ? "期間内の週別内訳"
+      : "期間内の日別内訳";
+  return { title, rows };
+}
+
+function getWorktimeAverageValue(stats, tab) {
+  if (!stats) return 0;
+  return tab === "personal"
+    ? Number(stats.averageHours || 0)
+    : Number(stats.averageHoursPerWorker || 0);
+}
+
+function buildWorktimeAnalysisSnapshot(tab = activeWorktimeTab) {
+  const normalizedTab = tab === "overall" ? "overall" : "personal";
+  const periodConfig = getWorktimePeriodConfig();
+  if (!periodConfig.isValid) {
+    return {
+      isValid: false,
+      tab: normalizedTab,
+      periodConfig,
+      error: periodConfig.error || "期間条件を確認してください。"
+    };
+  }
+
+  const workers = [...masters.workers].sort((a, b) => (a.displayName || "").localeCompare(b.displayName || "", "ja"));
+  const fallbackWorker = workers.find((worker) => worker.isActive) || workers[0] || null;
+  const workerId = normalizedTab === "personal"
+    ? (
+      workers.some((worker) => worker.id === activeWorktimeWorkerId)
+        ? activeWorktimeWorkerId
+        : (fallbackWorker?.id || "")
+    )
+    : "";
+  const selectedWorker = normalizedTab === "personal" ? getWorkerById(workerId) : null;
+  const targetName = normalizedTab === "personal"
+    ? (selectedWorker?.displayName || "未選択")
+    : "全体";
+  const allEntries = buildWorktimeWorkerDayEntries(records);
+  const periodEntries = filterWorktimeEntriesByRange(allEntries, periodConfig.from, periodConfig.to);
+  const selectedStats = normalizedTab === "personal"
+    ? summarizePersonalWorktime(periodEntries, workerId)
+    : summarizeOverallWorktime(periodEntries);
+  const comparisonRows = getWorktimeComparisonRows(allEntries, normalizedTab, workerId);
+  const breakdown = buildWorktimeBreakdownRows(periodEntries, normalizedTab, workerId, periodConfig);
+
+  return {
+    isValid: true,
+    tab: normalizedTab,
+    workerId,
+    selectedWorker,
+    targetName,
+    periodConfig,
+    allEntries,
+    periodEntries,
+    selectedStats,
+    comparisonRows,
+    breakdown
+  };
+}
+
+function renderWorktimeSummaryCards(data) {
+  if (!worktimeSummaryCards) return;
+  const { tab, selectedStats, selectedWorker, periodLabel, comparisonRows } = data;
+  const weekStats = comparisonRows.find((item) => item.key === "week")?.stats;
+  const monthStats = comparisonRows.find((item) => item.key === "month")?.stats;
+  const yearStats = comparisonRows.find((item) => item.key === "year")?.stats;
+
+  const cards = tab === "personal"
+    ? [
+        { label: "対象作業者", value: selectedWorker?.displayName || "未選択" },
+        { label: `${periodLabel}の労働時間`, value: formatHours(selectedStats.totalHours) },
+        { label: `${periodLabel}の出勤日数`, value: formatDays(selectedStats.attendanceDays) },
+        { label: "平均労働時間", value: formatHours(selectedStats.averageHours) },
+        { label: "今週の労働時間", value: formatHours(weekStats?.totalHours || 0) },
+        { label: "今月の労働時間", value: formatHours(monthStats?.totalHours || 0) },
+        { label: "今年の労働時間", value: formatHours(yearStats?.totalHours || 0) }
+      ]
+    : [
+        { label: "対象作業者数", value: formatPeople(selectedStats.workerCount || 0) },
+        { label: `${periodLabel}の全体労働時間`, value: formatHours(selectedStats.totalHours) },
+        { label: `${periodLabel}の全体出勤日数`, value: formatDays(selectedStats.attendanceDays) },
+        { label: "1人あたり平均労働時間", value: formatHours(selectedStats.averageHoursPerWorker) },
+        { label: "全体の今週労働時間", value: formatHours(weekStats?.totalHours || 0) },
+        { label: "全体の今月労働時間", value: formatHours(monthStats?.totalHours || 0) },
+        { label: "全体の今年労働時間", value: formatHours(yearStats?.totalHours || 0) }
+      ];
+
+  worktimeSummaryCards.innerHTML = "";
+  cards.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "summary-card payroll-summary-card";
+    const label = document.createElement("span");
+    label.className = "summary-card__label";
+    label.textContent = item.label;
+    const value = document.createElement("strong");
+    value.textContent = item.value;
+    card.append(label, value);
+    worktimeSummaryCards.appendChild(card);
+  });
+}
+
+function renderWorktimeComparisonRows(data) {
+  if (!worktimeComparisonList) return;
+  const entries = data.comparisonRows.map((item) => {
+    const value = data.tab === "personal"
+      ? `${formatHours(item.stats.totalHours)} / ${formatDays(item.stats.attendanceDays)} / 平均 ${formatHours(item.stats.averageHours)}`
+      : `${formatHours(item.stats.totalHours)} / ${formatDays(item.stats.attendanceDays)} / 1人平均 ${formatHours(item.stats.averageHoursPerWorker)}`;
+    return [`${item.label}（${item.rangeText}）`, value];
+  });
+  buildSummaryRows(
+    worktimeComparisonList,
+    entries,
+    (value) => String(value),
+    "比較できる労働時間データがありません。"
+  );
+}
+
+function renderWorktimeBreakdownRows(data) {
+  if (!worktimeBreakdownList) return;
+  if (worktimeBreakdownTitle) {
+    worktimeBreakdownTitle.textContent = data.breakdown.title;
+  }
+  const entries = data.breakdown.rows.map((row) => {
+    const value = data.tab === "personal"
+      ? `${formatHours(row.totalHours)} / ${formatDays(row.attendanceDays)} / 平均 ${formatHours(row.averageHours)}`
+      : `${formatHours(row.totalHours)} / ${formatDays(row.attendanceDays)} / 1人平均 ${formatHours(row.averagePerWorker)}`;
+    return [row.label, value];
+  });
+  buildSummaryRows(
+    worktimeBreakdownList,
+    entries,
+    (value) => String(value),
+    "期間内の内訳データがありません。"
+  );
+}
+
+function renderWorktimeAnalysis() {
+  if (!worktimePeriodInfo || !worktimeSummaryCards || !worktimeComparisonList || !worktimeBreakdownList) return;
+  applyWorktimeControlState();
+  renderWorktimeWorkerOptions();
+
+  const snapshot = buildWorktimeAnalysisSnapshot(activeWorktimeTab);
+  if (!snapshot.isValid) {
+    worktimePeriodInfo.textContent = snapshot.error || "期間条件を確認してください。";
+    worktimeSummaryCards.innerHTML = "";
+    worktimeComparisonList.innerHTML = "";
+    worktimeBreakdownList.innerHTML = "";
+    worktimeSummaryCards.appendChild(buildEmptyState("集計条件を指定すると労働時間サマリーを表示できます。"));
+    worktimeComparisonList.appendChild(buildEmptyState("比較データを表示できません。"));
+    worktimeBreakdownList.appendChild(buildEmptyState("内訳データを表示できません。"));
+    return;
+  }
+
+  if (activeWorktimeTab === "personal" && snapshot.workerId && snapshot.workerId !== activeWorktimeWorkerId) {
+    activeWorktimeWorkerId = snapshot.workerId;
+    if (worktimeWorkerSelect && worktimeWorkerSelect.value !== snapshot.workerId) {
+      worktimeWorkerSelect.value = snapshot.workerId;
+    }
+  }
+  worktimePeriodInfo.textContent = `${snapshot.periodConfig.label} / ${snapshot.periodConfig.rangeText} / 対象: ${snapshot.targetName}`;
+
+  renderWorktimeSummaryCards({
+    tab: snapshot.tab,
+    selectedStats: snapshot.selectedStats,
+    selectedWorker: snapshot.selectedWorker,
+    periodLabel: snapshot.periodConfig.label,
+    comparisonRows: snapshot.comparisonRows
+  });
+  renderWorktimeComparisonRows({
+    tab: snapshot.tab,
+    comparisonRows: snapshot.comparisonRows
+  });
+  renderWorktimeBreakdownRows({
+    tab: snapshot.tab,
+    breakdown: snapshot.breakdown
+  });
 }
 
 function renderPayrollSummaryCards(data) {
@@ -4327,6 +4849,10 @@ const summarySectionMeta = {
   payroll: {
     title: "簡易給与明細",
     lead: "作業記録から、月締め・半月締め・任意期間の簡易明細を作成できます。"
+  },
+  worktime: {
+    title: "労働時間分析",
+    lead: "個人別・全体の労働時間を週・月・年で見える化できます。"
   }
 };
 
@@ -4336,7 +4862,8 @@ const summarySectionCardMap = {
   monthly: ["monthly"],
   annual: ["annual"],
   comparison: ["comparison"],
-  payroll: ["payroll"]
+  payroll: ["payroll"],
+  worktime: ["worktime"]
 };
 
 function getSummarySectionKey(sectionKey) {
@@ -4355,6 +4882,8 @@ function getSummarySectionFocus(sectionKey) {
       return comparisonPeriodInput;
     case "payroll":
       return payrollTargetMonthInput || payrollCloseTypeInput;
+    case "worktime":
+      return worktimeQuickButtons[0] || worktimeWorkerSelect || summaryMenuDailyButton;
     default:
       return summaryMenuDailyButton;
   }
@@ -4372,7 +4901,7 @@ function applySummarySectionState() {
     summaryPageNav.hidden = !inSummaryView || normalizedSection === "top";
   }
   if (summaryAnalyticsGrid) {
-    const showAnalyticsGrid = normalizedSection === "monthly" || normalizedSection === "comparison" || normalizedSection === "annual" || normalizedSection === "payroll";
+    const showAnalyticsGrid = normalizedSection === "monthly" || normalizedSection === "comparison" || normalizedSection === "annual" || normalizedSection === "payroll" || normalizedSection === "worktime";
     summaryAnalyticsGrid.hidden = !inSummaryView || !showAnalyticsGrid;
   }
   if (summaryTitle) {
@@ -7199,6 +7728,261 @@ function exportAnnualReportCsv() {
   URL.revokeObjectURL(url);
 }
 
+function getWorktimeCsvPeriodLabel(key) {
+  if (key === "week") return "週間";
+  if (key === "month") return "月間";
+  if (key === "year") return "年間";
+  return "任意期間";
+}
+
+function buildWorktimeReportHtml(snapshot, options = {}) {
+  const preferredAction = options.preferredAction === "pdf" ? "pdf" : "print";
+  const scopeLabel = snapshot.tab === "personal" ? "個人別" : "全体";
+  const averageLabel = snapshot.tab === "personal" ? "平均労働時間" : "1人あたり平均労働時間";
+  const comparisonRowsHtml = snapshot.comparisonRows.length
+    ? snapshot.comparisonRows.map((row) => {
+      const averageValue = getWorktimeAverageValue(row.stats, snapshot.tab);
+      return `
+        <tr>
+          <th>${escapeHtml(getWorktimeCsvPeriodLabel(row.key))}</th>
+          <td>${escapeHtml(row.rangeText)}</td>
+          <td>${escapeHtml(formatHours(row.stats.totalHours))}</td>
+          <td>${escapeHtml(formatDays(row.stats.attendanceDays))}</td>
+          <td>${escapeHtml(formatHours(averageValue))}</td>
+        </tr>
+      `;
+    }).join("")
+    : `<tr><td colspan="5" class="worktime-empty-cell">比較対象データがありません。</td></tr>`;
+
+  const breakdownRowsHtml = snapshot.breakdown.rows.length
+    ? snapshot.breakdown.rows.map((row) => {
+      if (snapshot.tab === "personal") {
+        return `
+          <tr>
+            <th>${escapeHtml(row.label)}</th>
+            <td>${escapeHtml(formatHours(row.totalHours))}</td>
+            <td>${escapeHtml(formatDays(row.attendanceDays))}</td>
+            <td>${escapeHtml(formatHours(row.averageHours))}</td>
+          </tr>
+        `;
+      }
+      return `
+        <tr>
+          <th>${escapeHtml(row.label)}</th>
+          <td>${escapeHtml(formatHours(row.totalHours))}</td>
+          <td>${escapeHtml(formatDays(row.attendanceDays))}</td>
+          <td>${escapeHtml(formatPeople(row.workerCount))}</td>
+          <td>${escapeHtml(formatHours(row.averagePerWorker))}</td>
+        </tr>
+      `;
+    }).join("")
+    : `<tr><td colspan="${snapshot.tab === "personal" ? "4" : "5"}" class="worktime-empty-cell">期間内の内訳データがありません。</td></tr>`;
+
+  const selectedAverage = getWorktimeAverageValue(snapshot.selectedStats, snapshot.tab);
+
+  return `
+    <html lang="ja">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>(株)大成園　作業記録アプリ 労働時間分析</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm; }
+          * { box-sizing: border-box; }
+          body { margin: 0; background: #f6f3ec; color: #2f2921; font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif; }
+          .worktime-toolbar { position: sticky; top: 0; z-index: 10; display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #d8d2c8; background: #ffffffee; backdrop-filter: blur(6px); }
+          .worktime-toolbar h1 { margin: 0; font-size: 17px; }
+          .worktime-toolbar p { margin: 4px 0 0; color: #5d5348; font-size: 13px; }
+          .worktime-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+          .worktime-button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
+          .worktime-button--print { background: #3f6f3f; color: #fff; }
+          .worktime-button--pdf { background: #c6522f; color: #fff; }
+          .worktime-button--close { background: #ece8de; color: #3c352f; }
+          .worktime-toolbar__hint { margin-top: 6px; font-size: 12px; color: #7b6a58; }
+          .worktime-body { width: min(210mm, 100%); margin: 0 auto; padding: 7mm 0 12mm; }
+          .worktime-header { margin-bottom: 5mm; padding: 5mm; border-radius: 4mm; background: #fff; border: 1px solid #dfd8cd; }
+          .worktime-app-name { margin: 0; font-size: 20px; line-height: 1.3; }
+          .worktime-title { margin: 2mm 0 1mm; font-size: 18px; }
+          .worktime-meta { margin: 0.8mm 0; font-size: 13px; color: #5f564b; }
+          .worktime-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2.8mm; margin-top: 4mm; }
+          .worktime-summary__item { background: #fff; border: 1px solid #dfd8cd; border-radius: 3mm; padding: 2.5mm 3mm; display: grid; gap: 1.2mm; }
+          .worktime-summary__item span { color: #61574b; font-size: 11px; }
+          .worktime-summary__item strong { font-size: 15px; }
+          .worktime-section { margin-top: 4mm; padding: 3.5mm; border-radius: 3mm; background: #fff; border: 1px solid #dfd8cd; break-inside: avoid; page-break-inside: avoid; }
+          .worktime-section h3 { margin: 0 0 2.5mm; font-size: 15px; }
+          .worktime-table-wrap { overflow-x: auto; }
+          .worktime-table { width: 100%; border-collapse: collapse; min-width: 620px; }
+          .worktime-table th, .worktime-table td { border: 1px solid #ddd3c3; padding: 6px 8px; text-align: right; font-size: 12px; white-space: nowrap; }
+          .worktime-table th:first-child, .worktime-table td:first-child { text-align: left; white-space: normal; }
+          .worktime-table thead th { background: #f3eee3; font-size: 11px; }
+          .worktime-empty-cell { text-align: center !important; color: #6a5f50; }
+          @media (max-width: 920px) {
+            .worktime-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          }
+          @media (max-width: 640px) {
+            .worktime-toolbar { position: static; padding: 10px 12px; }
+            .worktime-actions { width: 100%; }
+            .worktime-button { flex: 1; }
+            .worktime-body { width: 100%; padding: 12px; }
+            .worktime-summary { grid-template-columns: 1fr; }
+          }
+          @media print {
+            body { background: #fff; }
+            .worktime-toolbar { display: none; }
+            .worktime-body { width: auto; margin: 0; padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <header class="worktime-toolbar">
+          <div>
+            <h1>労働時間分析レポート</h1>
+            <p>集計区分: ${escapeHtml(scopeLabel)} / 対象: ${escapeHtml(snapshot.targetName)}</p>
+            <p class="worktime-toolbar__hint">Androidは「PDF保存」後に共有先アプリで印刷すると安定しやすいです。</p>
+          </div>
+          <div class="worktime-actions">
+            <button class="worktime-button worktime-button--print" type="button" onclick="window.print()">この画面を印刷</button>
+            <button class="worktime-button worktime-button--pdf" id="worktimePdfButtonInWindow" type="button" onclick="window.print()">PDF保存</button>
+            <button class="worktime-button worktime-button--close" type="button" onclick="window.close()">閉じる</button>
+          </div>
+        </header>
+        <main class="worktime-body">
+          <section class="worktime-header">
+            <p class="worktime-app-name">(株)大成園　作業記録アプリ</p>
+            <h2 class="worktime-title">労働時間分析</h2>
+            <p class="worktime-meta">集計区分: ${escapeHtml(scopeLabel)}</p>
+            <p class="worktime-meta">期間: ${escapeHtml(snapshot.periodConfig.label)} / ${escapeHtml(snapshot.periodConfig.rangeText)}</p>
+            <p class="worktime-meta">対象: ${escapeHtml(snapshot.targetName)}</p>
+            <div class="worktime-summary">
+              <div class="worktime-summary__item"><span>労働時間</span><strong>${escapeHtml(formatHours(snapshot.selectedStats.totalHours))}</strong></div>
+              <div class="worktime-summary__item"><span>出勤日数</span><strong>${escapeHtml(formatDays(snapshot.selectedStats.attendanceDays))}</strong></div>
+              <div class="worktime-summary__item"><span>${escapeHtml(averageLabel)}</span><strong>${escapeHtml(formatHours(selectedAverage))}</strong></div>
+              <div class="worktime-summary__item"><span>${snapshot.tab === "personal" ? "対象作業者" : "対象作業者数"}</span><strong>${escapeHtml(snapshot.tab === "personal" ? snapshot.targetName : formatPeople(snapshot.selectedStats.workerCount || 0))}</strong></div>
+            </div>
+          </section>
+
+          <section class="worktime-section">
+            <h3>週・月・年の比較</h3>
+            <div class="worktime-table-wrap">
+              <table class="worktime-table">
+                <thead>
+                  <tr>
+                    <th>期間区分</th>
+                    <th>対象期間</th>
+                    <th>労働時間</th>
+                    <th>出勤日数</th>
+                    <th>${escapeHtml(averageLabel)}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${comparisonRowsHtml}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="worktime-section">
+            <h3>${escapeHtml(snapshot.breakdown.title)}</h3>
+            <div class="worktime-table-wrap">
+              <table class="worktime-table">
+                <thead>
+                  <tr>
+                    <th>区分</th>
+                    <th>労働時間</th>
+                    <th>出勤日数</th>
+                    ${snapshot.tab === "personal" ? "" : "<th>作業者数</th>"}
+                    <th>${escapeHtml(averageLabel)}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${breakdownRowsHtml}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+        <script>
+          (function () {
+            const preferredAction = "${preferredAction}";
+            const pdfButton = document.getElementById("worktimePdfButtonInWindow");
+            if (preferredAction === "pdf" && pdfButton) {
+              window.setTimeout(() => pdfButton.click(), 120);
+            }
+          })();
+        </script>
+      </body>
+    </html>
+  `;
+}
+
+function openWorktimeReportWindow(preferredAction = "print", tab = activeWorktimeTab) {
+  const snapshot = buildWorktimeAnalysisSnapshot(tab);
+  if (!snapshot.isValid) {
+    window.alert(snapshot.error || "労働時間分析の条件を確認してください。");
+    return;
+  }
+  const html = buildWorktimeReportHtml(snapshot, { preferredAction });
+  openGeneratedDocumentWindow(html, {
+    width: 1200,
+    height: 920,
+    popupBlockedMessage: "労働時間分析画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
+  });
+}
+
+function exportWorktimeAnalysisCsv(tab = activeWorktimeTab) {
+  const snapshot = buildWorktimeAnalysisSnapshot(tab);
+  if (!snapshot.isValid) {
+    window.alert(snapshot.error || "労働時間分析の条件を確認してください。");
+    return;
+  }
+  const scopeLabel = snapshot.tab === "personal" ? "個人別" : "全体";
+  const targetLabel = snapshot.targetName;
+  const rows = [
+    ["集計区分", "期間区分", "対象期間", "氏名または全体", "労働時間", "出勤日数", "平均労働時間"]
+  ];
+
+  snapshot.comparisonRows.forEach((row) => {
+    rows.push([
+      scopeLabel,
+      getWorktimeCsvPeriodLabel(row.key),
+      row.rangeText,
+      targetLabel,
+      Number(row.stats.totalHours || 0),
+      Number(row.stats.attendanceDays || 0),
+      Number(getWorktimeAverageValue(row.stats, snapshot.tab) || 0)
+    ]);
+  });
+
+  if (snapshot.periodConfig.mode === "custom") {
+    rows.push([
+      scopeLabel,
+      getWorktimeCsvPeriodLabel("custom"),
+      snapshot.periodConfig.rangeText,
+      targetLabel,
+      Number(snapshot.selectedStats.totalHours || 0),
+      Number(snapshot.selectedStats.attendanceDays || 0),
+      Number(getWorktimeAverageValue(snapshot.selectedStats, snapshot.tab) || 0)
+    ]);
+  }
+
+  const csv = rows.map((row) => row.map(escapeCsvValue).join(",")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `taiseien-worktime-analysis-${snapshot.tab}-${snapshot.periodConfig.from}_${snapshot.periodConfig.to}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportWorktimePersonalCsv() {
+  exportWorktimeAnalysisCsv("personal");
+}
+
+function exportWorktimeOverallCsv() {
+  exportWorktimeAnalysisCsv("overall");
+}
+
 async function printQrCard(title, meta, imageUrl) {
   const printableImageUrl = await buildPrintableQrImageSourceFromUrl(imageUrl, 360);
   const html = `
@@ -8051,6 +8835,18 @@ if (annualReportShareButton) {
 if (annualReportExportButton) {
   annualReportExportButton.addEventListener("click", exportAnnualReportCsv);
 }
+if (worktimePrintButton) {
+  worktimePrintButton.addEventListener("click", () => openWorktimeReportWindow("print", activeWorktimeTab));
+}
+if (worktimePdfButton) {
+  worktimePdfButton.addEventListener("click", () => openWorktimeReportWindow("pdf", activeWorktimeTab));
+}
+if (worktimePersonalCsvButton) {
+  worktimePersonalCsvButton.addEventListener("click", exportWorktimePersonalCsv);
+}
+if (worktimeOverallCsvButton) {
+  worktimeOverallCsvButton.addEventListener("click", exportWorktimeOverallCsv);
+}
 comparisonExportButton.addEventListener("click", exportCumulativeComparisonCsv);
 qrScanButton.addEventListener("click", openQrScanner);
 if (openOrchardQrSheetButton) {
@@ -8117,6 +8913,36 @@ if (payrollFromDateInput) {
 }
 if (payrollToDateInput) {
   payrollToDateInput.addEventListener("change", renderPayrollSection);
+}
+if (worktimeQuickButtons.length) {
+  worktimeQuickButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!worktimePeriodModeInput) return;
+      worktimePeriodModeInput.value = normalizeWorktimePeriodMode(button.dataset.worktimePeriod || "week");
+      renderWorktimeAnalysis();
+    });
+  });
+}
+if (worktimeTabButtons.length) {
+  worktimeTabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextTab = button.dataset.worktimeTab === "overall" ? "overall" : "personal";
+      activeWorktimeTab = nextTab;
+      renderWorktimeAnalysis();
+    });
+  });
+}
+if (worktimeWorkerSelect) {
+  worktimeWorkerSelect.addEventListener("change", () => {
+    activeWorktimeWorkerId = worktimeWorkerSelect.value;
+    renderWorktimeAnalysis();
+  });
+}
+if (worktimeFromDateInput) {
+  worktimeFromDateInput.addEventListener("change", renderWorktimeAnalysis);
+}
+if (worktimeToDateInput) {
+  worktimeToDateInput.addEventListener("change", renderWorktimeAnalysis);
 }
 if (taskReportPeriodInput) {
   taskReportPeriodInput.addEventListener("change", renderTaskTypeReport);
@@ -8636,6 +9462,7 @@ function render() {
   renderRecords();
   renderAnalytics();
   renderPayrollSection();
+  renderWorktimeAnalysis();
   renderCumulativeComparison();
   renderTaskTypeReport();
   renderVarietyTypeReport();

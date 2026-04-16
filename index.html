@@ -460,6 +460,7 @@
             <button type="button" class="button button--view summary-menu__button" data-summary-target="annual">年度レポート</button>
             <button type="button" class="button button--save summary-menu__button" data-summary-target="comparison">比較表</button>
             <button type="button" class="button button--save summary-menu__button" data-summary-target="payroll">簡易給与明細</button>
+            <button type="button" class="button button--view summary-menu__button" data-summary-target="worktime">労働時間分析</button>
           </nav>
 
           <section class="summary-report-tools" data-summary-section="daily" hidden>
@@ -539,7 +540,66 @@
             <p class="form-hint">手当と控除は個別明細で手入力できます。税金・社会保険の自動計算は行いません。</p>
           </section>
 
+          <section class="summary-report-tools" data-summary-section="worktime" hidden>
+            <h3>労働時間分析</h3>
+            <div class="worktime-controls">
+              <div class="worktime-tab-switch" role="tablist" aria-label="労働時間分析の表示切替">
+                <button type="button" class="button button--view button--small is-active" id="worktimeTabPersonalButton" data-worktime-tab="personal" aria-selected="true">個人別</button>
+                <button type="button" class="button button--settings button--small" id="worktimeTabOverallButton" data-worktime-tab="overall" aria-selected="false">全体</button>
+              </div>
+
+              <div class="worktime-period-switch" role="group" aria-label="労働時間分析の期間切替">
+                <button type="button" class="button button--view button--small is-active" id="worktimePeriodWeekButton" data-worktime-period="week">今週</button>
+                <button type="button" class="button button--settings button--small" id="worktimePeriodMonthButton" data-worktime-period="month">今月</button>
+                <button type="button" class="button button--settings button--small" id="worktimePeriodYearButton" data-worktime-period="year">今年</button>
+                <button type="button" class="button button--settings button--small" id="worktimePeriodCustomButton" data-worktime-period="custom">任意期間</button>
+              </div>
+
+              <input type="hidden" id="worktimePeriodMode" value="week">
+
+              <label id="worktimeWorkerRow">
+                対象作業者
+                <select id="worktimeWorkerSelect"></select>
+              </label>
+            </div>
+
+            <div class="comparison-range" id="worktimeCustomRange" hidden>
+              <label>
+                開始日
+                <input type="date" id="worktimeFromDate">
+              </label>
+              <label>
+                終了日
+                <input type="date" id="worktimeToDate">
+              </label>
+            </div>
+
+            <p class="form-hint" id="worktimePeriodInfo">今週・今月・今年で労働時間を分析できます。任意期間も指定可能です。</p>
+            <div class="worktime-report-actions">
+              <button class="button button--view" id="worktimePrintButton" type="button">分析結果を表示/印刷</button>
+              <button class="button button--save" id="worktimePdfButton" type="button">分析結果をPDF保存</button>
+              <button class="button button--save" id="worktimePersonalCsvButton" type="button">個人別分析をCSV保存</button>
+              <button class="button button--save" id="worktimeOverallCsvButton" type="button">全体分析をCSV保存</button>
+            </div>
+            <p class="form-hint print-mobile-guide">Androidでは「分析結果をPDF保存」後、必要に応じて共有先アプリで印刷すると安定します。</p>
+          </section>
+
           <div class="analytics-grid" id="summaryAnalyticsGrid" hidden>
+            <section class="analytics-card analytics-card--wide" data-summary-section="worktime" hidden>
+              <h3>労働時間サマリー</h3>
+              <div id="worktimeSummaryCards" class="payroll-summary-cards"></div>
+            </section>
+
+            <section class="analytics-card analytics-card--wide" data-summary-section="worktime" hidden>
+              <h3>今週・今月・今年の比較</h3>
+              <div id="worktimeComparisonList" class="analytics-list"></div>
+            </section>
+
+            <section class="analytics-card analytics-card--wide" data-summary-section="worktime" hidden>
+              <h3 id="worktimeBreakdownTitle">期間内の内訳</h3>
+              <div id="worktimeBreakdownList" class="analytics-list"></div>
+            </section>
+
             <section class="analytics-card analytics-card--wide" data-summary-section="payroll" hidden>
               <h3>給与集計一覧</h3>
               <div class="payroll-summary-cards" id="payrollSummaryCards"></div>
