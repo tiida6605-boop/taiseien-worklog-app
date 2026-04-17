@@ -591,6 +591,247 @@ textarea {
   font-size: 0.84rem;
 }
 
+.worker-management-tools {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.status-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.6rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.25rem 0.62rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.status-badge--checked-in {
+  background: rgba(56, 139, 66, 0.18);
+  border-color: rgba(56, 139, 66, 0.35);
+  color: #1f6c2a;
+}
+
+.status-badge--missing {
+  background: rgba(214, 172, 18, 0.2);
+  border-color: rgba(214, 172, 18, 0.35);
+  color: #7a5d00;
+}
+
+.status-badge--scheduled {
+  background: rgba(73, 116, 201, 0.18);
+  border-color: rgba(73, 116, 201, 0.32);
+  color: #2f4f95;
+}
+
+.status-badge--off {
+  background: rgba(120, 120, 120, 0.18);
+  border-color: rgba(120, 120, 120, 0.3);
+  color: #555;
+}
+
+.status-badge--early-leave {
+  background: rgba(222, 133, 48, 0.2);
+  border-color: rgba(222, 133, 48, 0.36);
+  color: #8a4d11;
+}
+
+.status-badge--support {
+  background: rgba(41, 145, 131, 0.2);
+  border-color: rgba(41, 145, 131, 0.38);
+  color: #12685c;
+}
+
+.status-badge--hold {
+  background: rgba(179, 53, 53, 0.18);
+  border-color: rgba(179, 53, 53, 0.38);
+  color: #932b2b;
+}
+
+.status-badge--target {
+  background: rgba(81, 108, 61, 0.16);
+  border-color: rgba(81, 108, 61, 0.3);
+  color: #335229;
+}
+
+.worker-management-card {
+  display: grid;
+  gap: 0.7rem;
+  border-radius: 16px;
+  border: 1px solid rgba(96, 68, 38, 0.12);
+  background: rgba(255, 250, 241, 0.82);
+  padding: 0.75rem;
+}
+
+.worker-management-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.worker-management-card__header h4 {
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.45;
+}
+
+.worker-management-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.worker-management-card__meta {
+  margin: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.worker-management-card__meta div {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.52rem 0.58rem;
+  border-radius: 10px;
+  border: 1px solid rgba(96, 68, 38, 0.11);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.worker-management-card__meta dt {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.worker-management-card__meta dd {
+  margin: 0;
+  color: #3d3328;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.worker-management-card__actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 0.5rem;
+}
+
+.today-worker-board {
+  margin-top: 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(96, 68, 38, 0.12);
+  background: rgba(255, 250, 241, 0.78);
+  padding: 0.85rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.today-worker-board__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.today-worker-board__header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.today-worker-board__controls {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.today-worker-board__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.today-status-summary-card {
+  border-radius: 12px;
+  border: 1px solid rgba(96, 68, 38, 0.1);
+  background: rgba(255, 255, 255, 0.75);
+  padding: 0.48rem 0.56rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.today-status-summary-card strong {
+  font-family: "Outfit", sans-serif;
+  color: var(--accent-dark);
+}
+
+.today-worker-board__list {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.today-worker-group {
+  border-radius: 14px;
+  border: 1px solid rgba(96, 68, 38, 0.1);
+  background: rgba(255, 255, 255, 0.74);
+  padding: 0.58rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.today-worker-group h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #4f3f2f;
+}
+
+.today-worker-item {
+  border-radius: 12px;
+  border: 1px solid rgba(96, 68, 38, 0.1);
+  background: rgba(255, 250, 241, 0.82);
+  padding: 0.52rem 0.56rem;
+  display: grid;
+  gap: 0.28rem;
+}
+
+.today-worker-item__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.today-worker-item__top strong {
+  font-size: 0.92rem;
+  color: #35291f;
+}
+
+.today-worker-item__badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.3rem;
+}
+
+.today-worker-item__meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
 .qr-inline-actions {
   display: grid;
   gap: 0.45rem;
@@ -1734,6 +1975,9 @@ textarea {
   .form-actions,
   .master-item,
   .master-item__actions,
+  .worker-management-card__header,
+  .today-worker-board__header,
+  .today-worker-item__top,
   .worker-picker__header,
   .payroll-row__header,
   .analytics-row {
@@ -1881,6 +2125,11 @@ textarea {
 
   .worker-selection-item {
     padding: 0.72rem 0.76rem;
+  }
+
+  .worker-management-card__actions,
+  .today-worker-board__summary {
+    grid-template-columns: 1fr;
   }
 
   .summary-card strong {

@@ -366,6 +366,10 @@ const teamPlanCopyButton = document.getElementById("teamPlanCopyButton");
 const teamPlanApplyButton = document.getElementById("teamPlanApplyButton");
 const teamPlanResetButton = document.getElementById("teamPlanResetButton");
 const teamPlanList = document.getElementById("teamPlanList");
+const todayMemberGroupFilterInput = document.getElementById("todayMemberGroupFilter");
+const todayMemberStatusDate = document.getElementById("todayMemberStatusDate");
+const todayMemberStatusSummary = document.getElementById("todayMemberStatusSummary");
+const todayMemberStatusList = document.getElementById("todayMemberStatusList");
 const monthlyCountList = document.getElementById("monthlyCountList");
 const monthlyHoursList = document.getElementById("monthlyHoursList");
 const monthlyAverageTemperatureList = document.getElementById("monthlyAverageTemperatureList");
@@ -499,6 +503,9 @@ const workerIsActiveInput = document.getElementById("workerIsActive");
 const workerList = document.getElementById("workerList");
 const workerMasterCount = document.getElementById("workerMasterCount");
 const workerResetButton = document.getElementById("workerResetButton");
+const workerSearchInput = document.getElementById("workerSearchInput");
+const workerGroupFilterInput = document.getElementById("workerGroupFilter");
+const workerStatusDateLabel = document.getElementById("workerStatusDateLabel");
 const membershipForm = document.getElementById("membershipForm");
 const membershipWorkerIdInput = document.getElementById("membershipWorkerId");
 const membershipSelectedCount = document.getElementById("membershipSelectedCount");
@@ -4318,6 +4325,7 @@ function renderTeamPlanWorkerList() {
     teamPlanSelectedCount.textContent = "0人選択";
     teamPlanHint.textContent = "日付と作業グループを選択してください。";
     teamPlanWorkerList.appendChild(buildEmptyState("所属者を基本に、応援者も含めてその日の参加者を決められます。"));
+    renderTodayMemberStatusBoard();
     return;
   }
 
@@ -4370,6 +4378,7 @@ function renderTeamPlanWorkerList() {
     label.append(checkbox, body);
     teamPlanWorkerList.appendChild(label);
   });
+  renderTodayMemberStatusBoard();
 }
 
 function renderTeamSetWorkerList() {
@@ -4499,6 +4508,8 @@ function renderMasterSelects() {
   const selectedOrchardFilter = orchardFilterInput.value;
   const selectedVarietyFilter = varietyFilterInput.value;
   const selectedWorkerFilter = workerFilterInput.value;
+  const selectedWorkerGroupFilter = workerGroupFilterInput?.value || "";
+  const selectedTodayMemberGroupFilter = todayMemberGroupFilterInput?.value || "";
   const selectedMembershipWorkerId = membershipWorkerIdInput.value;
   const selectedTeamPlanGroupId = teamPlanGroupInput.value;
   const selectedTeamSetGroupId = teamSetGroupIdInput.value;
@@ -4548,6 +4559,22 @@ function renderMasterSelects() {
     value: selectedWorkerFilter,
     labelBuilder: (worker) => `${worker.displayName}${worker.isActive ? "" : " (無効)"}`
   });
+  if (workerGroupFilterInput) {
+    renderSelectOptions(workerGroupFilterInput, sortedGroups, {
+      placeholder: "すべてのグループ",
+      allowBlank: true,
+      value: selectedWorkerGroupFilter,
+      labelBuilder: (group) => `${group.sortOrder}. ${group.name}${group.isActive ? "" : " (無効)"}`
+    });
+  }
+  if (todayMemberGroupFilterInput) {
+    renderSelectOptions(todayMemberGroupFilterInput, sortedGroups, {
+      placeholder: "すべてのグループ",
+      allowBlank: true,
+      value: selectedTodayMemberGroupFilter,
+      labelBuilder: (group) => `${group.sortOrder}. ${group.name}${group.isActive ? "" : " (無効)"}`
+    });
+  }
   renderSelectOptions(membershipWorkerIdInput, masters.workers, {
     placeholder: masters.workers.length ? "作業者を選択してください" : "先に作業者を登録してください",
     value: selectedMembershipWorkerId,
@@ -4703,7 +4730,7 @@ const settingsSectionMeta = {
   },
   worker: {
     title: "作業者設定",
-    lead: "グループ、固定チームセット、作業者情報を管理します。"
+    lead: "作業者登録、グループ分け、当日の状態確認ができます。"
   },
   backup: {
     title: "バックアップ",
@@ -4739,7 +4766,7 @@ function getSettingsSectionFocus(sectionKey) {
     case "orchard":
       return orchardNameInput;
     case "worker":
-      return workerFullNameInput;
+      return workerSearchInput || workerFullNameInput;
     case "backup":
       return backupButton;
     case "advanced":
@@ -5274,6 +5301,442 @@ function renderWorkerMembershipSummary(worker) {
   }).join("、");
 }
 
+const DAILY_WORKER_STATUS_META = {
+  "出勤済み": { className: "status-badge--checked-in", priority: 1 },
+  "未記録": { className: "status-badge--missing", priority: 2 },
+  "出勤予定": { className: "status-badge--scheduled", priority: 3 },
+  "応援": { className: "status-badge--support", priority: 4 },
+  "早退": { className: "status-badge--early-leave", priority: 5 },
+  "休み": { className: "status-badge--off", priority: 6 },
+  "保留": { className: "status-badge--hold", priority: 7 }
+};
+
+function getStatusMeta(statusLabel) {
+  return DAILY_WORKER_STATUS_META[statusLabel] || DAILY_WORKER_STATUS_META["保留"];
+}
+
+function getGroupSortOrder(groupId) {
+  const group = getGroupById(groupId);
+  return Number(group?.sortOrder || 9999);
+}
+
+function toReadableGroupNames(groupIds = []) {
+  const names = [...new Set(groupIds)]
+    .map((groupId) => getGroupById(groupId)?.name || "")
+    .filter(Boolean);
+  return names.length ? names.join("・") : "未設定";
+}
+
+function buildDailyWorkerActivityContext(targetDate = today) {
+  const dateKey = normalizeDateString(targetDate, today);
+  const plansForDate = teamPlans.filter((plan) => plan.workDate === dateKey);
+  const recordsForDate = records.filter((record) => record.workDate === dateKey);
+  const planByWorkerId = new Map();
+  const recordByWorkerId = new Map();
+  const recordedGroupIds = new Set();
+
+  plansForDate.forEach((plan) => {
+    plan.workerIds.forEach((workerId) => {
+      const current = planByWorkerId.get(workerId) || { planCount: 0, groupIds: new Set() };
+      current.planCount += 1;
+      if (plan.groupId) current.groupIds.add(plan.groupId);
+      planByWorkerId.set(workerId, current);
+    });
+  });
+
+  recordsForDate.forEach((record) => {
+    if (record.dailyGroupId) recordedGroupIds.add(record.dailyGroupId);
+    const assignedWorkers = getAssignedWorkers(record);
+    assignedWorkers.forEach((worker) => {
+      if (!worker) return;
+      const current = recordByWorkerId.get(worker.id) || { recordCount: 0, totalHours: 0, groupIds: new Set() };
+      current.recordCount += 1;
+      current.totalHours += Number(record.workHours || 0);
+      if (record.dailyGroupId) current.groupIds.add(record.dailyGroupId);
+      recordByWorkerId.set(worker.id, current);
+    });
+  });
+
+  return {
+    dateKey,
+    plansForDate,
+    recordsForDate,
+    planByWorkerId,
+    recordByWorkerId,
+    recordedGroupIds
+  };
+}
+
+function resolveWorkerDailyStatus(worker, context) {
+  const memberships = getMembershipsByWorkerId(worker.id);
+  const membershipGroupIds = memberships.map((membership) => membership.groupId).filter(Boolean);
+  const primaryGroupId = worker.primaryGroupId || membershipGroupIds[0] || "";
+  const planEntry = context.planByWorkerId.get(worker.id);
+  const recordEntry = context.recordByWorkerId.get(worker.id);
+  const plannedGroupIds = planEntry ? [...planEntry.groupIds] : [];
+  const recordedGroupIds = recordEntry ? [...recordEntry.groupIds] : [];
+  const involvedGroupIds = [...new Set([...plannedGroupIds, ...recordedGroupIds])];
+  const hasPlan = Boolean(planEntry?.planCount);
+  const hasRecord = Boolean(recordEntry?.recordCount);
+  const recordHours = Number(recordEntry?.totalHours || 0);
+  const hasMembership = Boolean(membershipGroupIds.length);
+  const supportGroupIds = involvedGroupIds.filter((groupId) => primaryGroupId && groupId && groupId !== primaryGroupId);
+  const hasSupport = supportGroupIds.length > 0;
+
+  if (!worker.isActive) {
+    return {
+      statusLabel: "休み",
+      detail: "出勤対象外",
+      plannedGroupIds,
+      recordedGroupIds,
+      involvedGroupIds,
+      membershipGroupIds,
+      primaryGroupId,
+      planCount: Number(planEntry?.planCount || 0),
+      recordCount: Number(recordEntry?.recordCount || 0),
+      recordHours
+    };
+  }
+
+  if (!hasMembership || !primaryGroupId) {
+    return {
+      statusLabel: "保留",
+      detail: "所属グループを設定してください",
+      plannedGroupIds,
+      recordedGroupIds,
+      involvedGroupIds,
+      membershipGroupIds,
+      primaryGroupId,
+      planCount: Number(planEntry?.planCount || 0),
+      recordCount: Number(recordEntry?.recordCount || 0),
+      recordHours
+    };
+  }
+
+  if (hasSupport && hasRecord) {
+    return {
+      statusLabel: "応援",
+      detail: `応援先: ${toReadableGroupNames(supportGroupIds)}`,
+      plannedGroupIds,
+      recordedGroupIds,
+      involvedGroupIds,
+      membershipGroupIds,
+      primaryGroupId,
+      planCount: Number(planEntry?.planCount || 0),
+      recordCount: Number(recordEntry?.recordCount || 0),
+      recordHours
+    };
+  }
+
+  if (hasRecord) {
+    const defaultWorkHours = getDefaultWorkHours();
+    const earlyLeaveThreshold = Math.max(1, Number((defaultWorkHours * 0.75).toFixed(2)));
+    if (hasPlan && recordHours > 0 && recordHours < earlyLeaveThreshold) {
+      return {
+        statusLabel: "早退",
+        detail: `記録: ${formatHours(recordHours)}`,
+        plannedGroupIds,
+        recordedGroupIds,
+        involvedGroupIds,
+        membershipGroupIds,
+        primaryGroupId,
+        planCount: Number(planEntry?.planCount || 0),
+        recordCount: Number(recordEntry?.recordCount || 0),
+        recordHours
+      };
+    }
+    return {
+      statusLabel: "出勤済み",
+      detail: `${recordEntry.recordCount}件記録 / ${formatHours(recordHours)}`,
+      plannedGroupIds,
+      recordedGroupIds,
+      involvedGroupIds,
+      membershipGroupIds,
+      primaryGroupId,
+      planCount: Number(planEntry?.planCount || 0),
+      recordCount: Number(recordEntry?.recordCount || 0),
+      recordHours
+    };
+  }
+
+  if (hasSupport) {
+    return {
+      statusLabel: "応援",
+      detail: `応援予定: ${toReadableGroupNames(supportGroupIds)}`,
+      plannedGroupIds,
+      recordedGroupIds,
+      involvedGroupIds,
+      membershipGroupIds,
+      primaryGroupId,
+      planCount: Number(planEntry?.planCount || 0),
+      recordCount: Number(recordEntry?.recordCount || 0),
+      recordHours
+    };
+  }
+
+  if (hasPlan) {
+    const hasProgressInPlannedGroups = plannedGroupIds.some((groupId) => context.recordedGroupIds.has(groupId));
+    return {
+      statusLabel: hasProgressInPlannedGroups ? "未記録" : "出勤予定",
+      detail: hasProgressInPlannedGroups ? "編成あり・記録未入力" : "本日編成済み",
+      plannedGroupIds,
+      recordedGroupIds,
+      involvedGroupIds,
+      membershipGroupIds,
+      primaryGroupId,
+      planCount: Number(planEntry?.planCount || 0),
+      recordCount: Number(recordEntry?.recordCount || 0),
+      recordHours
+    };
+  }
+
+  return {
+    statusLabel: "休み",
+    detail: "本日編成なし",
+    plannedGroupIds,
+    recordedGroupIds,
+    involvedGroupIds,
+    membershipGroupIds,
+    primaryGroupId,
+    planCount: Number(planEntry?.planCount || 0),
+    recordCount: Number(recordEntry?.recordCount || 0),
+    recordHours
+  };
+}
+
+function createStatusBadge(statusLabel) {
+  const meta = getStatusMeta(statusLabel);
+  const badge = document.createElement("span");
+  badge.className = `status-badge ${meta.className}`;
+  badge.textContent = statusLabel;
+  return badge;
+}
+
+function normalizeSearchKeyword(value) {
+  return normalizeText(value).toLocaleLowerCase("ja-JP");
+}
+
+function getWorkerDisplayGroupId(worker, statusInfo) {
+  if (statusInfo?.involvedGroupIds?.length) {
+    return [...statusInfo.involvedGroupIds].sort((a, b) => getGroupSortOrder(a) - getGroupSortOrder(b))[0];
+  }
+  if (worker.primaryGroupId) return worker.primaryGroupId;
+  if (statusInfo?.membershipGroupIds?.length) {
+    return [...statusInfo.membershipGroupIds].sort((a, b) => getGroupSortOrder(a) - getGroupSortOrder(b))[0];
+  }
+  return "";
+}
+
+function workerMatchesGroupFilter(worker, statusInfo, groupId) {
+  if (!groupId) return true;
+  if (worker.primaryGroupId === groupId) return true;
+  if (statusInfo?.membershipGroupIds?.includes(groupId)) return true;
+  if (statusInfo?.involvedGroupIds?.includes(groupId)) return true;
+  return false;
+}
+
+function workerMatchesSearch(worker, statusInfo, keyword) {
+  if (!keyword) return true;
+  const fields = [
+    worker.fullName,
+    worker.displayName,
+    worker.category,
+    renderWorkerMembershipSummary(worker),
+    getGroupById(statusInfo?.primaryGroupId || worker.primaryGroupId)?.name || "",
+    statusInfo?.statusLabel || "",
+    statusInfo?.detail || ""
+  ]
+    .join(" ")
+    .toLocaleLowerCase("ja-JP");
+  return fields.includes(keyword);
+}
+
+function openWorkerEditor(worker) {
+  workerIdInput.value = worker.id;
+  workerFullNameInput.value = worker.fullName;
+  workerDisplayNameInput.value = worker.displayName;
+  workerCategoryInput.value = worker.category;
+  workerHourlyRateInput.value = String(worker.hourlyRate);
+  workerIsActiveInput.checked = worker.isActive;
+  workerFullNameInput.focus();
+}
+
+function openMembershipEditorForWorker(workerId) {
+  const worker = getWorkerById(workerId);
+  if (!worker) return;
+  membershipWorkerIdInput.value = worker.id;
+  selectedMembershipGroupIds = getMembershipsByWorkerId(worker.id).map((membership) => membership.groupId);
+  const primary = getMembershipsByWorkerId(worker.id).find((membership) => membership.isPrimary);
+  membershipPrimaryGroupIdInput.value = primary?.groupId || selectedMembershipGroupIds[0] || "";
+  renderMembershipGroupList();
+  membershipWorkerIdInput.focus();
+}
+
+function createWorkerManagementCard(worker, statusInfo) {
+  const card = document.createElement("article");
+  card.className = "worker-management-card";
+
+  const heading = document.createElement("div");
+  heading.className = "worker-management-card__header";
+  const title = document.createElement("h4");
+  title.textContent = `${worker.displayName} / ${worker.fullName}`;
+  const badges = document.createElement("div");
+  badges.className = "worker-management-card__badges";
+  badges.appendChild(createStatusBadge(statusInfo.statusLabel));
+  const activeBadge = document.createElement("span");
+  activeBadge.className = `status-badge ${worker.isActive ? "status-badge--target" : "status-badge--off"}`;
+  activeBadge.textContent = worker.isActive ? "出勤対象" : "対象外";
+  badges.appendChild(activeBadge);
+  heading.append(title, badges);
+
+  const metaGrid = document.createElement("dl");
+  metaGrid.className = "worker-management-card__meta";
+  const rows = [
+    ["グループ", renderWorkerMembershipSummary(worker)],
+    ["時給", formatCurrency(worker.hourlyRate)],
+    ["所属区分", worker.category || "未設定"],
+    ["出勤対象", worker.isActive ? "対象" : "対象外"],
+    ["状態", `${statusInfo.statusLabel} / ${statusInfo.detail || "-"}`]
+  ];
+  rows.forEach(([label, value]) => {
+    const row = document.createElement("div");
+    const dt = document.createElement("dt");
+    dt.textContent = label;
+    const dd = document.createElement("dd");
+    dd.textContent = value;
+    row.append(dt, dd);
+    metaGrid.appendChild(row);
+  });
+
+  const actions = document.createElement("div");
+  actions.className = "worker-management-card__actions";
+  const editButton = document.createElement("button");
+  editButton.type = "button";
+  editButton.className = "button button--small button--view";
+  editButton.textContent = "編集";
+  editButton.addEventListener("click", () => openWorkerEditor(worker));
+  const membershipButton = document.createElement("button");
+  membershipButton.type = "button";
+  membershipButton.className = "button button--small button--settings";
+  membershipButton.textContent = "グループ変更";
+  membershipButton.addEventListener("click", () => openMembershipEditorForWorker(worker.id));
+  const deleteButton = document.createElement("button");
+  deleteButton.type = "button";
+  deleteButton.className = "button button--small button--danger";
+  deleteButton.textContent = "削除";
+  deleteButton.addEventListener("click", () => deleteWorker(worker.id));
+  actions.append(editButton, membershipButton, deleteButton);
+
+  card.append(heading, metaGrid, actions);
+  return card;
+}
+
+function renderTodayMemberStatusBoard() {
+  if (!todayMemberStatusList || !todayMemberStatusSummary) return;
+  const targetDate = normalizeDateString(teamPlanDateInput?.value || today, today);
+  const groupFilterId = normalizeText(todayMemberGroupFilterInput?.value);
+  const context = buildDailyWorkerActivityContext(targetDate);
+  const statusByWorkerId = new Map();
+
+  masters.workers.forEach((worker) => {
+    statusByWorkerId.set(worker.id, resolveWorkerDailyStatus(worker, context));
+  });
+
+  if (todayMemberStatusDate) {
+    todayMemberStatusDate.textContent = `表示日: ${formatDate(targetDate)}`;
+  }
+
+  const filteredWorkers = masters.workers
+    .filter((worker) => workerMatchesGroupFilter(worker, statusByWorkerId.get(worker.id), groupFilterId))
+    .sort((a, b) => {
+      const statusA = statusByWorkerId.get(a.id);
+      const statusB = statusByWorkerId.get(b.id);
+      const priorityA = getStatusMeta(statusA?.statusLabel).priority;
+      const priorityB = getStatusMeta(statusB?.statusLabel).priority;
+      if (priorityA !== priorityB) return priorityA - priorityB;
+      const groupA = getWorkerDisplayGroupId(a, statusA);
+      const groupB = getWorkerDisplayGroupId(b, statusB);
+      const groupOrderDiff = getGroupSortOrder(groupA) - getGroupSortOrder(groupB);
+      if (groupOrderDiff !== 0) return groupOrderDiff;
+      return (a.displayName || "").localeCompare((b.displayName || ""), "ja");
+    });
+
+  const summaryCounts = filteredWorkers.reduce((acc, worker) => {
+    const status = statusByWorkerId.get(worker.id)?.statusLabel || "保留";
+    acc[status] = Number(acc[status] || 0) + 1;
+    return acc;
+  }, {});
+
+  todayMemberStatusSummary.innerHTML = "";
+  const summaryStatuses = ["出勤済み", "未記録", "出勤予定", "応援", "早退", "休み", "保留"];
+  summaryStatuses.forEach((statusLabel) => {
+    if (!summaryCounts[statusLabel]) return;
+    const card = document.createElement("article");
+    card.className = "today-status-summary-card";
+    const label = createStatusBadge(statusLabel);
+    const value = document.createElement("strong");
+    value.textContent = `${summaryCounts[statusLabel]}人`;
+    card.append(label, value);
+    todayMemberStatusSummary.appendChild(card);
+  });
+
+  todayMemberStatusList.innerHTML = "";
+  if (!filteredWorkers.length) {
+    todayMemberStatusList.appendChild(buildEmptyState("該当する作業者はいません。グループ条件を見直してください。"));
+    return;
+  }
+
+  const groupedMap = new Map();
+  filteredWorkers.forEach((worker) => {
+    const statusInfo = statusByWorkerId.get(worker.id);
+    const groupId = groupFilterId || getWorkerDisplayGroupId(worker, statusInfo);
+    const group = getGroupById(groupId);
+    const groupLabel = group?.name || "未所属";
+    const key = groupId || "__none__";
+    const current = groupedMap.get(key) || { label: groupLabel, workers: [] };
+    current.workers.push({ worker, statusInfo });
+    groupedMap.set(key, current);
+  });
+
+  const groupedEntries = Array.from(groupedMap.entries()).sort((a, b) => {
+    const orderA = a[0] === "__none__" ? 9999 : getGroupSortOrder(a[0]);
+    const orderB = b[0] === "__none__" ? 9999 : getGroupSortOrder(b[0]);
+    if (orderA !== orderB) return orderA - orderB;
+    return a[1].label.localeCompare(b[1].label, "ja");
+  });
+
+  groupedEntries.forEach(([, groupData]) => {
+    const section = document.createElement("section");
+    section.className = "today-worker-group";
+    const heading = document.createElement("h4");
+    heading.textContent = `${groupData.label}（${groupData.workers.length}人）`;
+    section.appendChild(heading);
+
+    groupData.workers.forEach(({ worker, statusInfo }) => {
+      const row = document.createElement("article");
+      row.className = "today-worker-item";
+      const top = document.createElement("div");
+      top.className = "today-worker-item__top";
+      const name = document.createElement("strong");
+      name.textContent = worker.displayName;
+      const badgeArea = document.createElement("div");
+      badgeArea.className = "today-worker-item__badges";
+      badgeArea.appendChild(createStatusBadge(statusInfo.statusLabel));
+      top.append(name, badgeArea);
+
+      const meta = document.createElement("p");
+      meta.className = "today-worker-item__meta";
+      const primaryGroup = getGroupById(worker.primaryGroupId)?.name || "未設定";
+      meta.textContent = `${worker.fullName} ・ 主所属:${primaryGroup} ・ ${statusInfo.detail || "状態確認"}`;
+
+      row.append(top, meta);
+      section.appendChild(row);
+    });
+
+    todayMemberStatusList.appendChild(section);
+  });
+}
+
 function renderMasterLists() {
   orchardList.innerHTML = "";
   plotList.innerHTML = "";
@@ -5360,21 +5823,46 @@ function renderMasterLists() {
     });
   }
 
+  const workerStatusTargetDate = normalizeDateString(teamPlanDateInput?.value || today, today);
+  if (workerStatusDateLabel) {
+    workerStatusDateLabel.textContent = `${formatDate(workerStatusTargetDate)}の状態を表示しています。`;
+  }
+
   if (!masters.workers.length) {
     workerList.appendChild(buildEmptyState("作業者がありません。最初の作業者を登録してください。"));
   } else {
+    const context = buildDailyWorkerActivityContext(workerStatusTargetDate);
+    const groupFilterId = normalizeText(workerGroupFilterInput?.value);
+    const keyword = normalizeSearchKeyword(workerSearchInput?.value);
+    const statusByWorkerId = new Map();
     masters.workers.forEach((worker) => {
-      const status = worker.isActive ? "有効" : "無効";
-      workerList.appendChild(createMasterRow({ title: `${worker.displayName} / ${worker.fullName}` }, `${renderWorkerMembershipSummary(worker)} ・ ${worker.category} ・ ${formatCurrency(worker.hourlyRate)} ・ ${status}`, "同じ人を別グループ用に重複登録しない運用です。", () => {
-        workerIdInput.value = worker.id;
-        workerFullNameInput.value = worker.fullName;
-        workerDisplayNameInput.value = worker.displayName;
-        workerCategoryInput.value = worker.category;
-        workerHourlyRateInput.value = String(worker.hourlyRate);
-        workerIsActiveInput.checked = worker.isActive;
-        workerFullNameInput.focus();
-      }, () => deleteWorker(worker.id)));
+      statusByWorkerId.set(worker.id, resolveWorkerDailyStatus(worker, context));
     });
+
+    const filteredWorkers = masters.workers
+      .filter((worker) => {
+        const statusInfo = statusByWorkerId.get(worker.id);
+        if (!workerMatchesGroupFilter(worker, statusInfo, groupFilterId)) return false;
+        if (!workerMatchesSearch(worker, statusInfo, keyword)) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const statusA = statusByWorkerId.get(a.id);
+        const statusB = statusByWorkerId.get(b.id);
+        const groupA = getWorkerDisplayGroupId(a, statusA);
+        const groupB = getWorkerDisplayGroupId(b, statusB);
+        const orderDiff = getGroupSortOrder(groupA) - getGroupSortOrder(groupB);
+        if (orderDiff !== 0) return orderDiff;
+        return (a.displayName || "").localeCompare((b.displayName || ""), "ja");
+      });
+
+    if (!filteredWorkers.length) {
+      workerList.appendChild(buildEmptyState("条件に合う作業者がいません。検索条件やグループ条件を見直してください。"));
+    } else {
+      filteredWorkers.forEach((worker) => {
+        workerList.appendChild(createWorkerManagementCard(worker, statusByWorkerId.get(worker.id)));
+      });
+    }
   }
 
   if (!masters.workers.length) {
@@ -5385,14 +5873,7 @@ function renderMasterLists() {
         { title: `${worker.displayName} / ${worker.fullName}` },
         renderWorkerMembershipSummary(worker),
         "主所属は集計の「主所属別」に反映されます。",
-        () => {
-          membershipWorkerIdInput.value = worker.id;
-          selectedMembershipGroupIds = getMembershipsByWorkerId(worker.id).map((membership) => membership.groupId);
-          const primary = getMembershipsByWorkerId(worker.id).find((membership) => membership.isPrimary);
-          membershipPrimaryGroupIdInput.value = primary?.groupId || selectedMembershipGroupIds[0] || "";
-          renderMembershipGroupList();
-          membershipWorkerIdInput.focus();
-        },
+        () => openMembershipEditorForWorker(worker.id),
         () => deleteWorkerMembershipSettings(worker.id)
       ));
     });
@@ -8653,6 +9134,15 @@ orchardFilterInput.addEventListener("change", renderRecords);
 varietyFilterInput.addEventListener("change", renderRecords);
 taskFilterInput.addEventListener("change", renderRecords);
 workerFilterInput.addEventListener("change", renderRecords);
+if (workerSearchInput) {
+  workerSearchInput.addEventListener("input", renderMasterLists);
+}
+if (workerGroupFilterInput) {
+  workerGroupFilterInput.addEventListener("change", renderMasterLists);
+}
+if (todayMemberGroupFilterInput) {
+  todayMemberGroupFilterInput.addEventListener("change", renderTodayMemberStatusBoard);
+}
 if (historyCalendarPrevButton) {
   historyCalendarPrevButton.addEventListener("click", () => {
     historyVisibleMonth = shiftMonthString(historyVisibleMonth, -1);
@@ -9469,6 +9959,7 @@ function render() {
   renderAnnualReport();
   renderQrCodeList();
   renderMasterLists();
+  renderTodayMemberStatusBoard();
   renderCompanySettings();
 }
 

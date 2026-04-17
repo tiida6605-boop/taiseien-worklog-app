@@ -362,6 +362,30 @@
             </div>
           </form>
 
+          <section class="today-worker-board" aria-label="当日の作業者状態">
+            <div class="today-worker-board__header">
+              <h3>当日の作業者状態</h3>
+              <span class="chip chip--soft" id="todayMemberStatusDate">表示日: --</span>
+            </div>
+            <div class="today-worker-board__controls">
+              <label>
+                グループで絞り込み
+                <select id="todayMemberGroupFilter"></select>
+              </label>
+            </div>
+            <div class="status-legend" aria-label="状態の見方">
+              <span class="status-badge status-badge--checked-in">出勤済み</span>
+              <span class="status-badge status-badge--missing">未記録</span>
+              <span class="status-badge status-badge--scheduled">出勤予定</span>
+              <span class="status-badge status-badge--support">応援</span>
+              <span class="status-badge status-badge--early-leave">早退</span>
+              <span class="status-badge status-badge--off">休み</span>
+              <span class="status-badge status-badge--hold">保留</span>
+            </div>
+            <div class="today-worker-board__summary" id="todayMemberStatusSummary"></div>
+            <div class="today-worker-board__list" id="todayMemberStatusList"></div>
+          </section>
+
           <div id="teamPlanList" class="master-list"></div>
         </section>
 
@@ -1284,6 +1308,27 @@
                   <button type="button" class="button button--settings button--small" id="workerResetButton">クリア</button>
                 </div>
               </form>
+
+              <div class="worker-management-tools" aria-label="作業者しぼりこみ">
+                <label>
+                  名前で検索
+                  <input type="search" id="workerSearchInput" placeholder="例: 田中 / 一郎">
+                </label>
+                <label>
+                  グループで絞り込み
+                  <select id="workerGroupFilter"></select>
+                </label>
+              </div>
+              <p class="form-hint" id="workerStatusDateLabel">当日の状態を表示しています。</p>
+              <div class="status-legend" aria-label="状態の見方">
+                <span class="status-badge status-badge--checked-in">出勤済み</span>
+                <span class="status-badge status-badge--missing">未記録</span>
+                <span class="status-badge status-badge--scheduled">出勤予定</span>
+                <span class="status-badge status-badge--support">応援</span>
+                <span class="status-badge status-badge--early-leave">早退</span>
+                <span class="status-badge status-badge--off">休み</span>
+                <span class="status-badge status-badge--hold">保留</span>
+              </div>
 
               <div id="workerList" class="master-list"></div>
             </section>
