@@ -1213,9 +1213,18 @@
                   <span>有効にする</span>
                 </label>
 
+                <div class="worker-picker">
+                  <div class="worker-picker__header">
+                    <span>所属作業者</span>
+                    <strong id="groupMemberSelectedCount">0人選択</strong>
+                  </div>
+                  <p class="worker-picker__hint" id="groupMemberHint">このグループに所属させる作業者を選択してください。</p>
+                  <div id="groupMemberList" class="worker-selection-list" aria-live="polite"></div>
+                </div>
+
                 <div class="form-actions form-actions--tight">
                   <button type="submit" class="button button--save button--small">グループを保存</button>
-                  <button type="button" class="button button--settings button--small" id="groupResetButton">クリア</button>
+                  <button type="button" class="button button--settings button--small" id="groupResetButton">キャンセル</button>
                 </div>
               </form>
 

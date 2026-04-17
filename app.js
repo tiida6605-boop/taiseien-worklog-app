@@ -480,6 +480,9 @@ const groupNameInput = document.getElementById("groupName");
 const groupSortOrderInput = document.getElementById("groupSortOrder");
 const groupDescriptionInput = document.getElementById("groupDescription");
 const groupIsActiveInput = document.getElementById("groupIsActive");
+const groupMemberSelectedCount = document.getElementById("groupMemberSelectedCount");
+const groupMemberHint = document.getElementById("groupMemberHint");
+const groupMemberList = document.getElementById("groupMemberList");
 const groupList = document.getElementById("groupList");
 const groupMasterCount = document.getElementById("groupMasterCount");
 const groupResetButton = document.getElementById("groupResetButton");
@@ -560,6 +563,7 @@ if (worktimePeriodModeInput) {
 }
 let selectedWorkerIds = [];
 let selectedMembershipGroupIds = [];
+let selectedGroupMemberWorkerIds = [];
 let selectedTeamPlanWorkerIds = [];
 let selectedTeamSetWorkerIds = [];
 let recordAppliedTeamSetId = "";
@@ -4499,6 +4503,96 @@ function renderMembershipGroupList() {
   syncMembershipPrimaryOptions();
 }
 
+function getMembershipWorkerIdsByGroupId(groupId) {
+  if (!groupId) return [];
+  return getMembershipsByGroupId(groupId).map((membership) => membership.workerId);
+}
+
+function syncWorkerPrimaryGroupsFromMemberships(previousPrimaryByWorkerId = null) {
+  const membershipMap = new Map();
+  masters.workerGroupMemberships.forEach((membership) => {
+    if (!membershipMap.has(membership.workerId)) {
+      membershipMap.set(membership.workerId, []);
+    }
+    membershipMap.get(membership.workerId).push(membership);
+  });
+
+  masters.workers = masters.workers.map((worker) => {
+    const memberships = membershipMap.get(worker.id) || [];
+    let primaryGroupId = normalizeText(worker.primaryGroupId);
+    const previousPrimary = normalizeText(previousPrimaryByWorkerId?.get(worker.id));
+    if (previousPrimary && memberships.some((membership) => membership.groupId === previousPrimary)) {
+      primaryGroupId = previousPrimary;
+    } else if (!primaryGroupId || !memberships.some((membership) => membership.groupId === primaryGroupId)) {
+      primaryGroupId = memberships[0]?.groupId || "";
+    }
+    return {
+      ...worker,
+      primaryGroupId
+    };
+  });
+
+  masters.workerGroupMemberships = masters.workerGroupMemberships.map((membership) => {
+    const worker = getWorkerById(membership.workerId);
+    return {
+      ...membership,
+      isPrimary: membership.groupId === (worker?.primaryGroupId || "")
+    };
+  });
+}
+
+function renderGroupMemberList() {
+  if (!groupMemberList || !groupMemberHint || !groupMemberSelectedCount) return;
+  groupMemberList.innerHTML = "";
+  const workers = [...masters.workers].sort((a, b) => (a.displayName || "").localeCompare((b.displayName || ""), "ja"));
+  const currentGroupId = normalizeText(groupIdInput?.value);
+  if (currentGroupId && !selectedGroupMemberWorkerIds.length) {
+    selectedGroupMemberWorkerIds = getMembershipWorkerIdsByGroupId(currentGroupId);
+  }
+
+  if (!workers.length) {
+    selectedGroupMemberWorkerIds = [];
+    groupMemberSelectedCount.textContent = "0人選択";
+    groupMemberHint.textContent = "先に作業者を登録してください。";
+    groupMemberList.appendChild(buildEmptyState("登録済み作業者がありません。"));
+    return;
+  }
+
+  selectedGroupMemberWorkerIds = selectedGroupMemberWorkerIds.filter((workerId) => workers.some((worker) => worker.id === workerId));
+  groupMemberSelectedCount.textContent = `${selectedGroupMemberWorkerIds.length}人選択`;
+  groupMemberHint.textContent = currentGroupId
+    ? "チェックした作業者をこのグループに所属させます。"
+    : "新しいグループを保存すると、チェックした作業者を所属させます。";
+
+  workers.forEach((worker) => {
+    const label = document.createElement("label");
+    label.className = "worker-selection-item";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = worker.id;
+    checkbox.checked = selectedGroupMemberWorkerIds.includes(worker.id);
+    checkbox.addEventListener("change", () => {
+      selectedGroupMemberWorkerIds = checkbox.checked
+        ? [...new Set([...selectedGroupMemberWorkerIds, worker.id])]
+        : selectedGroupMemberWorkerIds.filter((workerId) => workerId !== worker.id);
+      groupMemberSelectedCount.textContent = `${selectedGroupMemberWorkerIds.length}人選択`;
+    });
+
+    const body = document.createElement("span");
+    body.className = "worker-selection-item__body";
+    const title = document.createElement("strong");
+    title.textContent = worker.displayName;
+    const primaryGroupName = getGroupById(worker.primaryGroupId)?.name || "未設定";
+    const meta = document.createElement("span");
+    meta.textContent = `${worker.fullName} ・ ${worker.category} ・ 主所属:${primaryGroupName} ・ ${worker.isActive ? "出勤対象" : "対象外"}`;
+    body.append(title, meta);
+
+    label.append(checkbox, body);
+    groupMemberList.appendChild(label);
+  });
+}
+
 function renderMasterSelects() {
   const selectedOrchardId = orchardSelect.value;
   const selectedPlotId = plotSelect.value;
@@ -4583,6 +4677,7 @@ function renderMasterSelects() {
 
   renderPlotOptions(selectedOrchardId, selectedPlotId);
   renderWorkerSelectionList();
+  renderGroupMemberList();
   renderMembershipGroupList();
   renderTeamSetWorkerList();
   renderTeamPlanWorkerList();
@@ -5261,6 +5356,7 @@ function resetGroupForm() {
   groupIdInput.value = "";
   groupSortOrderInput.value = String(masters.groups.length + 1);
   groupIsActiveInput.checked = true;
+  selectedGroupMemberWorkerIds = [];
 }
 
 function resetTeamSetForm() {
@@ -5818,6 +5914,8 @@ function renderMasterLists() {
         groupSortOrderInput.value = String(group.sortOrder);
         groupDescriptionInput.value = group.description;
         groupIsActiveInput.checked = group.isActive;
+        selectedGroupMemberWorkerIds = getMembershipWorkerIdsByGroupId(group.id);
+        renderGroupMemberList();
         groupNameInput.focus();
       }, () => deleteGroup(group.id)));
     });
@@ -5973,11 +6071,12 @@ function deleteVariety(id) {
 function deleteGroup(id) {
   const relatedMemberships = getMembershipsByGroupId(id).length;
   if (!window.confirm(`このグループを削除しますか？ 所属設定 ${relatedMemberships} 件は解除されます。`)) return;
+  const previousPrimaryByWorkerId = new Map(masters.workers.map((worker) => [worker.id, worker.primaryGroupId || ""]));
   masters.groups = masters.groups.filter((group) => group.id !== id);
   masters.workerGroupMemberships = masters.workerGroupMemberships.filter((membership) => membership.groupId !== id);
   const removedSetIds = masters.fixedTeamSets.filter((teamSet) => teamSet.groupId === id).map((teamSet) => teamSet.id);
   masters.fixedTeamSets = masters.fixedTeamSets.filter((teamSet) => teamSet.groupId !== id);
-  masters.workers = masters.workers.map((worker) => ({ ...worker, primaryGroupId: worker.primaryGroupId === id ? "" : worker.primaryGroupId }));
+  syncWorkerPrimaryGroupsFromMemberships(previousPrimaryByWorkerId);
   records = records.map((record) => record.dailyGroupId === id ? { ...record, dailyGroupId: "", dailyGroupName: "" } : record);
   records = records.map((record) => removedSetIds.includes(record.fixedTeamSetId) ? { ...record, fixedTeamSetId: "", fixedTeamSetName: "" } : record);
   teamPlans = teamPlans.filter((plan) => plan.groupId !== id).map((plan) => removedSetIds.includes(plan.fixedTeamSetId) ? { ...plan, fixedTeamSetId: "", fixedTeamSetName: "" } : plan);
@@ -9565,6 +9664,7 @@ groupForm.addEventListener("submit", (event) => {
   const sortOrder = Number(groupSortOrderInput.value || masters.groups.length + 1);
   const description = groupDescriptionInput.value.trim();
   const isActive = groupIsActiveInput.checked;
+  const selectedMemberIds = [...new Set(selectedGroupMemberWorkerIds)].filter((workerId) => Boolean(getWorkerById(workerId)));
   if (masters.groups.some((item) => item.name === name && item.id !== id)) {
     window.alert("同じグループ名がすでに登録されています。");
     return;
@@ -9577,6 +9677,19 @@ groupForm.addEventListener("submit", (event) => {
   } else {
     masters.groups.push(group);
   }
+
+  const previousPrimaryByWorkerId = new Map(masters.workers.map((worker) => [worker.id, worker.primaryGroupId || ""]));
+  masters.workerGroupMemberships = masters.workerGroupMemberships.filter((membership) => membership.groupId !== id);
+  selectedMemberIds.forEach((workerId) => {
+    masters.workerGroupMemberships.push({
+      id: createId("membership"),
+      workerId,
+      groupId: id,
+      isPrimary: false
+    });
+  });
+  syncWorkerPrimaryGroupsFromMemberships(previousPrimaryByWorkerId);
+
   saveState();
   resetGroupForm();
   render();
@@ -9775,7 +9888,10 @@ teamPlanResetButton.addEventListener("click", () => {
 orchardResetButton.addEventListener("click", resetOrchardForm);
 plotResetButton.addEventListener("click", resetPlotForm);
 varietyResetButton.addEventListener("click", resetVarietyForm);
-groupResetButton.addEventListener("click", resetGroupForm);
+groupResetButton.addEventListener("click", () => {
+  resetGroupForm();
+  renderGroupMemberList();
+});
 teamSetResetButton.addEventListener("click", () => {
   resetTeamSetForm();
   renderTeamSetWorkerList();
