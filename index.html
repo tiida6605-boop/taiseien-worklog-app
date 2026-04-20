@@ -106,22 +106,17 @@
             <p class="form-hint">現場のQRから園地・区画を自動入力できます。</p>
           </div>
 
-          <label class="required-label">
+          <div class="required-label">
             作業内容
-            <select id="taskType" required>
-              <option value="">選択してください</option>
-              <option>摘果</option>
-              <option>受粉</option>
-              <option>摘花</option>
-              <option>葉摘み</option>
-              <option>防除</option>
-              <option>収穫</option>
-              <option>剪定</option>
-              <option>誘引</option>
-              <option>運搬</option>
-              <option>その他</option>
-            </select>
-          </label>
+            <div class="task-type-picker" id="taskTypePicker" role="group" aria-label="作業内容を複数選択">
+              <p class="form-hint task-type-summary" id="taskTypeSummary">1つ以上選択してください。</p>
+              <div class="task-type-list" id="taskTypeList"></div>
+              <div class="task-type-actions">
+                <button type="button" class="button button--ghost button--small" id="clearTaskTypesButton">すべて解除</button>
+              </div>
+            </div>
+            <input type="hidden" id="taskType" value="">
+          </div>
 
           <div class="form-row">
             <label>
@@ -439,16 +434,6 @@
               作業内容で絞り込み
               <select id="taskFilter">
                 <option value="">すべて</option>
-                <option>摘果</option>
-                <option>受粉</option>
-                <option>摘花</option>
-                <option>葉摘み</option>
-                <option>防除</option>
-                <option>収穫</option>
-                <option>剪定</option>
-                <option>誘引</option>
-                <option>運搬</option>
-                <option>その他</option>
               </select>
             </label>
 

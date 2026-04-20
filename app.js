@@ -63,6 +63,7 @@ const sampleRecords = [
     plotId: "plot-north-a1",
     varietyId: "variety-fuji",
     taskType: "摘果",
+    workTypes: ["摘果"],
     workHours: 2.5,
     dailyGroupId: "group-1",
     dailyGroupName: "第1班",
@@ -92,6 +93,7 @@ const sampleRecords = [
     plotId: "plot-east-b1",
     varietyId: "variety-tsugaru",
     taskType: "受粉",
+    workTypes: ["受粉"],
     workHours: 1.5,
     dailyGroupId: "group-2",
     dailyGroupName: "第2班",
@@ -121,6 +123,7 @@ const sampleRecords = [
     plotId: "plot-south-c1",
     varietyId: "variety-ourin",
     taskType: "葉摘み",
+    workTypes: ["葉摘み"],
     workHours: 3,
     dailyGroupId: "group-1",
     dailyGroupName: "第1班",
@@ -182,6 +185,27 @@ const FIXED_WEATHER_SOURCE = {
 };
 const WEATHER_FETCH_BUTTON_TEXT = `${FIXED_WEATHER_SOURCE.locationName}の天気を取得`;
 const WEATHER_FETCH_HINT_TEXT = `「${WEATHER_FETCH_BUTTON_TEXT}」を押すと、現在気温を自動入力できます。`;
+const WORK_TYPE_SEPARATOR = " / ";
+const WORK_TYPE_OPTIONS = [
+  "摘果",
+  "受粉",
+  "摘花",
+  "葉摘み",
+  "防除",
+  "収穫",
+  "剪定",
+  "誘引",
+  "運搬",
+  "芝集め",
+  "蒔き集め",
+  "支柱集め",
+  "落ち実拾い",
+  "袋掛け",
+  "シルバー作業",
+  "葉取り",
+  "ツル回し",
+  "その他"
+];
 
 const form = document.getElementById("recordForm");
 const recordIdInput = document.getElementById("recordId");
@@ -192,6 +216,10 @@ const plotSelect = document.getElementById("plotSelect");
 const qrScanButton = document.getElementById("qrScanButton");
 const varietySelect = document.getElementById("varietySelect");
 const taskTypeInput = document.getElementById("taskType");
+const taskTypeList = document.getElementById("taskTypeList");
+const taskTypeSummary = document.getElementById("taskTypeSummary");
+const taskTypePicker = document.getElementById("taskTypePicker");
+const clearTaskTypesButton = document.getElementById("clearTaskTypesButton");
 const workHoursInput = document.getElementById("workHours");
 const groupSelect = document.getElementById("groupSelect");
 const workerCountInput = document.getElementById("workerCount");
@@ -562,6 +590,7 @@ if (worktimePeriodModeInput) {
   worktimePeriodModeInput.value = "week";
 }
 let selectedWorkerIds = [];
+let selectedTaskTypes = [];
 let selectedMembershipGroupIds = [];
 let selectedGroupMemberWorkerIds = [];
 let selectedTeamPlanWorkerIds = [];
@@ -599,6 +628,117 @@ function normalizeText(value) {
 
 function normalizeSearchText(value) {
   return normalizeText(value).toLocaleLowerCase("ja-JP");
+}
+
+function normalizeWorkTypeList(values, fallbackValue = "") {
+  const list = Array.isArray(values)
+    ? values
+    : (normalizeText(values)
+      ? String(values).split(/\s*[\/／]\s*/g)
+      : []);
+  if (!list.length && normalizeText(fallbackValue)) {
+    return normalizeWorkTypeList(String(fallbackValue));
+  }
+  return Array.from(
+    new Set(
+      list
+        .map((value) => normalizeText(value))
+        .filter(Boolean)
+    )
+  );
+}
+
+function getRecordWorkTypes(record, options = {}) {
+  const { includeUnset = false } = options;
+  const workTypes = normalizeWorkTypeList(record?.workTypes, record?.taskType);
+  if (workTypes.length) return workTypes;
+  return includeUnset ? ["未設定"] : [];
+}
+
+function getRecordTaskTypeText(record, fallback = "未設定") {
+  const workTypes = getRecordWorkTypes(record);
+  return workTypes.length ? workTypes.join(WORK_TYPE_SEPARATOR) : fallback;
+}
+
+function getKnownWorkTypeOptions(extraValues = []) {
+  const options = [...WORK_TYPE_OPTIONS];
+  const exists = new Set(options);
+  const append = (value) => {
+    const normalized = normalizeText(value);
+    if (!normalized || exists.has(normalized)) return;
+    exists.add(normalized);
+    options.push(normalized);
+  };
+  records.forEach((record) => {
+    getRecordWorkTypes(record).forEach(append);
+  });
+  extraValues.forEach(append);
+  return options;
+}
+
+function setTaskTypeValidationState(isInvalid) {
+  if (!taskTypePicker) return;
+  taskTypePicker.dataset.invalid = isInvalid ? "true" : "false";
+}
+
+function setSelectedTaskTypes(values) {
+  selectedTaskTypes = normalizeWorkTypeList(values);
+  if (taskTypeInput) {
+    taskTypeInput.value = selectedTaskTypes[0] || "";
+  }
+  if (taskTypeSummary) {
+    taskTypeSummary.textContent = selectedTaskTypes.length
+      ? `選択中: ${selectedTaskTypes.join(WORK_TYPE_SEPARATOR)}`
+      : "1つ以上選択してください。";
+  }
+  if (clearTaskTypesButton) {
+    clearTaskTypesButton.disabled = selectedTaskTypes.length === 0;
+  }
+}
+
+function renderTaskTypeChecklist() {
+  if (!taskTypeList) return;
+  const workTypeOptions = getKnownWorkTypeOptions(selectedTaskTypes);
+  taskTypeList.innerHTML = "";
+
+  workTypeOptions.forEach((workType) => {
+    const label = document.createElement("label");
+    label.className = "task-type-item";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = workType;
+    checkbox.checked = selectedTaskTypes.includes(workType);
+    checkbox.addEventListener("change", () => {
+      const nextValues = checkbox.checked
+        ? [...selectedTaskTypes, workType]
+        : selectedTaskTypes.filter((value) => value !== workType);
+      setSelectedTaskTypes(nextValues);
+      setTaskTypeValidationState(false);
+      renderTaskTypeChecklist();
+    });
+
+    const text = document.createElement("span");
+    text.textContent = workType;
+
+    label.append(checkbox, text);
+    taskTypeList.appendChild(label);
+  });
+
+  setSelectedTaskTypes(selectedTaskTypes);
+}
+
+function renderTaskFilterOptions(selectedValue = "") {
+  if (!taskFilterInput) return;
+  const selected = normalizeText(selectedValue);
+  const options = getKnownWorkTypeOptions(selected ? [selected] : []);
+  taskFilterInput.innerHTML = "";
+  taskFilterInput.appendChild(createOption("", "すべて"));
+  options.forEach((workType) => taskFilterInput.appendChild(createOption(workType, workType)));
+  taskFilterInput.value = selected;
+  if (taskFilterInput.value !== selected) {
+    taskFilterInput.value = "";
+  }
 }
 
 function normalizeManagementCode(value) {
@@ -1072,6 +1212,8 @@ function normalizeRecord(record) {
     record.observation ??
     record.conditions?.fieldObservation
   );
+  const workTypes = getRecordWorkTypes(record);
+  const primaryTaskType = workTypes[0] || normalizeText(record.taskType);
   return {
     id: String(record.id || createId("record")),
     workDate: String(record.workDate || today),
@@ -1081,7 +1223,8 @@ function normalizeRecord(record) {
     plotName: normalizeText(record.plotName),
     varietyId: normalizeText(record.varietyId),
     varietyName: normalizeText(record.varietyName || record.variety),
-    taskType: normalizeText(record.taskType),
+    taskType: primaryTaskType,
+    workTypes,
     workHours: Number(record.workHours || 0),
     dailyGroupId: normalizeText(record.dailyGroupId || record.groupId),
     dailyGroupName: normalizeText(record.dailyGroupName || record.groupName),
@@ -3595,58 +3738,61 @@ function buildTaskTypeReportData() {
   filteredRecords.forEach((record) => {
     const names = getRecordDisplay(record);
     const metrics = getRecordMetrics(record);
-    const taskLabel = normalizeText(record.taskType) || "未設定";
-    const taskKey = taskLabel;
-    const taskEntry = taskMap.get(taskKey) || {
-      label: taskLabel,
-      count: 0,
-      hours: 0,
-      personHours: 0,
-      laborCost: 0,
-      orchardMap: new Map(),
-      plotMap: new Map(),
-      groupMap: new Map(),
-      workerHourMap: new Map()
-    };
+    const taskLabels = getRecordWorkTypes(record, { includeUnset: true });
 
-    taskEntry.count += 1;
-    taskEntry.hours += metrics.hours;
-    taskEntry.personHours += metrics.personHours;
-    taskEntry.laborCost += metrics.laborCost;
+    taskLabels.forEach((taskLabel) => {
+      const taskKey = taskLabel;
+      const taskEntry = taskMap.get(taskKey) || {
+        label: taskLabel,
+        count: 0,
+        hours: 0,
+        personHours: 0,
+        laborCost: 0,
+        orchardMap: new Map(),
+        plotMap: new Map(),
+        groupMap: new Map(),
+        workerHourMap: new Map()
+      };
 
-    const orchardKey = record.orchardId || names.orchardName;
-    const orchardLabel = names.orchardName || "園地未設定";
-    const orchardEntry = getMetricBucket(taskEntry.orchardMap, orchardKey, orchardLabel);
-    orchardEntry.count += 1;
-    orchardEntry.hours += metrics.hours;
-    orchardEntry.personHours += metrics.personHours;
-    orchardEntry.laborCost += metrics.laborCost;
+      taskEntry.count += 1;
+      taskEntry.hours += metrics.hours;
+      taskEntry.personHours += metrics.personHours;
+      taskEntry.laborCost += metrics.laborCost;
 
-    const plotKey = record.plotId || `${names.orchardName}/${names.plotName}`;
-    const plotLabel = `${names.orchardName || "園地未設定"} / ${names.plotName || "区画未設定"}`;
-    const plotEntry = getMetricBucket(taskEntry.plotMap, plotKey, plotLabel);
-    plotEntry.count += 1;
-    plotEntry.hours += metrics.hours;
-    plotEntry.personHours += metrics.personHours;
-    plotEntry.laborCost += metrics.laborCost;
+      const orchardKey = record.orchardId || names.orchardName;
+      const orchardLabel = names.orchardName || "園地未設定";
+      const orchardEntry = getMetricBucket(taskEntry.orchardMap, orchardKey, orchardLabel);
+      orchardEntry.count += 1;
+      orchardEntry.hours += metrics.hours;
+      orchardEntry.personHours += metrics.personHours;
+      orchardEntry.laborCost += metrics.laborCost;
 
-    const groupKey = record.dailyGroupId || names.dailyGroupName;
-    const groupLabel = names.dailyGroupName || "未設定";
-    const groupEntry = getMetricBucket(taskEntry.groupMap, groupKey, groupLabel);
-    groupEntry.count += 1;
-    groupEntry.hours += metrics.hours;
-    groupEntry.personHours += metrics.personHours;
-    groupEntry.laborCost += metrics.laborCost;
+      const plotKey = record.plotId || `${names.orchardName}/${names.plotName}`;
+      const plotLabel = `${names.orchardName || "園地未設定"} / ${names.plotName || "区画未設定"}`;
+      const plotEntry = getMetricBucket(taskEntry.plotMap, plotKey, plotLabel);
+      plotEntry.count += 1;
+      plotEntry.hours += metrics.hours;
+      plotEntry.personHours += metrics.personHours;
+      plotEntry.laborCost += metrics.laborCost;
 
-    getAssignedWorkers(record).forEach((worker) => {
-      const workerKey = worker.id || worker.displayName;
-      const workerLabel = worker.displayName || "未設定";
-      const workerEntry = taskEntry.workerHourMap.get(workerKey) || { label: workerLabel, hours: 0 };
-      workerEntry.hours += metrics.hours;
-      taskEntry.workerHourMap.set(workerKey, workerEntry);
+      const groupKey = record.dailyGroupId || names.dailyGroupName;
+      const groupLabel = names.dailyGroupName || "未設定";
+      const groupEntry = getMetricBucket(taskEntry.groupMap, groupKey, groupLabel);
+      groupEntry.count += 1;
+      groupEntry.hours += metrics.hours;
+      groupEntry.personHours += metrics.personHours;
+      groupEntry.laborCost += metrics.laborCost;
+
+      getAssignedWorkers(record).forEach((worker) => {
+        const workerKey = worker.id || worker.displayName;
+        const workerLabel = worker.displayName || "未設定";
+        const workerEntry = taskEntry.workerHourMap.get(workerKey) || { label: workerLabel, hours: 0 };
+        workerEntry.hours += metrics.hours;
+        taskEntry.workerHourMap.set(workerKey, workerEntry);
+      });
+
+      taskMap.set(taskKey, taskEntry);
     });
-
-    taskMap.set(taskKey, taskEntry);
   });
 
   const workerSortDirection = sortOrder === "asc" ? 1 : -1;
@@ -3883,12 +4029,13 @@ function buildVarietyTypeReportData() {
     plotEntry.personHours += metrics.personHours;
     plotEntry.laborCost += metrics.laborCost;
 
-    const taskKey = normalizeText(record.taskType) || "未設定";
-    const taskEntry = getMetricBucket(varietyEntry.taskMap, taskKey, taskKey);
-    taskEntry.count += 1;
-    taskEntry.hours += metrics.hours;
-    taskEntry.personHours += metrics.personHours;
-    taskEntry.laborCost += metrics.laborCost;
+    getRecordWorkTypes(record, { includeUnset: true }).forEach((taskLabel) => {
+      const taskEntry = getMetricBucket(varietyEntry.taskMap, taskLabel, taskLabel);
+      taskEntry.count += 1;
+      taskEntry.hours += metrics.hours;
+      taskEntry.personHours += metrics.personHours;
+      taskEntry.laborCost += metrics.laborCost;
+    });
 
     const groupKey = record.dailyGroupId || names.dailyGroupName;
     const groupLabel = names.dailyGroupName || "未設定";
@@ -4070,10 +4217,20 @@ function getAnnualReportData() {
     (item) => item.record.plotId || `${item.names.orchardName}/${item.names.plotName}`,
     (item) => `${item.names.orchardName || "園地未設定"} / ${item.names.plotName || "区画未設定"}`
   );
-  const taskEntries = buildMetricEntries(
-    (item) => normalizeText(item.record.taskType) || "未設定",
-    (item) => normalizeText(item.record.taskType) || "未設定"
-  );
+  const taskEntries = (() => {
+    const map = new Map();
+    recordsWithMetrics.forEach((item) => {
+      getRecordWorkTypes(item.record, { includeUnset: true }).forEach((taskLabel) => {
+        const current = map.get(taskLabel) || { label: taskLabel, count: 0, hours: 0, personHours: 0, laborCost: 0 };
+        current.count += 1;
+        current.hours += item.metrics.hours;
+        current.personHours += item.metrics.personHours;
+        current.laborCost += item.metrics.laborCost;
+        map.set(taskLabel, current);
+      });
+    });
+    return sortEntriesByMetric(Array.from(map.values()), metric, sortOrder);
+  })();
   const varietyEntries = buildMetricEntries(
     (item) => item.record.varietyId || item.names.varietyName,
     (item) => item.names.varietyName || "品種未設定"
@@ -4601,6 +4758,7 @@ function renderMasterSelects() {
   const selectedPlotFormOrchardId = plotOrchardInput.value;
   const selectedOrchardFilter = orchardFilterInput.value;
   const selectedVarietyFilter = varietyFilterInput.value;
+  const selectedTaskFilter = taskFilterInput?.value || "";
   const selectedWorkerFilter = workerFilterInput.value;
   const selectedWorkerGroupFilter = workerGroupFilterInput?.value || "";
   const selectedTodayMemberGroupFilter = todayMemberGroupFilterInput?.value || "";
@@ -4632,6 +4790,7 @@ function renderMasterSelects() {
     allowBlank: true,
     value: selectedVarietyFilter
   });
+  renderTaskFilterOptions(selectedTaskFilter);
   renderSelectOptions(groupSelect, activeGroups, {
     placeholder: activeGroups.length ? "当日グループを選択してください" : "有効なグループを登録してください",
     value: selectedDailyGroupId,
@@ -4676,6 +4835,7 @@ function renderMasterSelects() {
   });
 
   renderPlotOptions(selectedOrchardId, selectedPlotId);
+  renderTaskTypeChecklist();
   renderWorkerSelectionList();
   renderGroupMemberList();
   renderMembershipGroupList();
@@ -4695,6 +4855,7 @@ function getFormData() {
   const orchard = getOrchardById(orchardSelect.value);
   const plot = getPlotById(plotSelect.value);
   const variety = getVarietyById(varietySelect.value);
+  const workTypes = selectedTaskTypes.slice();
   const dailyGroup = getGroupById(groupSelect.value);
   const assignedWorkers = selectedWorkerIds.map((workerId) => getWorkerById(workerId)).filter(Boolean);
   const primaryWorker = assignedWorkers[0] || null;
@@ -4745,7 +4906,8 @@ function getFormData() {
     plotName: plot?.name || "",
     varietyId: variety?.id || "",
     varietyName: variety?.name || "",
-    taskType: taskTypeInput.value,
+    taskType: workTypes[0] || "",
+    workTypes,
     workHours: resolvedWorkHours,
     dailyGroupId: dailyGroup?.id || "",
     dailyGroupName: dailyGroup?.name || "",
@@ -5151,7 +5313,7 @@ function getFilteredRecords(options = {}) {
       const matchesDate = !workDate || record.workDate === workDate;
       const matchesOrchard = !orchardId || record.orchardId === orchardId;
       const matchesVariety = !varietyId || record.varietyId === varietyId;
-      const matchesTask = !taskType || record.taskType === taskType;
+      const matchesTask = !taskType || getRecordWorkTypes(record).includes(taskType);
       const matchesWorker = !workerId || record.assignedWorkers.some((item) => item.workerId === workerId);
       return matchesDate && matchesOrchard && matchesVariety && matchesTask && matchesWorker;
     });
@@ -5167,7 +5329,9 @@ function fillRecordForm(record) {
   orchardSelect.value = record.orchardId || "";
   renderPlotOptions(record.orchardId || "", record.plotId || "");
   varietySelect.value = record.varietyId || "";
-  taskTypeInput.value = record.taskType;
+  setSelectedTaskTypes(getRecordWorkTypes(record));
+  renderTaskTypeChecklist();
+  setTaskTypeValidationState(false);
   workHoursInput.value = record.workHours || "";
   groupSelect.value = record.dailyGroupId || "";
   recordAppliedTeamSetId = record.fixedTeamSetId || "";
@@ -5223,6 +5387,9 @@ function resetRecordForm() {
   applyDefaultWorkScheduleToForm(true);
   orchardSelect.value = "";
   varietySelect.value = "";
+  setSelectedTaskTypes([]);
+  renderTaskTypeChecklist();
+  setTaskTypeValidationState(false);
   groupSelect.value = "";
   recordAppliedTeamSetId = "";
   recordAppliedTeamSetName = "";
@@ -5279,7 +5446,7 @@ function renderRecords() {
     const fragment = cardTemplate.content.cloneNode(true);
     const card = fragment.querySelector(".record-card");
     fragment.querySelector(".record-card__date").textContent = formatDate(record.workDate);
-    fragment.querySelector(".record-card__task").textContent = record.taskType || "作業内容未設定";
+    fragment.querySelector(".record-card__task").textContent = getRecordTaskTypeText(record, "作業内容未設定");
     fragment.querySelector(".record-card__orchard").textContent = names.orchardName;
     fragment.querySelector(".record-card__plot").textContent = names.plotName;
     fragment.querySelector(".record-card__variety").textContent = names.varietyName;
@@ -6180,7 +6347,11 @@ function renderAnalytics() {
   const plotEntries = aggregateBy(recordsWithMetrics, (item) => `${item.names.orchardName} / ${item.names.plotName}`, (item) => item.metrics.hours).sort((a, b) => b[1] - a[1]);
   const plotPersonHoursEntries = aggregateBy(recordsWithMetrics, (item) => `${item.names.orchardName} / ${item.names.plotName}`, (item) => item.metrics.personHours).sort((a, b) => b[1] - a[1]);
   const plotLaborCostEntries = aggregateBy(recordsWithMetrics, (item) => `${item.names.orchardName} / ${item.names.plotName}`, (item) => item.metrics.laborCost).sort((a, b) => b[1] - a[1]);
-  const taskEntries = aggregateBy(records, (record) => record.taskType || "未設定", (record) => Number(record.workHours || 0)).sort((a, b) => b[1] - a[1]);
+  const taskEntries = aggregateBy(
+    records.flatMap((record) => getRecordWorkTypes(record, { includeUnset: true }).map((taskLabel) => ({ taskLabel, hours: Number(record.workHours || 0) }))),
+    (item) => item.taskLabel,
+    (item) => item.hours
+  ).sort((a, b) => b[1] - a[1]);
   const groupEntries = aggregateBy(recordsWithMetrics, (item) => item.names.dailyGroupName, (item) => item.metrics.hours).sort((a, b) => b[1] - a[1]);
   const groupCountEntries = aggregateBy(recordsWithMetrics, (item) => item.names.dailyGroupName, () => 1).sort((a, b) => b[1] - a[1]);
   const groupPersonHoursEntries = aggregateBy(recordsWithMetrics, (item) => item.names.dailyGroupName, (item) => item.metrics.personHours).sort((a, b) => b[1] - a[1]);
@@ -7093,12 +7264,13 @@ function buildDailyReportRowsHtml(dayRecords) {
     const observationSummary = formatFieldObservationSummary(record.fieldObservation);
     const noteParts = [record.notes, observationSummary ? `現場確認: ${observationSummary}` : ""].filter(Boolean);
     const notes = noteParts.length ? noteParts.join(" / ") : text.none;
+    const workTypeText = getRecordTaskTypeText(record, text.unset);
 
     return `
       <article class="daily-report-card">
         <div class="daily-report-card__header">
           <span class="daily-report-card__index">No.${index + 1}</span>
-          <h3>${escapeHtml(record.taskType || text.unset)}</h3>
+          <h3>${escapeHtml(workTypeText)}</h3>
           <span class="daily-report-card__group">${escapeHtml(names.dailyGroupName || text.unset)}</span>
         </div>
         <div class="daily-report-grid">
@@ -7106,7 +7278,7 @@ function buildDailyReportRowsHtml(dayRecords) {
           <div class="daily-report-item"><span>${text.orchard}</span><strong>${escapeHtml(names.orchardName || text.unset)}</strong></div>
           <div class="daily-report-item"><span>${text.plot}</span><strong>${escapeHtml(names.plotName || text.unset)}</strong></div>
           <div class="daily-report-item"><span>${text.variety}</span><strong>${escapeHtml(names.varietyName || text.unset)}</strong></div>
-          <div class="daily-report-item"><span>${text.taskCategory}</span><strong>${escapeHtml(record.taskType || text.unset)}</strong></div>
+          <div class="daily-report-item"><span>${text.taskCategory}</span><strong>${escapeHtml(workTypeText)}</strong></div>
           <div class="daily-report-item"><span>${text.group}</span><strong>${escapeHtml(names.dailyGroupName || text.unset)}</strong></div>
           <div class="daily-report-item daily-report-item--full"><span>${text.workers}</span><strong>${escapeHtml(names.workerListText || text.unset)}</strong></div>
           <div class="daily-report-item"><span>${text.workerCount}</span><strong>${escapeHtml(formatCount(metrics.workerCount))}</strong></div>
@@ -7374,10 +7546,20 @@ function getMonthlyReportData(targetMonth) {
     (item) => item.record.plotId || `${item.names.orchardName}/${item.names.plotName}`,
     (item) => `${item.names.orchardName || "未設定"} / ${item.names.plotName || "未設定"}`
   );
-  const taskEntries = buildMetricEntries(
-    (item) => item.record.taskType || "未設定",
-    (item) => item.record.taskType || "未設定"
-  );
+  const taskEntries = (() => {
+    const map = new Map();
+    recordsWithMetrics.forEach((item) => {
+      getRecordWorkTypes(item.record, { includeUnset: true }).forEach((taskLabel) => {
+        const current = map.get(taskLabel) || { label: taskLabel, count: 0, hours: 0, personHours: 0, laborCost: 0 };
+        current.count += 1;
+        current.hours += item.metrics.hours;
+        current.personHours += item.metrics.personHours;
+        current.laborCost += item.metrics.laborCost;
+        map.set(taskLabel, current);
+      });
+    });
+    return sortMetricEntries(Array.from(map.values()));
+  })();
   const groupEntries = buildMetricEntries(
     (item) => item.record.dailyGroupId || item.names.dailyGroupName,
     (item) => item.names.dailyGroupName || "未設定"
@@ -9093,6 +9275,7 @@ function exportCsvWithTemperature() {
       const weatherInfo = environment.weatherInfo || null;
       const observation = normalizeFieldObservation(record.fieldObservation);
       const observationSummary = formatFieldObservationSummary(observation);
+      const workTypeText = getRecordTaskTypeText(record, "");
       const teamPlan = getTeamPlan(record.workDate, record.dailyGroupId);
       const teamPlanText = teamPlan
         ? teamPlan.workerIds.map((workerId) => getWorkerById(workerId)?.displayName).filter(Boolean).join("\u3001")
@@ -9103,7 +9286,7 @@ function exportCsvWithTemperature() {
         names.orchardName,
         names.plotName,
         names.varietyName,
-        record.taskType,
+        workTypeText,
         names.dailyGroupName,
         names.fixedTeamSetName,
         teamPlanText,
@@ -9157,6 +9340,12 @@ form.addEventListener("submit", (event) => {
     window.alert("園地・区画・品種をすべて選択してください。");
     return;
   }
+  if (!selectedTaskTypes.length) {
+    setTaskTypeValidationState(true);
+    window.alert("作業内容を1つ以上選択してください。");
+    return;
+  }
+  setTaskTypeValidationState(false);
   if (!groupSelect.value) {
     window.alert("その日に参加するグループを選択してください。");
     return;
@@ -9228,6 +9417,13 @@ groupSelect.addEventListener("change", () => {
 startTimeInput.addEventListener("change", updateTimeHint);
 endTimeInput.addEventListener("change", updateTimeHint);
 workHoursInput.addEventListener("input", updateTimeHint);
+if (clearTaskTypesButton) {
+  clearTaskTypesButton.addEventListener("click", () => {
+    setSelectedTaskTypes([]);
+    setTaskTypeValidationState(false);
+    renderTaskTypeChecklist();
+  });
+}
 resetButton.addEventListener("click", resetRecordForm);
 orchardFilterInput.addEventListener("change", renderRecords);
 varietyFilterInput.addEventListener("change", renderRecords);
