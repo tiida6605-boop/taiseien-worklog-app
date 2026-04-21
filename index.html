@@ -109,6 +109,14 @@
           <div class="required-label">
             作業内容
             <div class="task-type-picker" id="taskTypePicker" role="group" aria-label="作業内容を複数選択">
+              <input
+                type="search"
+                id="taskTypeSearch"
+                class="task-type-search"
+                placeholder="作業項目を検索（例: 剪定 / 施）"
+                autocomplete="off"
+                inputmode="search"
+              >
               <p class="form-hint task-type-summary" id="taskTypeSummary">1つ以上選択してください。</p>
               <div class="task-type-list" id="taskTypeList"></div>
               <div class="task-type-actions">

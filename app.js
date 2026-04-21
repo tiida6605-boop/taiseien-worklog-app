@@ -192,8 +192,11 @@ const WORK_TYPE_OPTIONS = [
   "摘花",
   "葉摘み",
   "防除",
+  "施肥",
   "収穫",
   "剪定",
+  "剪定枝焼却",
+  "剪定枝破砕",
   "誘引",
   "運搬",
   "芝集め",
@@ -216,6 +219,7 @@ const plotSelect = document.getElementById("plotSelect");
 const qrScanButton = document.getElementById("qrScanButton");
 const varietySelect = document.getElementById("varietySelect");
 const taskTypeInput = document.getElementById("taskType");
+const taskTypeSearchInput = document.getElementById("taskTypeSearch");
 const taskTypeList = document.getElementById("taskTypeList");
 const taskTypeSummary = document.getElementById("taskTypeSummary");
 const taskTypePicker = document.getElementById("taskTypePicker");
@@ -686,20 +690,73 @@ function setSelectedTaskTypes(values) {
   if (taskTypeInput) {
     taskTypeInput.value = selectedTaskTypes[0] || "";
   }
-  if (taskTypeSummary) {
-    taskTypeSummary.textContent = selectedTaskTypes.length
-      ? `選択中: ${selectedTaskTypes.join(WORK_TYPE_SEPARATOR)}`
-      : "1つ以上選択してください。";
-  }
   if (clearTaskTypesButton) {
     clearTaskTypesButton.disabled = selectedTaskTypes.length === 0;
   }
 }
 
+function getRecentWorkTypeRankMap() {
+  const rankMap = new Map();
+  const sortedRecords = [...records].sort((a, b) => {
+    const byDate = String(b.workDate || "").localeCompare(String(a.workDate || ""));
+    if (byDate !== 0) return byDate;
+    return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+  });
+  sortedRecords.forEach((record) => {
+    getRecordWorkTypes(record).forEach((workType) => {
+      if (!rankMap.has(workType)) {
+        rankMap.set(workType, rankMap.size + 1);
+      }
+    });
+  });
+  return rankMap;
+}
+
+function updateTaskTypeSummary(visibleCount, totalCount, query) {
+  if (!taskTypeSummary) return;
+  if (selectedTaskTypes.length) {
+    taskTypeSummary.textContent = `選択中: ${selectedTaskTypes.join(WORK_TYPE_SEPARATOR)}（表示 ${visibleCount}/${totalCount} 件）`;
+    return;
+  }
+  if (query) {
+    taskTypeSummary.textContent = `検索結果: ${visibleCount}件（部分一致）`;
+    return;
+  }
+  taskTypeSummary.textContent = "最近使った項目を上に表示しています。1つ以上選択してください。";
+}
+
 function renderTaskTypeChecklist() {
   if (!taskTypeList) return;
-  const workTypeOptions = getKnownWorkTypeOptions(selectedTaskTypes);
+  const query = normalizeSearchText(taskTypeSearchInput?.value || "");
+  const selectedSet = new Set(selectedTaskTypes);
+  const baseOrderMap = new Map(WORK_TYPE_OPTIONS.map((workType, index) => [workType, index]));
+  const recentRankMap = getRecentWorkTypeRankMap();
+  const workTypeOptions = getKnownWorkTypeOptions(selectedTaskTypes)
+    .filter((workType) => {
+      if (!query) return true;
+      const matches = normalizeSearchText(workType).includes(query);
+      return matches || selectedSet.has(workType);
+    })
+    .sort((a, b) => {
+      const aSelected = selectedSet.has(a) ? 1 : 0;
+      const bSelected = selectedSet.has(b) ? 1 : 0;
+      if (aSelected !== bSelected) return bSelected - aSelected;
+      const aRecent = recentRankMap.get(a) ?? Number.POSITIVE_INFINITY;
+      const bRecent = recentRankMap.get(b) ?? Number.POSITIVE_INFINITY;
+      if (aRecent !== bRecent) return aRecent - bRecent;
+      const aBase = baseOrderMap.get(a) ?? Number.POSITIVE_INFINITY;
+      const bBase = baseOrderMap.get(b) ?? Number.POSITIVE_INFINITY;
+      if (aBase !== bBase) return aBase - bBase;
+      return a.localeCompare(b, "ja");
+    });
   taskTypeList.innerHTML = "";
+
+  if (!workTypeOptions.length) {
+    taskTypeList.appendChild(buildEmptyState("該当する作業項目はありません。"));
+    updateTaskTypeSummary(0, getKnownWorkTypeOptions(selectedTaskTypes).length, query);
+    setSelectedTaskTypes(selectedTaskTypes);
+    return;
+  }
 
   workTypeOptions.forEach((workType) => {
     const label = document.createElement("label");
@@ -726,6 +783,7 @@ function renderTaskTypeChecklist() {
   });
 
   setSelectedTaskTypes(selectedTaskTypes);
+  updateTaskTypeSummary(workTypeOptions.length, getKnownWorkTypeOptions(selectedTaskTypes).length, query);
 }
 
 function renderTaskFilterOptions(selectedValue = "") {
@@ -5329,6 +5387,9 @@ function fillRecordForm(record) {
   orchardSelect.value = record.orchardId || "";
   renderPlotOptions(record.orchardId || "", record.plotId || "");
   varietySelect.value = record.varietyId || "";
+  if (taskTypeSearchInput) {
+    taskTypeSearchInput.value = "";
+  }
   setSelectedTaskTypes(getRecordWorkTypes(record));
   renderTaskTypeChecklist();
   setTaskTypeValidationState(false);
@@ -5387,6 +5448,9 @@ function resetRecordForm() {
   applyDefaultWorkScheduleToForm(true);
   orchardSelect.value = "";
   varietySelect.value = "";
+  if (taskTypeSearchInput) {
+    taskTypeSearchInput.value = "";
+  }
   setSelectedTaskTypes([]);
   renderTaskTypeChecklist();
   setTaskTypeValidationState(false);
@@ -9417,6 +9481,11 @@ groupSelect.addEventListener("change", () => {
 startTimeInput.addEventListener("change", updateTimeHint);
 endTimeInput.addEventListener("change", updateTimeHint);
 workHoursInput.addEventListener("input", updateTimeHint);
+if (taskTypeSearchInput) {
+  taskTypeSearchInput.addEventListener("input", () => {
+    renderTaskTypeChecklist();
+  });
+}
 if (clearTaskTypesButton) {
   clearTaskTypesButton.addEventListener("click", () => {
     setSelectedTaskTypes([]);
