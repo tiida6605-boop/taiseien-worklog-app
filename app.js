@@ -186,29 +186,46 @@ const FIXED_WEATHER_SOURCE = {
 const WEATHER_FETCH_BUTTON_TEXT = `${FIXED_WEATHER_SOURCE.locationName}の天気を取得`;
 const WEATHER_FETCH_HINT_TEXT = `「${WEATHER_FETCH_BUTTON_TEXT}」を押すと、現在気温を自動入力できます。`;
 const WORK_TYPE_SEPARATOR = " / ";
-const WORK_TYPE_OPTIONS = [
-  "摘果",
-  "受粉",
-  "摘花",
-  "葉摘み",
-  "防除",
-  "施肥",
-  "収穫",
-  "剪定",
-  "剪定枝焼却",
-  "剪定枝破砕",
-  "誘引",
-  "運搬",
-  "芝集め",
-  "蒔き集め",
-  "支柱集め",
-  "落ち実拾い",
-  "袋掛け",
-  "シルバー作業",
-  "葉取り",
-  "ツル回し",
-  "その他"
+const WORK_TYPE_CATEGORIES = [
+  {
+    key: "pruning",
+    label: "剪定・枝処理",
+    items: ["剪定", "剪定枝集め", "剪定枝焼却", "剪定枝破砕", "支柱集め"]
+  },
+  {
+    key: "soil",
+    label: "土づくり・肥培管理",
+    items: ["施肥", "たい肥散布", "土壌改良", "潅水"]
+  },
+  {
+    key: "grass",
+    label: "草・地面管理",
+    items: ["草刈り", "芝集め", "蒔き集め"]
+  },
+  {
+    key: "tree",
+    label: "樹体管理",
+    items: ["摘果", "葉取り", "ツル回し", "シルバー作業", "袋掛け"]
+  },
+  {
+    key: "protection",
+    label: "防除・病害虫対策",
+    items: ["防除", "見回り", "病害虫確認", "捕殺", "トラップ確認"]
+  },
+  {
+    key: "fruit",
+    label: "果実・園地管理",
+    items: ["落ち実拾い", "収穫準備", "収穫", "運搬", "選果補助"]
+  },
+  {
+    key: "facility",
+    label: "設備・資材・その他",
+    items: ["資材運搬", "機械整備", "片付け", "清掃", "その他"]
+  }
 ];
+const WORK_TYPE_RECENT_SECTION_LABEL = "最近使った作業";
+const WORK_TYPE_UNKNOWN_SECTION_LABEL = "既存項目（互換）";
+const WORK_TYPE_RECENT_LIMIT = 8;
 
 const form = document.getElementById("recordForm");
 const recordIdInput = document.getElementById("recordId");
@@ -664,8 +681,34 @@ function getRecordTaskTypeText(record, fallback = "未設定") {
   return workTypes.length ? workTypes.join(WORK_TYPE_SEPARATOR) : fallback;
 }
 
+function getBaseWorkTypeOptions() {
+  const options = [];
+  const exists = new Set();
+  WORK_TYPE_CATEGORIES.forEach((category) => {
+    category.items.forEach((item) => {
+      const normalized = normalizeText(item);
+      if (!normalized || exists.has(normalized)) return;
+      exists.add(normalized);
+      options.push(normalized);
+    });
+  });
+  return options;
+}
+
+function getWorkTypeCategoryMap() {
+  const categoryMap = new Map();
+  WORK_TYPE_CATEGORIES.forEach((category) => {
+    category.items.forEach((item) => {
+      const normalized = normalizeText(item);
+      if (!normalized || categoryMap.has(normalized)) return;
+      categoryMap.set(normalized, category.key);
+    });
+  });
+  return categoryMap;
+}
+
 function getKnownWorkTypeOptions(extraValues = []) {
-  const options = [...WORK_TYPE_OPTIONS];
+  const options = [...getBaseWorkTypeOptions()];
   const exists = new Set(options);
   const append = (value) => {
     const normalized = normalizeText(value);
@@ -678,6 +721,10 @@ function getKnownWorkTypeOptions(extraValues = []) {
   });
   extraValues.forEach(append);
   return options;
+}
+
+function getWorkTypeBaseOrderMap() {
+  return new Map(getBaseWorkTypeOptions().map((workType, index) => [workType, index]));
 }
 
 function setTaskTypeValidationState(isInvalid) {
@@ -712,6 +759,61 @@ function getRecentWorkTypeRankMap() {
   return rankMap;
 }
 
+function sortWorkTypeOptions(items, selectedSet, recentRankMap, baseOrderMap) {
+  return [...items].sort((a, b) => {
+    const aSelected = selectedSet.has(a) ? 1 : 0;
+    const bSelected = selectedSet.has(b) ? 1 : 0;
+    if (aSelected !== bSelected) return bSelected - aSelected;
+    const aRecent = recentRankMap.get(a) ?? Number.POSITIVE_INFINITY;
+    const bRecent = recentRankMap.get(b) ?? Number.POSITIVE_INFINITY;
+    if (aRecent !== bRecent) return aRecent - bRecent;
+    const aBase = baseOrderMap.get(a) ?? Number.POSITIVE_INFINITY;
+    const bBase = baseOrderMap.get(b) ?? Number.POSITIVE_INFINITY;
+    if (aBase !== bBase) return aBase - bBase;
+    return a.localeCompare(b, "ja");
+  });
+}
+
+function appendTaskTypeGroup(container, title, items, selectedSet) {
+  const section = document.createElement("section");
+  section.className = "task-type-group";
+  const heading = document.createElement("h4");
+  heading.className = "task-type-group__title";
+  heading.textContent = title;
+  const itemGrid = document.createElement("div");
+  itemGrid.className = "task-type-group__items";
+
+  items.forEach((workType) => {
+    const label = document.createElement("label");
+    label.className = "task-type-item";
+    if (selectedSet.has(workType)) {
+      label.classList.add("is-selected");
+    }
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = workType;
+    checkbox.checked = selectedSet.has(workType);
+    checkbox.addEventListener("change", () => {
+      const nextValues = checkbox.checked
+        ? [...selectedTaskTypes, workType]
+        : selectedTaskTypes.filter((value) => value !== workType);
+      setSelectedTaskTypes(nextValues);
+      setTaskTypeValidationState(false);
+      renderTaskTypeChecklist();
+    });
+
+    const text = document.createElement("span");
+    text.textContent = workType;
+
+    label.append(checkbox, text);
+    itemGrid.appendChild(label);
+  });
+
+  section.append(heading, itemGrid);
+  container.appendChild(section);
+}
+
 function updateTaskTypeSummary(visibleCount, totalCount, query) {
   if (!taskTypeSummary) return;
   if (selectedTaskTypes.length) {
@@ -729,61 +831,60 @@ function renderTaskTypeChecklist() {
   if (!taskTypeList) return;
   const query = normalizeSearchText(taskTypeSearchInput?.value || "");
   const selectedSet = new Set(selectedTaskTypes);
-  const baseOrderMap = new Map(WORK_TYPE_OPTIONS.map((workType, index) => [workType, index]));
+  const baseOrderMap = getWorkTypeBaseOrderMap();
   const recentRankMap = getRecentWorkTypeRankMap();
-  const workTypeOptions = getKnownWorkTypeOptions(selectedTaskTypes)
+  const allWorkTypeOptions = getKnownWorkTypeOptions(selectedTaskTypes);
+  const visibleWorkTypeOptions = allWorkTypeOptions
     .filter((workType) => {
       if (!query) return true;
       const matches = normalizeSearchText(workType).includes(query);
       return matches || selectedSet.has(workType);
-    })
-    .sort((a, b) => {
-      const aSelected = selectedSet.has(a) ? 1 : 0;
-      const bSelected = selectedSet.has(b) ? 1 : 0;
-      if (aSelected !== bSelected) return bSelected - aSelected;
-      const aRecent = recentRankMap.get(a) ?? Number.POSITIVE_INFINITY;
-      const bRecent = recentRankMap.get(b) ?? Number.POSITIVE_INFINITY;
-      if (aRecent !== bRecent) return aRecent - bRecent;
-      const aBase = baseOrderMap.get(a) ?? Number.POSITIVE_INFINITY;
-      const bBase = baseOrderMap.get(b) ?? Number.POSITIVE_INFINITY;
-      if (aBase !== bBase) return aBase - bBase;
-      return a.localeCompare(b, "ja");
     });
   taskTypeList.innerHTML = "";
 
-  if (!workTypeOptions.length) {
+  if (!visibleWorkTypeOptions.length) {
     taskTypeList.appendChild(buildEmptyState("該当する作業項目はありません。"));
-    updateTaskTypeSummary(0, getKnownWorkTypeOptions(selectedTaskTypes).length, query);
+    updateTaskTypeSummary(0, allWorkTypeOptions.length, query);
     setSelectedTaskTypes(selectedTaskTypes);
     return;
   }
 
-  workTypeOptions.forEach((workType) => {
-    const label = document.createElement("label");
-    label.className = "task-type-item";
+  const visibleSet = new Set(visibleWorkTypeOptions);
+  const recentOptions = sortWorkTypeOptions(
+    visibleWorkTypeOptions.filter((workType) => recentRankMap.has(workType)),
+    selectedSet,
+    recentRankMap,
+    baseOrderMap
+  ).slice(0, WORK_TYPE_RECENT_LIMIT);
+  const recentSet = new Set(recentOptions);
+  if (recentOptions.length) {
+    appendTaskTypeGroup(taskTypeList, WORK_TYPE_RECENT_SECTION_LABEL, recentOptions, selectedSet);
+  }
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.value = workType;
-    checkbox.checked = selectedTaskTypes.includes(workType);
-    checkbox.addEventListener("change", () => {
-      const nextValues = checkbox.checked
-        ? [...selectedTaskTypes, workType]
-        : selectedTaskTypes.filter((value) => value !== workType);
-      setSelectedTaskTypes(nextValues);
-      setTaskTypeValidationState(false);
-      renderTaskTypeChecklist();
-    });
-
-    const text = document.createElement("span");
-    text.textContent = workType;
-
-    label.append(checkbox, text);
-    taskTypeList.appendChild(label);
+  WORK_TYPE_CATEGORIES.forEach((category) => {
+    const categoryOptions = sortWorkTypeOptions(
+      category.items.filter((workType) => visibleSet.has(workType) && !recentSet.has(workType)),
+      selectedSet,
+      recentRankMap,
+      baseOrderMap
+    );
+    if (!categoryOptions.length) return;
+    appendTaskTypeGroup(taskTypeList, category.label, categoryOptions, selectedSet);
   });
 
+  const categoryMap = getWorkTypeCategoryMap();
+  const unknownOptions = sortWorkTypeOptions(
+    visibleWorkTypeOptions.filter((workType) => !categoryMap.has(workType) && !recentSet.has(workType)),
+    selectedSet,
+    recentRankMap,
+    baseOrderMap
+  );
+  if (unknownOptions.length) {
+    appendTaskTypeGroup(taskTypeList, WORK_TYPE_UNKNOWN_SECTION_LABEL, unknownOptions, selectedSet);
+  }
+
   setSelectedTaskTypes(selectedTaskTypes);
-  updateTaskTypeSummary(workTypeOptions.length, getKnownWorkTypeOptions(selectedTaskTypes).length, query);
+  updateTaskTypeSummary(visibleWorkTypeOptions.length, allWorkTypeOptions.length, query);
 }
 
 function renderTaskFilterOptions(selectedValue = "") {

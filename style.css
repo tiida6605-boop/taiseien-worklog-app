@@ -478,8 +478,30 @@ textarea {
 
 .task-type-list {
   display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+}
+
+.task-type-group {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.62rem;
+  border-radius: 12px;
+  border: 1px solid rgba(96, 68, 38, 0.1);
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.task-type-group__title {
+  margin: 0;
+  color: #5a3e20;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.task-type-group__items {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem;
+  gap: 0.5rem;
 }
 
 .task-type-item {
@@ -489,8 +511,18 @@ textarea {
   min-height: 56px;
   padding: 0.55rem 0.65rem;
   border-radius: 12px;
-  border: 1px solid rgba(96, 68, 38, 0.12);
-  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(96, 68, 38, 0.16);
+  background: rgba(255, 255, 255, 0.86);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.task-type-item.is-selected {
+  border-color: rgba(198, 82, 47, 0.55);
+  box-shadow: 0 0 0 2px rgba(198, 82, 47, 0.14);
+}
+
+.task-type-item:hover {
+  border-color: rgba(198, 82, 47, 0.38);
 }
 
 .task-type-item input {
@@ -498,12 +530,13 @@ textarea {
   min-height: auto;
   margin: 0;
   padding: 0;
+  accent-color: #c6522f;
 }
 
 .task-type-item span {
   color: var(--text);
   font-size: 0.96rem;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .task-type-actions {
@@ -2079,7 +2112,7 @@ textarea {
     width: 100%;
   }
 
-  .task-type-list {
+  .task-type-group__items {
     grid-template-columns: 1fr;
   }
 
