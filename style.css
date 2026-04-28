@@ -566,6 +566,24 @@ textarea {
   color: #5a3e20;
 }
 
+.worktime-subsection {
+  gap: 0.7rem;
+}
+
+.worktime-subsection input[readonly] {
+  background: rgba(240, 236, 228, 0.95);
+  color: #4a3d2f;
+}
+
+.worktime-standard-actions {
+  display: grid;
+  align-content: end;
+}
+
+.worktime-standard-actions .button {
+  width: 100%;
+}
+
 .weather-fetch-field {
   display: grid;
   gap: 0.45rem;
@@ -691,6 +709,38 @@ textarea {
 }
 
 .worker-selection-item__body span {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.worker-time-detail-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.worker-time-detail-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(96, 68, 38, 0.12);
+}
+
+.worker-time-detail-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  color: #5a4936;
+}
+
+.worker-time-detail-card__header strong {
+  color: var(--text);
+}
+
+.worker-time-detail-card__calc {
+  margin: 0;
   color: var(--muted);
   font-size: 0.84rem;
 }

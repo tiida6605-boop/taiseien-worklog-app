@@ -247,8 +247,13 @@ const workerCountInput = document.getElementById("workerCount");
 const selectedWorkerCount = document.getElementById("selectedWorkerCount");
 const workerPickerHint = document.getElementById("workerPickerHint");
 const workerSelectionList = document.getElementById("workerSelectionList");
+const applyCommonTimeToWorkersButton = document.getElementById("applyCommonTimeToWorkersButton");
+const workerTimeDetailList = document.getElementById("workerTimeDetailList");
 const startTimeInput = document.getElementById("startTime");
 const endTimeInput = document.getElementById("endTime");
+const breakMinutesInput = document.getElementById("breakMinutes");
+const calculatedWorkHoursInput = document.getElementById("calculatedWorkHours");
+const applyStandardWorkTimeButton = document.getElementById("applyStandardWorkTimeButton");
 const timeHint = document.getElementById("timeHint");
 const temperatureInput = document.getElementById("temperatureC");
 const weatherInput = document.getElementById("weather");
@@ -611,6 +616,7 @@ if (worktimePeriodModeInput) {
   worktimePeriodModeInput.value = "week";
 }
 let selectedWorkerIds = [];
+let workerTimeDetailsDraft = {};
 let selectedTaskTypes = [];
 let selectedMembershipGroupIds = [];
 let selectedGroupMemberWorkerIds = [];
@@ -1365,6 +1371,7 @@ function normalizeRecord(record) {
     : [];
   const workerId = normalizeText(record.workerId || assignedWorkers[0]?.workerId || "");
   const normalizedAssignedWorkers = workerId && !assignedWorkers.length ? [{ workerId }] : assignedWorkers;
+  const normalizedSettings = normalizeCompanySettings(defaultCompanySettings);
   const environment = normalizeRecordEnvironment(record);
   const fieldObservation = normalizeFieldObservation(
     record.fieldObservation ??
@@ -1373,6 +1380,33 @@ function normalizeRecord(record) {
   );
   const workTypes = getRecordWorkTypes(record);
   const primaryTaskType = workTypes[0] || normalizeText(record.taskType);
+  const startTime = getRecordStartTime(record);
+  const endTime = getRecordEndTime(record);
+  const breakMinutes = getRecordBreakMinutes(record, normalizedSettings);
+  const calculatedWorkHours = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
+  const manualWorkHours = normalizeManualHours(
+    record.manualWorkHours ?? record.manualHours,
+    normalizedSettings
+  );
+  const resolvedWorkHours = getRecordResolvedWorkHours(record, normalizedSettings);
+  const rawWorkerTimeDetails = record?.workerTimeDetails && typeof record.workerTimeDetails === "object"
+    ? record.workerTimeDetails
+    : {};
+  const workerTimeFallback = {
+    startTime,
+    endTime,
+    breakMinutes,
+    workHours: resolvedWorkHours
+  };
+  const workerTimeDetails = normalizedAssignedWorkers.reduce((acc, item) => {
+    const detail = normalizeWorkerTimeDetailEntry(
+      rawWorkerTimeDetails[item.workerId] || {},
+      workerTimeFallback,
+      normalizedSettings
+    );
+    acc[item.workerId] = detail;
+    return acc;
+  }, {});
   return {
     id: String(record.id || createId("record")),
     workDate: String(record.workDate || today),
@@ -1384,7 +1418,10 @@ function normalizeRecord(record) {
     varietyName: normalizeText(record.varietyName || record.variety),
     taskType: primaryTaskType,
     workTypes,
-    workHours: Number(record.workHours || 0),
+    workHours: resolvedWorkHours,
+    manualWorkHours,
+    calculatedWorkHours: Number.isFinite(calculatedWorkHours) ? calculatedWorkHours : null,
+    breakMinutes,
     dailyGroupId: normalizeText(record.dailyGroupId || record.groupId),
     dailyGroupName: normalizeText(record.dailyGroupName || record.groupName),
     fixedTeamSetId: normalizeText(record.fixedTeamSetId),
@@ -1398,8 +1435,11 @@ function normalizeRecord(record) {
     workerDisplayName: normalizeText(record.workerDisplayName),
     workerCategory: normalizeText(record.workerCategory),
     workerHourlyRate: Number(record.workerHourlyRate || 0),
-    startTime: normalizeText(record.startTime),
-    endTime: normalizeText(record.endTime),
+    timeStart: startTime,
+    timeEnd: endTime,
+    startTime,
+    endTime,
+    workerTimeDetails,
     temperatureC: environment.temperatureC,
     weather: environment.weather,
     weatherData: environment.weatherInfo,
@@ -1965,14 +2005,144 @@ function normalizeHoursByTimeUnit(hours, settings = companySettings) {
   return Number((Math.max(0, roundedMinutes) / 60).toFixed(2));
 }
 
-function calculateHoursFromRange(startTime, endTime, settings = companySettings) {
+function normalizeBreakMinutes(minutes, fallbackMinutes = 0) {
+  const numeric = Number(minutes);
+  if (!Number.isFinite(numeric)) {
+    return Math.max(0, Math.round(Number(fallbackMinutes || 0)));
+  }
+  return Math.max(0, Math.min(600, Math.round(numeric)));
+}
+
+function normalizeManualHours(hours, settings = defaultCompanySettings) {
+  const numeric = Number(hours);
+  if (!Number.isFinite(numeric) || numeric <= 0) return null;
+  return normalizeHoursByTimeUnit(numeric, settings);
+}
+
+function calculateHoursFromRange(startTime, endTime, settings = companySettings, breakMinutesOverride = null) {
   const normalized = normalizeCompanySettings(settings);
+  const breakMinutes = normalizeBreakMinutes(
+    breakMinutesOverride,
+    normalized.workdayBreakMinutes
+  );
   return calculateWorkHoursByRange(
     startTime,
     endTime,
-    normalized.workdayBreakMinutes,
+    breakMinutes,
     normalized.payrollTimeUnitMinutes
   );
+}
+
+function normalizeLegacyDurationToHours(durationValue, settings = defaultCompanySettings) {
+  const duration = Number(durationValue);
+  if (!Number.isFinite(duration) || duration <= 0) return null;
+  const normalizedHours = duration > 24 ? duration / 60 : duration;
+  if (!Number.isFinite(normalizedHours) || normalizedHours <= 0) return null;
+  return normalizeHoursByTimeUnit(normalizedHours, settings);
+}
+
+function getRecordStartTime(record) {
+  return normalizeTimeText(record?.timeStart || record?.startTime, "");
+}
+
+function getRecordEndTime(record) {
+  return normalizeTimeText(record?.timeEnd || record?.endTime, "");
+}
+
+function getRecordBreakMinutes(record, settings = companySettings) {
+  const normalized = normalizeCompanySettings(settings);
+  return normalizeBreakMinutes(
+    record?.breakMinutes ?? record?.timeBreakMinutes ?? record?.nonCountedMinutes,
+    normalized.workdayBreakMinutes
+  );
+}
+
+function getRecordResolvedWorkHours(record, settings = companySettings) {
+  const normalizedSettings = normalizeCompanySettings(settings);
+  const manualHours = normalizeManualHours(record?.manualWorkHours, normalizedSettings);
+  if (manualHours !== null) return manualHours;
+
+  const explicitHours = normalizeManualHours(record?.workHours, normalizedSettings);
+  if (explicitHours !== null) return explicitHours;
+
+  const storedCalculatedHours = normalizeManualHours(record?.calculatedWorkHours, normalizedSettings);
+  if (storedCalculatedHours !== null) return storedCalculatedHours;
+
+  const legacyDurationHours = normalizeLegacyDurationToHours(
+    record?.duration ?? record?.workDurationMinutes ?? record?.durationMinutes ?? record?.durationHours,
+    normalizedSettings
+  );
+  if (legacyDurationHours !== null) return legacyDurationHours;
+
+  const startTime = getRecordStartTime(record);
+  const endTime = getRecordEndTime(record);
+  const breakMinutes = getRecordBreakMinutes(record, normalizedSettings);
+  const calculatedHours = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
+  if (Number.isFinite(calculatedHours)) return calculatedHours;
+
+  return getDefaultWorkHours(normalizedSettings);
+}
+
+function normalizeWorkerTimeDetailEntry(rawDetail, fallbackDetail, settings = companySettings) {
+  const normalizedSettings = normalizeCompanySettings(settings);
+  const fallback = fallbackDetail || {};
+  const startTime = normalizeTimeText(rawDetail?.startTime || rawDetail?.timeStart, fallback.startTime || "");
+  const endTime = normalizeTimeText(rawDetail?.endTime || rawDetail?.timeEnd, fallback.endTime || "");
+  const breakMinutes = normalizeBreakMinutes(
+    rawDetail?.breakMinutes ?? rawDetail?.timeBreakMinutes,
+    fallback.breakMinutes ?? normalizedSettings.workdayBreakMinutes
+  );
+  const calculatedHours = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
+  const manualHours = normalizeManualHours(
+    rawDetail?.manualHours ?? rawDetail?.manualWorkHours,
+    normalizedSettings
+  );
+  const fallbackResolvedHours = normalizeManualHours(fallback.workHours ?? fallback.resolvedHours, normalizedSettings);
+  const resolvedHours = manualHours !== null
+    ? manualHours
+    : (Number.isFinite(calculatedHours) ? calculatedHours : (fallbackResolvedHours ?? null));
+
+  return {
+    startTime,
+    endTime,
+    breakMinutes,
+    calculatedHours: Number.isFinite(calculatedHours) ? calculatedHours : null,
+    manualHours,
+    manualWorkHours: manualHours,
+    workHours: resolvedHours,
+    resolvedHours
+  };
+}
+
+function getRecordWorkerTimeDetails(record, settings = companySettings) {
+  const normalizedSettings = normalizeCompanySettings(settings);
+  const assignedWorkers = getAssignedWorkers(record);
+  if (!assignedWorkers.length) return {};
+  const rawDetails = record?.workerTimeDetails && typeof record.workerTimeDetails === "object"
+    ? record.workerTimeDetails
+    : {};
+  const commonFallback = {
+    startTime: getRecordStartTime(record),
+    endTime: getRecordEndTime(record),
+    breakMinutes: getRecordBreakMinutes(record, normalizedSettings),
+    workHours: getRecordResolvedWorkHours(record, normalizedSettings)
+  };
+
+  return assignedWorkers.reduce((acc, worker) => {
+    const rawDetail = rawDetails?.[worker.id] || {};
+    acc[worker.id] = normalizeWorkerTimeDetailEntry(rawDetail, commonFallback, normalizedSettings);
+    return acc;
+  }, {});
+}
+
+function getWorkerHoursForRecord(record, workerId, settings = companySettings) {
+  if (!workerId) return getRecordResolvedWorkHours(record, settings);
+  const detail = getRecordWorkerTimeDetails(record, settings)?.[workerId];
+  if (!detail) return getRecordResolvedWorkHours(record, settings);
+  if (Number.isFinite(detail.manualHours)) return detail.manualHours;
+  if (Number.isFinite(detail.calculatedHours)) return detail.calculatedHours;
+  if (Number.isFinite(detail.resolvedHours)) return detail.resolvedHours;
+  return getRecordResolvedWorkHours(record, settings);
 }
 
 function applyDefaultWorkScheduleToForm(force = false) {
@@ -1982,6 +2152,9 @@ function applyDefaultWorkScheduleToForm(force = false) {
   }
   if (endTimeInput && (force || !endTimeInput.value)) {
     endTimeInput.value = normalized.workdayEndTime;
+  }
+  if (breakMinutesInput && (force || !normalizeText(breakMinutesInput.value))) {
+    breakMinutesInput.value = String(normalized.workdayBreakMinutes);
   }
 }
 
@@ -2248,15 +2421,33 @@ function getAssignedWorkers(record) {
 }
 
 function getRecordMetrics(record) {
-  const hours = Number(record.workHours || 0);
+  const hours = getRecordResolvedWorkHours(record, companySettings);
   const assignedWorkers = getAssignedWorkers(record);
-  const workerCount = Number(record.workerCount || 0) || assignedWorkers.length;
-  const totalHourlyRate = assignedWorkers.reduce((sum, worker) => sum + Number(worker.hourlyRate || 0), 0);
+  const workerTimeDetails = getRecordWorkerTimeDetails(record, companySettings);
+  const workerCount = Number(record.workerCount || 0) || assignedWorkers.length || Object.keys(workerTimeDetails).length;
+  const personHoursFromDetails = assignedWorkers.reduce((sum, worker) => {
+    return sum + Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0);
+  }, 0);
+  const additionalWorkerCount = Math.max(0, workerCount - assignedWorkers.length);
+  const personHours = personHoursFromDetails > 0
+    ? personHoursFromDetails + (additionalWorkerCount * hours)
+    : hours * workerCount;
+  const laborCostFromDetails = assignedWorkers.reduce((sum, worker) => {
+    const workerHours = Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0);
+    const fallbackHours = personHoursFromDetails > 0
+      ? workerHours
+      : hours;
+    return sum + (fallbackHours * Number(worker.hourlyRate || 0));
+  }, 0);
+  const fallbackHourlyRate = Number(record.workerHourlyRate || 0);
+  const laborCost = laborCostFromDetails > 0
+    ? laborCostFromDetails + (additionalWorkerCount * hours * fallbackHourlyRate)
+    : (hours * fallbackHourlyRate * Math.max(1, workerCount));
   return {
     hours,
     workerCount,
-    personHours: hours * workerCount,
-    laborCost: hours * totalHourlyRate
+    personHours,
+    laborCost
   };
 }
 
@@ -2685,49 +2876,19 @@ function buildPayrollRows(periodConfig) {
       const current = dayMap.get(dayKey) || {
         worker,
         workDate: record.workDate,
-        recordCount: 0,
-        manualWorkHours: 0,
-        hasManualRange: false,
-        minStartMinutes: null,
-        maxEndMinutes: null
+        totalHours: 0
       };
-      current.recordCount += 1;
-
-      const manualHours = Number(record.workHours || 0);
-      if (Number.isFinite(manualHours) && manualHours > 0) {
-        current.manualWorkHours += manualHours;
-      }
-
-      const startMinutes = parseTimeToMinutes(record.startTime);
-      const endMinutes = parseTimeToMinutes(record.endTime);
-      if (startMinutes !== null && endMinutes !== null && endMinutes > startMinutes) {
-        current.hasManualRange = true;
-        current.minStartMinutes = current.minStartMinutes === null
-          ? startMinutes
-          : Math.min(current.minStartMinutes, startMinutes);
-        current.maxEndMinutes = current.maxEndMinutes === null
-          ? endMinutes
-          : Math.max(current.maxEndMinutes, endMinutes);
-      }
+      const workerHours = Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0);
+      if (!Number.isFinite(workerHours) || workerHours <= 0) return;
+      current.totalHours += workerHours;
       dayMap.set(dayKey, current);
     });
   });
 
-  const defaultDailyHours = getDefaultWorkHours();
   const workerMap = new Map();
   Array.from(dayMap.values()).forEach((dayEntry) => {
-    let resolvedDayHours = defaultDailyHours;
-    if (dayEntry.hasManualRange && dayEntry.minStartMinutes !== null && dayEntry.maxEndMinutes !== null) {
-      const rangeHours = calculateHoursFromRange(
-        formatMinutesToTimeText(dayEntry.minStartMinutes),
-        formatMinutesToTimeText(dayEntry.maxEndMinutes)
-      );
-      if (Number.isFinite(rangeHours)) {
-        resolvedDayHours = rangeHours;
-      }
-    } else if (dayEntry.recordCount === 1 && dayEntry.manualWorkHours > 0) {
-      resolvedDayHours = normalizeHoursByTimeUnit(dayEntry.manualWorkHours);
-    }
+    const resolvedDayHours = normalizeHoursByTimeUnit(dayEntry.totalHours, companySettings);
+    if (!Number.isFinite(resolvedDayHours) || resolvedDayHours <= 0) return;
 
     const current = workerMap.get(dayEntry.worker.id) || {
       worker: dayEntry.worker,
@@ -2934,11 +3095,12 @@ function buildWorktimeWorkerDayEntries(sourceRecords = records) {
   const entryMap = new Map();
   sourceRecords.forEach((record) => {
     const workDate = normalizeDateString(record.workDate, "");
-    const hours = Number(record.workHours || 0);
-    if (!workDate || !Number.isFinite(hours) || hours <= 0) return;
+    if (!workDate) return;
     const assignedWorkers = getAssignedWorkers(record);
     assignedWorkers.forEach((worker) => {
       if (!worker) return;
+      const hours = Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0);
+      if (!Number.isFinite(hours) || hours <= 0) return;
       const key = `${worker.id}|${workDate}`;
       const current = entryMap.get(key) || {
         workerId: worker.id,
@@ -4402,8 +4564,9 @@ function getAnnualReportData() {
   const workerSortDirection = sortOrder === "asc" ? 1 : -1;
   const workerHoursEntries = Array.from(
     filteredRecords.reduce((map, record) => {
-      const hours = Number(record.workHours || 0);
       getAssignedWorkers(record).forEach((worker) => {
+        const hours = Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0);
+        if (!Number.isFinite(hours) || hours <= 0) return;
         const key = worker.id || worker.displayName;
         const current = map.get(key) || { label: worker.displayName || "未設定", hours: 0 };
         current.hours += hours;
@@ -4561,6 +4724,197 @@ function getSelectableWorkers(selectedIds = [], dailyGroupId = "") {
   return merged;
 }
 
+function getFormBreakMinutes(settings = companySettings) {
+  const normalized = normalizeCompanySettings(settings);
+  return normalizeBreakMinutes(
+    breakMinutesInput?.value,
+    normalized.workdayBreakMinutes
+  );
+}
+
+function getFormManualWorkHours(settings = companySettings) {
+  return normalizeManualHours(workHoursInput?.value, settings);
+}
+
+function getFormCalculatedWorkHours(settings = companySettings) {
+  const breakMinutes = getFormBreakMinutes(settings);
+  return calculateHoursFromRange(
+    startTimeInput?.value,
+    endTimeInput?.value,
+    settings,
+    breakMinutes
+  );
+}
+
+function getResolvedWorkHoursFromForm(settings = companySettings) {
+  const normalizedSettings = normalizeCompanySettings(settings);
+  const manualHours = getFormManualWorkHours(settings);
+  if (manualHours !== null) return manualHours;
+  const calculatedHours = getFormCalculatedWorkHours(settings);
+  if (Number.isFinite(calculatedHours)) return calculatedHours;
+  const standardByInputBreak = calculateHoursFromRange(
+    normalizedSettings.workdayStartTime,
+    normalizedSettings.workdayEndTime,
+    normalizedSettings,
+    getFormBreakMinutes(normalizedSettings)
+  );
+  if (Number.isFinite(standardByInputBreak)) return standardByInputBreak;
+  return getDefaultWorkHours(normalizedSettings);
+}
+
+function pruneWorkerTimeDetailsDraft() {
+  const selectedSet = new Set(selectedWorkerIds);
+  Object.keys(workerTimeDetailsDraft).forEach((workerId) => {
+    if (!selectedSet.has(workerId)) {
+      delete workerTimeDetailsDraft[workerId];
+    }
+  });
+}
+
+function applyCommonTimeToSelectedWorkers() {
+  if (!selectedWorkerIds.length) return;
+  const commonDetail = {
+    startTime: normalizeTimeText(startTimeInput?.value, ""),
+    endTime: normalizeTimeText(endTimeInput?.value, ""),
+    breakMinutes: getFormBreakMinutes(companySettings),
+    manualHours: null,
+    manualWorkHours: null
+  };
+  selectedWorkerIds.forEach((workerId) => {
+    workerTimeDetailsDraft[workerId] = { ...commonDetail };
+  });
+  renderWorkerTimeDetailList();
+}
+
+function renderWorkerTimeDetailList() {
+  if (!workerTimeDetailList) return;
+  workerTimeDetailList.innerHTML = "";
+  if (!selectedWorkerIds.length) {
+    workerTimeDetailList.appendChild(buildEmptyState("作業者を選ぶと、ここで個別の勤務時間を調整できます。"));
+    return;
+  }
+  const normalizedSettings = normalizeCompanySettings(companySettings);
+  const commonDetail = {
+    startTime: normalizeTimeText(startTimeInput?.value, ""),
+    endTime: normalizeTimeText(endTimeInput?.value, ""),
+    breakMinutes: getFormBreakMinutes(normalizedSettings),
+    workHours: getResolvedWorkHoursFromForm(normalizedSettings)
+  };
+
+  selectedWorkerIds.forEach((workerId) => {
+    const worker = getWorkerById(workerId);
+    if (!worker) return;
+    const normalizedDetail = normalizeWorkerTimeDetailEntry(
+      workerTimeDetailsDraft[workerId] || {},
+      commonDetail,
+      normalizedSettings
+    );
+    workerTimeDetailsDraft[workerId] = {
+      startTime: normalizedDetail.startTime,
+      endTime: normalizedDetail.endTime,
+      breakMinutes: normalizedDetail.breakMinutes,
+      manualHours: normalizedDetail.manualHours,
+      manualWorkHours: normalizedDetail.manualWorkHours
+    };
+
+    const card = document.createElement("article");
+    card.className = "worker-time-detail-card";
+
+    const header = document.createElement("div");
+    header.className = "worker-time-detail-card__header";
+    const title = document.createElement("strong");
+    title.textContent = `${worker.displayName} の勤務時間`;
+    const rate = document.createElement("span");
+    rate.textContent = formatCurrency(worker.hourlyRate || 0);
+    header.append(title, rate);
+
+    const row = document.createElement("div");
+    row.className = "form-row form-row--triple";
+
+    const startLabel = document.createElement("label");
+    startLabel.textContent = "開始";
+    const startInput = document.createElement("input");
+    startInput.type = "time";
+    startInput.value = normalizedDetail.startTime;
+    startInput.addEventListener("change", () => {
+      workerTimeDetailsDraft[workerId] = {
+        ...workerTimeDetailsDraft[workerId],
+        startTime: startInput.value
+      };
+      renderWorkerTimeDetailList();
+    });
+    startLabel.appendChild(startInput);
+
+    const endLabel = document.createElement("label");
+    endLabel.textContent = "終了";
+    const endInput = document.createElement("input");
+    endInput.type = "time";
+    endInput.value = normalizedDetail.endTime;
+    endInput.addEventListener("change", () => {
+      workerTimeDetailsDraft[workerId] = {
+        ...workerTimeDetailsDraft[workerId],
+        endTime: endInput.value
+      };
+      renderWorkerTimeDetailList();
+    });
+    endLabel.appendChild(endInput);
+
+    const breakLabel = document.createElement("label");
+    breakLabel.textContent = "控除分（分）";
+    const breakInput = document.createElement("input");
+    breakInput.type = "number";
+    breakInput.min = "0";
+    breakInput.max = "600";
+    breakInput.step = "15";
+    breakInput.inputMode = "numeric";
+    breakInput.value = String(normalizedDetail.breakMinutes);
+    breakInput.addEventListener("change", () => {
+      workerTimeDetailsDraft[workerId] = {
+        ...workerTimeDetailsDraft[workerId],
+        breakMinutes: breakInput.value
+      };
+      renderWorkerTimeDetailList();
+    });
+    breakLabel.appendChild(breakInput);
+
+    const manualLabel = document.createElement("label");
+    manualLabel.textContent = "手入力上書き（時間）";
+    const manualInput = document.createElement("input");
+    manualInput.type = "number";
+    manualInput.min = "0";
+    manualInput.max = "24";
+    manualInput.step = "0.25";
+    manualInput.inputMode = "decimal";
+    manualInput.placeholder = "例: 4.0";
+    manualInput.value = normalizedDetail.manualHours ?? "";
+    manualInput.addEventListener("change", () => {
+      workerTimeDetailsDraft[workerId] = {
+        ...workerTimeDetailsDraft[workerId],
+        manualHours: normalizeText(manualInput.value) ? manualInput.value : null,
+        manualWorkHours: normalizeText(manualInput.value) ? manualInput.value : null
+      };
+      renderWorkerTimeDetailList();
+    });
+    manualLabel.appendChild(manualInput);
+
+    row.append(startLabel, endLabel, breakLabel);
+    card.append(header, row, manualLabel);
+
+    const calcText = Number.isFinite(normalizedDetail.calculatedHours)
+      ? `${normalizedDetail.calculatedHours.toFixed(1)}時間`
+      : "未計算";
+    const resolvedText = Number.isFinite(normalizedDetail.resolvedHours)
+      ? `${normalizedDetail.resolvedHours.toFixed(1)}時間`
+      : "未計算";
+    const summary = document.createElement("p");
+    summary.className = "worker-time-detail-card__calc";
+    summary.textContent = `自動計算: ${calcText} / 採用時間: ${resolvedText}`;
+    card.append(summary);
+
+    workerTimeDetailList.appendChild(card);
+  });
+}
+
 function syncWorkerCountFromSelection() {
   workerCountInput.value = selectedWorkerIds.length ? String(selectedWorkerIds.length) : "";
 }
@@ -4582,24 +4936,31 @@ function renderWorkerSelectionList() {
 
   if (!groupSelect.value) {
     selectedWorkerIds = [];
+    workerTimeDetailsDraft = {};
+    syncWorkerCountFromSelection();
     recordAppliedTeamSetId = "";
     recordAppliedTeamSetName = "";
     selectedWorkerCount.textContent = "0人選択";
     workerPickerHint.textContent = "先に当日グループを選択してください。";
     workerSelectionList.appendChild(buildEmptyState("グループを選ぶと、そのグループに所属可能な作業者だけ表示されます。"));
+    renderWorkerTimeDetailList();
     return;
   }
 
   if (!selectableWorkers.length) {
     selectedWorkerIds = [];
+    workerTimeDetailsDraft = {};
     syncWorkerCountFromSelection();
     selectedWorkerCount.textContent = "0人選択";
     workerPickerHint.textContent = "このグループに所属可能な有効作業者がいません。";
     workerSelectionList.appendChild(buildEmptyState("作業者所属グループ設定で所属状況を確認してください。"));
+    renderWorkerTimeDetailList();
     return;
   }
 
   selectedWorkerIds = selectedWorkerIds.filter((workerId) => selectableWorkers.some((worker) => worker.id === workerId));
+  pruneWorkerTimeDetailsDraft();
+  syncWorkerCountFromSelection();
   selectedWorkerCount.textContent = `${selectedWorkerIds.length}人選択`;
   workerPickerHint.textContent = "複数選択できます。選択人数は作業人数へ自動反映されますが、手入力で修正もできます。";
 
@@ -4614,8 +4975,10 @@ function renderWorkerSelectionList() {
       selectedWorkerIds = checkbox.checked
         ? [...new Set([...selectedWorkerIds, worker.id])]
         : selectedWorkerIds.filter((workerId) => workerId !== worker.id);
+      pruneWorkerTimeDetailsDraft();
       selectedWorkerCount.textContent = `${selectedWorkerIds.length}人選択`;
       syncWorkerCountFromSelection();
+      renderWorkerTimeDetailList();
     });
 
     const body = document.createElement("span");
@@ -4629,6 +4992,7 @@ function renderWorkerSelectionList() {
     label.append(checkbox, body);
     workerSelectionList.appendChild(label);
   });
+  renderWorkerTimeDetailList();
 }
 
 function renderTeamPlanWorkerList() {
@@ -5018,11 +5382,32 @@ function getFormData() {
   const dailyGroup = getGroupById(groupSelect.value);
   const assignedWorkers = selectedWorkerIds.map((workerId) => getWorkerById(workerId)).filter(Boolean);
   const primaryWorker = assignedWorkers[0] || null;
-  const autoHours = calculateHoursFromRange(startTimeInput.value, endTimeInput.value);
-  const manualHours = normalizeHoursByTimeUnit(workHoursInput.value);
-  const resolvedWorkHours = Number.isFinite(autoHours)
-    ? autoHours
-    : (manualHours > 0 ? manualHours : getDefaultWorkHours());
+  const normalizedSettings = normalizeCompanySettings(companySettings);
+  const commonStartTime = normalizeTimeText(startTimeInput?.value, "");
+  const commonEndTime = normalizeTimeText(endTimeInput?.value, "");
+  const commonBreakMinutes = getFormBreakMinutes(normalizedSettings);
+  const autoHours = calculateHoursFromRange(
+    commonStartTime,
+    commonEndTime,
+    normalizedSettings,
+    commonBreakMinutes
+  );
+  const manualHours = getFormManualWorkHours(normalizedSettings);
+  const resolvedWorkHours = manualHours !== null
+    ? manualHours
+    : (Number.isFinite(autoHours) ? autoHours : getDefaultWorkHours(normalizedSettings));
+  const workerTimeFallback = {
+    startTime: commonStartTime,
+    endTime: commonEndTime,
+    breakMinutes: commonBreakMinutes,
+    workHours: resolvedWorkHours
+  };
+  const workerTimeDetails = assignedWorkers.reduce((acc, worker) => {
+    const draft = workerTimeDetailsDraft[worker.id] || {};
+    const normalizedDetail = normalizeWorkerTimeDetailEntry(draft, workerTimeFallback, normalizedSettings);
+    acc[worker.id] = normalizedDetail;
+    return acc;
+  }, {});
   const workerCountValue = Number(workerCountInput.value || 0);
   const teamPlan = getTeamPlan(workDateInput.value, groupSelect.value);
   const appliedTeamSetId = teamPlan?.fixedTeamSetId || recordAppliedTeamSetId;
@@ -5068,6 +5453,9 @@ function getFormData() {
     taskType: workTypes[0] || "",
     workTypes,
     workHours: resolvedWorkHours,
+    manualWorkHours: manualHours,
+    calculatedWorkHours: Number.isFinite(autoHours) ? autoHours : null,
+    breakMinutes: commonBreakMinutes,
     dailyGroupId: dailyGroup?.id || "",
     dailyGroupName: dailyGroup?.name || "",
     fixedTeamSetId: appliedTeamSetId || "",
@@ -5081,8 +5469,11 @@ function getFormData() {
     workerDisplayName: primaryWorker?.displayName || "",
     workerCategory: primaryWorker?.category || "",
     workerHourlyRate: Number(primaryWorker?.hourlyRate || 0),
-    startTime: startTimeInput.value,
-    endTime: endTimeInput.value,
+    timeStart: commonStartTime,
+    timeEnd: commonEndTime,
+    startTime: commonStartTime,
+    endTime: commonEndTime,
+    workerTimeDetails,
     temperatureC: environment.temperatureC,
     weather: environment.weather,
     weatherData: weatherInfo,
@@ -5481,8 +5872,23 @@ function getFilteredRecords(options = {}) {
 function fillRecordForm(record) {
   const environment = normalizeRecordEnvironment(record);
   const observation = normalizeFieldObservation(record.fieldObservation);
-  const hasManualRange = Boolean(record.startTime && record.endTime);
-  const hasManualHoursOnly = !hasManualRange && Number(record.workHours || 0) > 0;
+  const normalizedSettings = normalizeCompanySettings(companySettings);
+  const recordStartTime = getRecordStartTime(record);
+  const recordEndTime = getRecordEndTime(record);
+  const recordBreakMinutes = getRecordBreakMinutes(record, normalizedSettings);
+  const recordCalculatedHours = Number.isFinite(Number(record.calculatedWorkHours))
+    ? Number(record.calculatedWorkHours)
+    : calculateHoursFromRange(recordStartTime, recordEndTime, normalizedSettings, recordBreakMinutes);
+  const recordManualHours = normalizeManualHours(
+    record.manualWorkHours ?? record.manualHours,
+    normalizedSettings
+  );
+  const legacyManualHours = normalizeManualHours(record.workHours, normalizedSettings);
+  const shouldUseLegacyManualHours = recordManualHours === null
+    && !recordStartTime
+    && !recordEndTime
+    && legacyManualHours !== null;
+  const displayManualHours = shouldUseLegacyManualHours ? legacyManualHours : recordManualHours;
   recordIdInput.value = record.id;
   workDateInput.value = record.workDate;
   orchardSelect.value = record.orchardId || "";
@@ -5494,14 +5900,44 @@ function fillRecordForm(record) {
   setSelectedTaskTypes(getRecordWorkTypes(record));
   renderTaskTypeChecklist();
   setTaskTypeValidationState(false);
-  workHoursInput.value = record.workHours || "";
+  workHoursInput.value = displayManualHours ?? "";
   groupSelect.value = record.dailyGroupId || "";
   recordAppliedTeamSetId = record.fixedTeamSetId || "";
   recordAppliedTeamSetName = record.fixedTeamSetName || "";
   workerCountInput.value = record.workerCount || "";
   selectedWorkerIds = getAssignedWorkers(record).map((worker) => worker.id);
-  startTimeInput.value = record.startTime || "";
-  endTimeInput.value = record.endTime || "";
+  startTimeInput.value = recordStartTime;
+  endTimeInput.value = recordEndTime;
+  if (breakMinutesInput) {
+    breakMinutesInput.value = String(recordBreakMinutes);
+  }
+  if (calculatedWorkHoursInput) {
+    calculatedWorkHoursInput.value = Number.isFinite(recordCalculatedHours) ? String(recordCalculatedHours) : "";
+  }
+  const rawWorkerTimeDetails = record?.workerTimeDetails && typeof record.workerTimeDetails === "object"
+    ? record.workerTimeDetails
+    : {};
+  const fallbackDetail = {
+    startTime: recordStartTime,
+    endTime: recordEndTime,
+    breakMinutes: recordBreakMinutes,
+    workHours: getRecordResolvedWorkHours(record, normalizedSettings)
+  };
+  workerTimeDetailsDraft = selectedWorkerIds.reduce((acc, workerId) => {
+    const detail = normalizeWorkerTimeDetailEntry(
+      rawWorkerTimeDetails[workerId] || {},
+      fallbackDetail,
+      normalizedSettings
+    );
+    acc[workerId] = {
+      startTime: detail.startTime,
+      endTime: detail.endTime,
+      breakMinutes: detail.breakMinutes,
+      manualHours: detail.manualHours,
+      manualWorkHours: detail.manualWorkHours
+    };
+    return acc;
+  }, {});
   if (temperatureInput) {
     temperatureInput.value = environment.temperatureC ?? "";
   }
@@ -5534,9 +5970,8 @@ function fillRecordForm(record) {
   formMode.textContent = "編集中";
   renderWorkerSelectionList();
   updateTimeHint();
-  if (hasManualHoursOnly) {
-    workHoursInput.value = String(Number(record.workHours || 0));
-    timeHint.textContent = `作業時間 ${Number(record.workHours || 0)} 時間（手入力値）を使用しています。`;
+  if (displayManualHours !== null) {
+    timeHint.textContent = `手入力上書き ${displayManualHours} 時間を使用しています。`;
   }
   moveToShortcut(recordFormPanel, workDateInput);
 }
@@ -5560,6 +5995,16 @@ function resetRecordForm() {
   recordAppliedTeamSetName = "";
   recordWeatherInfo = null;
   selectedWorkerIds = [];
+  workerTimeDetailsDraft = {};
+  if (workHoursInput) {
+    workHoursInput.value = "";
+  }
+  if (breakMinutesInput) {
+    breakMinutesInput.value = String(normalizeCompanySettings(companySettings).workdayBreakMinutes);
+  }
+  if (calculatedWorkHoursInput) {
+    calculatedWorkHoursInput.value = "";
+  }
   if (weatherTempAvgInput) weatherTempAvgInput.value = "";
   if (weatherTempMaxInput) weatherTempMaxInput.value = "";
   if (weatherTempMinInput) weatherTempMinInput.value = "";
@@ -5615,7 +6060,7 @@ function renderRecords() {
     fragment.querySelector(".record-card__orchard").textContent = names.orchardName;
     fragment.querySelector(".record-card__plot").textContent = names.plotName;
     fragment.querySelector(".record-card__variety").textContent = names.varietyName;
-    fragment.querySelector(".record-card__hours").textContent = record.workHours ? formatHours(record.workHours) : "未入力";
+    fragment.querySelector(".record-card__hours").textContent = metrics.hours ? formatHours(metrics.hours) : "未入力";
     fragment.querySelector(".record-card__workers").textContent = record.workerCount ? `${record.workerCount}人` : "未入力";
     fragment.querySelector(".record-card__person-hours").textContent = formatPersonHours(metrics.personHours);
     fragment.querySelector(".record-card__labor-cost").textContent = formatCurrency(metrics.laborCost);
@@ -5625,7 +6070,9 @@ function renderRecords() {
     fragment.querySelector(".record-card__team-set").textContent = names.fixedTeamSetName;
     fragment.querySelector(".record-card__worker-category").textContent = names.workerCategory;
     fragment.querySelector(".record-card__worker-rate").textContent = formatCurrency(names.workerHourlyRate);
-    fragment.querySelector(".record-card__time-range").textContent = record.startTime && record.endTime ? `${record.startTime} - ${record.endTime}` : "未入力";
+    const startTime = getRecordStartTime(record);
+    const endTime = getRecordEndTime(record);
+    fragment.querySelector(".record-card__time-range").textContent = startTime && endTime ? `${startTime} - ${endTime}` : "未入力";
     fragment.querySelector(".record-card__temperature").textContent = formatTemperature(environment.temperatureC);
     const weatherBaseLabel = environment.weather || environment.weatherInfo?.weatherText || "未入力";
     const weatherDetail = formatWeatherInfoSummary(environment.weatherInfo);
@@ -5777,9 +6224,11 @@ function buildDailyWorkerActivityContext(targetDate = today) {
     const assignedWorkers = getAssignedWorkers(record);
     assignedWorkers.forEach((worker) => {
       if (!worker) return;
+      const workerHours = Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0);
+      if (!Number.isFinite(workerHours) || workerHours <= 0) return;
       const current = recordByWorkerId.get(worker.id) || { recordCount: 0, totalHours: 0, groupIds: new Set() };
       current.recordCount += 1;
-      current.totalHours += Number(record.workHours || 0);
+      current.totalHours += workerHours;
       if (record.dailyGroupId) current.groupIds.add(record.dailyGroupId);
       recordByWorkerId.set(worker.id, current);
     });
@@ -6431,7 +6880,10 @@ function deleteWorker(id) {
           workerId: record.workerId === id ? "" : record.workerId,
           assignedWorkers: record.assignedWorkers.filter((item) => item.workerId !== id),
           workerIds: (record.workerIds || []).filter((workerId) => workerId !== id),
-          workerNames: getWorkerNameList(record).filter((name) => name !== deletedWorker?.displayName && name !== deletedWorker?.fullName)
+          workerNames: getWorkerNameList(record).filter((name) => name !== deletedWorker?.displayName && name !== deletedWorker?.fullName),
+          workerTimeDetails: Object.fromEntries(
+            Object.entries(record.workerTimeDetails || {}).filter(([workerId]) => workerId !== id)
+          )
         }
       : record
   ));
@@ -6513,7 +6965,7 @@ function renderAnalytics() {
   const plotPersonHoursEntries = aggregateBy(recordsWithMetrics, (item) => `${item.names.orchardName} / ${item.names.plotName}`, (item) => item.metrics.personHours).sort((a, b) => b[1] - a[1]);
   const plotLaborCostEntries = aggregateBy(recordsWithMetrics, (item) => `${item.names.orchardName} / ${item.names.plotName}`, (item) => item.metrics.laborCost).sort((a, b) => b[1] - a[1]);
   const taskEntries = aggregateBy(
-    records.flatMap((record) => getRecordWorkTypes(record, { includeUnset: true }).map((taskLabel) => ({ taskLabel, hours: Number(record.workHours || 0) }))),
+    records.flatMap((record) => getRecordWorkTypes(record, { includeUnset: true }).map((taskLabel) => ({ taskLabel, hours: getRecordResolvedWorkHours(record, companySettings) }))),
     (item) => item.taskLabel,
     (item) => item.hours
   ).sort((a, b) => b[1] - a[1]);
@@ -6522,21 +6974,21 @@ function renderAnalytics() {
   const groupPersonHoursEntries = aggregateBy(recordsWithMetrics, (item) => item.names.dailyGroupName, (item) => item.metrics.personHours).sort((a, b) => b[1] - a[1]);
   const groupLaborCostEntries = aggregateBy(recordsWithMetrics, (item) => item.names.dailyGroupName, (item) => item.metrics.laborCost).sort((a, b) => b[1] - a[1]);
   const workerTotalEntries = aggregateBy(
-    records.flatMap((record) => getAssignedWorkers(record).map((worker) => ({ worker, hours: Number(record.workHours || 0) }))),
+    records.flatMap((record) => getAssignedWorkers(record).map((worker) => ({ worker, hours: Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0) }))),
     (item) => item.worker.displayName,
     (item) => item.hours
   ).sort((a, b) => b[1] - a[1]);
   const groupWorkerEntries = aggregateBy(
-    records.flatMap((record) => getAssignedWorkers(record).map((worker) => ({ worker, hours: Number(record.workHours || 0), dailyGroupName: getRecordDisplay(record).dailyGroupName }))),
+    records.flatMap((record) => getAssignedWorkers(record).map((worker) => ({ worker, hours: Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0), dailyGroupName: getRecordDisplay(record).dailyGroupName }))),
     (item) => `${item.dailyGroupName} / ${item.worker.displayName}`,
     (item) => item.hours
   ).sort((a, b) => b[1] - a[1]);
   const primaryGroupEntries = aggregateBy(
-    records.flatMap((record) => getAssignedWorkers(record).map((worker) => ({ worker, hours: Number(record.workHours || 0) }))),
+    records.flatMap((record) => getAssignedWorkers(record).map((worker) => ({ worker, hours: Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0) }))),
     (item) => getWorkerPrimaryGroup(item.worker)?.name || "主所属未設定",
     (item) => item.hours
   ).sort((a, b) => b[1] - a[1]);
-  const varietyEntries = aggregateBy(records, (record) => getRecordDisplay(record).varietyName, (record) => Number(record.workHours || 0)).sort((a, b) => b[1] - a[1]);
+  const varietyEntries = aggregateBy(records, (record) => getRecordDisplay(record).varietyName, (record) => getRecordResolvedWorkHours(record, companySettings)).sort((a, b) => b[1] - a[1]);
 
   buildSummaryRows(monthlyCountList, monthlyCountEntries.map(([month, value]) => [formatMonth(month), value]), (value) => `${value}件`, "作業記録がありません。");
   buildSummaryRows(monthlyHoursList, monthlyHourEntries.map(([month, value]) => [formatMonth(month), value]), (value) => formatHours(value), "作業記録がありません。");
@@ -6559,30 +7011,51 @@ function renderAnalytics() {
 
 function updateTimeHint() {
   const settings = normalizeCompanySettings(companySettings);
-  const autoHours = calculateHoursFromRange(startTimeInput.value, endTimeInput.value, settings);
-  const defaultHours = getDefaultWorkHours(settings);
-  const manualHours = normalizeHoursByTimeUnit(workHoursInput.value, settings);
-  const breakText = `${Math.floor(settings.workdayBreakMinutes / 60)}時間${String(settings.workdayBreakMinutes % 60).padStart(2, "0")}分`;
+  const breakMinutes = getFormBreakMinutes(settings);
+  const autoHours = calculateHoursFromRange(startTimeInput.value, endTimeInput.value, settings, breakMinutes);
+  const standardHoursByBreak = calculateHoursFromRange(
+    settings.workdayStartTime,
+    settings.workdayEndTime,
+    settings,
+    breakMinutes
+  );
+  const defaultHours = Number.isFinite(standardHoursByBreak)
+    ? standardHoursByBreak
+    : getDefaultWorkHours(settings);
+  const manualHours = getFormManualWorkHours(settings);
+  const breakText = `${Math.floor(breakMinutes / 60)}時間${String(breakMinutes % 60).padStart(2, "0")}分`;
+  if (calculatedWorkHoursInput) {
+    calculatedWorkHoursInput.value = Number.isFinite(autoHours) ? String(autoHours) : "";
+  }
+
   if (startTimeInput.value && endTimeInput.value && autoHours === null) {
     timeHint.textContent = "終了時刻は開始時刻より後に設定してください。";
     return;
   }
+
   if (autoHours !== null) {
-    workHoursInput.value = String(autoHours);
-    timeHint.textContent = `実働 ${autoHours} 時間（休憩 ${breakText} を差し引き、${settings.payrollTimeUnitMinutes}分単位で丸め）を自動計算しました。`;
+    if (manualHours !== null) {
+      timeHint.textContent = `自動計算は ${autoHours} 時間です。手入力上書き ${manualHours} 時間を採用します。`;
+    } else {
+      timeHint.textContent = `実労働 ${autoHours} 時間（控除 ${breakText}、${settings.payrollTimeUnitMinutes}分単位で丸め）を自動計算しました。`;
+    }
+    renderWorkerTimeDetailList();
     return;
   }
+
   if (!startTimeInput.value && !endTimeInput.value) {
-    if (manualHours > 0) {
-      workHoursInput.value = String(manualHours);
+    if (manualHours !== null) {
       timeHint.textContent = `作業時間 ${manualHours} 時間（${settings.payrollTimeUnitMinutes}分単位で丸めた手入力値）を使用します。`;
+      renderWorkerTimeDetailList();
       return;
     }
-    workHoursInput.value = String(defaultHours);
     timeHint.textContent = `時刻未入力のため、標準勤務 ${settings.workdayStartTime}〜${settings.workdayEndTime}（休憩 ${breakText}）= ${defaultHours} 時間で扱います。`;
+    renderWorkerTimeDetailList();
     return;
   }
+
   timeHint.textContent = "開始時刻と終了時刻をセットで入力すると、実働時間を自動計算します。";
+  renderWorkerTimeDetailList();
 }
 
 function downloadJsonBackup() {
@@ -7185,8 +7658,8 @@ function getDailyReportRecords(targetDate) {
   return records
     .filter((record) => record.workDate === targetDate)
     .sort((a, b) => {
-      const startA = parseTimeToMinutes(a.startTime);
-      const startB = parseTimeToMinutes(b.startTime);
+      const startA = parseTimeToMinutes(getRecordStartTime(a));
+      const startB = parseTimeToMinutes(getRecordStartTime(b));
       if (startA !== null && startB !== null && startA !== startB) {
         return startA - startB;
       }
@@ -7419,8 +7892,8 @@ function buildDailyReportRowsHtml(dayRecords) {
     const names = getRecordDisplay(record);
     const metrics = getRecordMetrics(record);
     const environment = normalizeRecordEnvironment(record);
-    const startTime = record.startTime || text.none;
-    const endTime = record.endTime || text.none;
+    const startTime = getRecordStartTime(record) || text.none;
+    const endTime = getRecordEndTime(record) || text.none;
     const temperature = formatTemperature(environment.temperatureC);
     const weatherBase = environment.weather || text.none;
     const weatherDetail = formatWeatherInfoSummary(environment.weatherInfo);
@@ -7732,8 +8205,9 @@ function getMonthlyReportData(targetMonth) {
 
   const workerHoursEntries = Array.from(
     monthlyRecords.reduce((map, record) => {
-      const hours = Number(record.workHours || 0);
       getAssignedWorkers(record).forEach((worker) => {
+        const hours = Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0);
+        if (!Number.isFinite(hours) || hours <= 0) return;
         const key = worker.id || worker.displayName;
         map.set(key, {
           label: worker.displayName || "未設定",
@@ -9389,45 +9863,49 @@ function exportCsvWithTemperature() {
   }
 
   const header = [
-    "\u4f5c\u696d\u65e5",
-    "\u5712\u5730",
-    "\u533a\u753b",
-    "\u54c1\u7a2e",
-    "\u4f5c\u696d\u533a\u5206",
-    "\u5f53\u65e5\u30b0\u30eb\u30fc\u30d7",
-    "\u4f7f\u7528\u56fa\u5b9a\u30c1\u30fc\u30e0\u30bb\u30c3\u30c8",
-    "\u65e5\u5225\u30c1\u30fc\u30e0\u7de8\u6210",
-    "\u4f5c\u696d\u6642\u9593",
-    "\u4f5c\u696d\u4eba\u6570",
-    "\u5ef6\u3079\u4eba\u6642",
-    "\u6982\u7b97\u4eba\u4ef6\u8cbb",
-    "\u4ee3\u8868\u4f5c\u696d\u8005\u540d",
-    "\u4f5c\u696d\u8005\u4e00\u89a7",
-    "\u6240\u5c5e\u533a\u5206",
-    "\u6642\u7d66\u5358\u4fa1",
-    "\u958b\u59cb\u6642\u523b",
-    "\u7d42\u4e86\u6642\u523b",
-    "\u73fe\u5728\u6c17\u6e29\uff08\u2103\uff09",
-    "\u5e73\u5747\u6c17\u6e29\uff08\u2103\uff09",
-    "\u5929\u6c17",
-    "\u6700\u9ad8\u6c17\u6e29\uff08\u2103\uff09",
-    "\u6700\u4f4e\u6c17\u6e29\uff08\u2103\uff09",
-    "\u964d\u6c34\u91cf\uff08mm\uff09",
-    "\u6e7f\u5ea6\uff08%\uff09",
-    "\u98a8\u901f\uff08m/s\uff09",
-    "\u5929\u6c17\u30b3\u30fc\u30c9",
-    "\u5929\u6c17\u53d6\u5f97\u6642\u523b",
-    "\u73fe\u5834\u78ba\u8a8d\u30b5\u30de\u30ea\u30fc",
-    "\u75c5\u6c17\u767a\u751f",
-    "\u5bb3\u866b\u767a\u751f",
-    "\u85ac\u5264\u6563\u5e03",
-    "\u75c5\u6591\u30fb\u98df\u5bb3",
-    "\u8449\u679d\u306e\u6ffe\u308c",
-    "\u306c\u304b\u308b\u307f",
-    "\u4f5c\u696d\u3057\u306b\u304f\u3055",
-    "\u73fe\u5834\u30e1\u30e2",
-    "\u4f7f\u7528\u8cc7\u6750",
-    "\u30e1\u30e2"
+    "作業日",
+    "園地",
+    "区画",
+    "品種",
+    "作業区分",
+    "当日グループ",
+    "使用固定チームセット",
+    "日別チーム編成",
+    "作業時間",
+    "作業人数",
+    "延べ人時",
+    "概算人件費",
+    "代表作業者名",
+    "作業者一覧",
+    "所属区分",
+    "時給単価",
+    "開始時刻",
+    "終了時刻",
+    "カウントしない時間（分）",
+    "自動計算労働時間",
+    "手入力上書き労働時間",
+    "作業者別勤務詳細",
+    "現在気温（℃）",
+    "平均気温（℃）",
+    "天気",
+    "最高気温（℃）",
+    "最低気温（℃）",
+    "降水量（mm）",
+    "湿度（%）",
+    "風速（m/s）",
+    "天気コード",
+    "天気取得時刻",
+    "現場確認サマリー",
+    "病気発生",
+    "害虫発生",
+    "薬剤散布",
+    "病斑・食害",
+    "葉枝の濡れ",
+    "ぬかるみ",
+    "作業しにくさ",
+    "現場メモ",
+    "使用資材",
+    "メモ"
   ];
 
   const rows = records
@@ -9445,6 +9923,23 @@ function exportCsvWithTemperature() {
       const teamPlanText = teamPlan
         ? teamPlan.workerIds.map((workerId) => getWorkerById(workerId)?.displayName).filter(Boolean).join("\u3001")
         : "";
+      const recordStartTime = getRecordStartTime(record);
+      const recordEndTime = getRecordEndTime(record);
+      const recordBreakMinutes = getRecordBreakMinutes(record, companySettings);
+      const recordCalculatedHours = Number.isFinite(Number(record.calculatedWorkHours))
+        ? Number(record.calculatedWorkHours)
+        : calculateHoursFromRange(recordStartTime, recordEndTime, companySettings, recordBreakMinutes);
+      const recordManualHours = normalizeManualHours(record.manualWorkHours ?? record.manualHours, companySettings);
+      const workerTimeDetailText = Object.entries(getRecordWorkerTimeDetails(record, companySettings))
+        .map(([workerId, detail]) => {
+          const worker = getWorkerById(workerId);
+          const adoptedHours = Number.isFinite(detail.resolvedHours)
+            ? detail.resolvedHours
+            : (Number.isFinite(detail.manualHours) ? detail.manualHours : detail.calculatedHours);
+          const adoptedText = Number.isFinite(adoptedHours) ? `${adoptedHours.toFixed(1)}h` : "-";
+          return `${worker?.displayName || workerId}(${detail.startTime || "--"}-${detail.endTime || "--"} / 控除${detail.breakMinutes}分 / ${adoptedText})`;
+        })
+        .join(" / ");
 
       return [
         record.workDate,
@@ -9463,8 +9958,12 @@ function exportCsvWithTemperature() {
         names.workerListText,
         names.workerCategory,
         names.workerHourlyRate,
-        record.startTime,
-        record.endTime,
+        recordStartTime,
+        recordEndTime,
+        recordBreakMinutes,
+        Number.isFinite(recordCalculatedHours) ? recordCalculatedHours : "",
+        recordManualHours ?? "",
+        workerTimeDetailText,
         environment.temperatureC ?? "",
         weatherInfo?.tempAvg ?? "",
         environment.weather,
@@ -9519,14 +10018,24 @@ form.addEventListener("submit", (event) => {
     window.alert("作業者を1人以上選択してください。");
     return;
   }
+  const breakMinutesValue = Number(breakMinutesInput?.value ?? normalizeCompanySettings(companySettings).workdayBreakMinutes);
+  if (!Number.isFinite(breakMinutesValue) || breakMinutesValue < 0 || breakMinutesValue > 600) {
+    window.alert("カウントしない時間（分）は0〜600で入力してください。");
+    return;
+  }
   if ((startTimeInput.value && !endTimeInput.value) || (!startTimeInput.value && endTimeInput.value)) {
     window.alert("開始時刻と終了時刻はセットで入力してください。");
     return;
   }
-  if (startTimeInput.value && endTimeInput.value && calculateHoursFromRange(startTimeInput.value, endTimeInput.value) === null) {
+  if (
+    startTimeInput.value &&
+    endTimeInput.value &&
+    calculateHoursFromRange(startTimeInput.value, endTimeInput.value, companySettings, breakMinutesValue) === null
+  ) {
     window.alert("終了時刻は開始時刻より後に設定してください。");
     return;
   }
+  pruneWorkerTimeDetailsDraft();
   const record = getFormData();
   const index = records.findIndex((item) => item.id === record.id);
   if (index >= 0) records[index] = record;
@@ -9581,7 +10090,22 @@ groupSelect.addEventListener("change", () => {
 });
 startTimeInput.addEventListener("change", updateTimeHint);
 endTimeInput.addEventListener("change", updateTimeHint);
+if (breakMinutesInput) {
+  breakMinutesInput.addEventListener("input", updateTimeHint);
+}
 workHoursInput.addEventListener("input", updateTimeHint);
+if (applyStandardWorkTimeButton) {
+  applyStandardWorkTimeButton.addEventListener("click", () => {
+    applyDefaultWorkScheduleToForm(true);
+    updateTimeHint();
+  });
+}
+if (applyCommonTimeToWorkersButton) {
+  applyCommonTimeToWorkersButton.addEventListener("click", () => {
+    applyCommonTimeToSelectedWorkers();
+    updateTimeHint();
+  });
+}
 if (taskTypeSearchInput) {
   taskTypeSearchInput.addEventListener("input", () => {
     renderTaskTypeChecklist();

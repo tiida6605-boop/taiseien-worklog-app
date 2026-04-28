@@ -128,11 +128,6 @@
 
           <div class="form-row">
             <label>
-              作業時間
-              <input type="number" id="workHours" min="0" max="24" step="0.25" placeholder="例: 2.5">
-            </label>
-
-            <label>
               現在気温（℃）
               <input type="number" id="temperatureC" min="-30" max="60" step="0.1" inputmode="decimal" placeholder="例: 18">
             </label>
@@ -210,22 +205,45 @@
               </div>
               <p class="worker-picker__hint" id="workerPickerHint">先にグループを選択してください。</p>
               <div id="workerSelectionList" class="worker-selection-list" aria-live="polite"></div>
+              <button type="button" class="button button--settings button--small" id="applyCommonTimeToWorkersButton">全員に共通勤務時間を反映</button>
+              <div id="workerTimeDetailList" class="worker-time-detail-list" aria-live="polite"></div>
             </div>
           </div>
 
-          <div class="form-row">
-            <label>
-              開始時刻
-              <input type="time" id="startTime">
-            </label>
+          <section class="record-subsection worktime-subsection">
+            <h3 class="record-subsection__title">勤務時間</h3>
+            <div class="form-row form-row--triple">
+              <label>
+                開始時刻
+                <input type="time" id="startTime">
+              </label>
 
-            <label>
-              終了時刻
-              <input type="time" id="endTime">
-            </label>
-          </div>
+              <label>
+                終了時刻
+                <input type="time" id="endTime">
+              </label>
 
-          <p class="form-hint" id="timeHint">開始時刻と終了時刻を入れると、休憩時間を差し引いた実働時間を自動計算します。</p>
+              <label>
+                カウントしない時間（分）
+                <input type="number" id="breakMinutes" min="0" max="600" step="15" inputmode="numeric" placeholder="例: 90">
+              </label>
+            </div>
+            <div class="form-row form-row--triple">
+              <label>
+                自動計算された労働時間（時間）
+                <input type="number" id="calculatedWorkHours" readonly tabindex="-1" min="0" step="0.25" placeholder="自動計算">
+              </label>
+              <label>
+                労働時間を手入力で上書き（任意）
+                <input type="number" id="workHours" min="0" max="24" step="0.25" inputmode="decimal" placeholder="例: 8.0">
+              </label>
+              <div class="worktime-standard-actions">
+                <button type="button" class="button button--view" id="applyStandardWorkTimeButton">標準時間を入れる</button>
+              </div>
+            </div>
+            <p class="form-hint">標準勤務: 7:30〜11:30 / 13:00〜17:00（控除 90分）= 実労働 8.0時間</p>
+            <p class="form-hint" id="timeHint">開始・終了・控除分から実労働時間を自動計算します。必要なら手入力で上書きできます。</p>
+          </section>
 
           <section class="record-subsection">
             <h3 class="record-subsection__title">現場確認（手入力）</h3>
