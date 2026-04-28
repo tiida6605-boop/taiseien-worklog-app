@@ -205,7 +205,7 @@ const WORK_TYPE_CATEGORIES = [
   {
     key: "tree",
     label: "樹体管理",
-    items: ["摘果", "葉取り", "ツル回し", "シルバー作業", "袋掛け"]
+    items: ["摘花", "摘花（花粉）", "開葯", "摘果", "葉取り", "ツル回し", "シルバー作業", "袋掛け"]
   },
   {
     key: "protection",
@@ -226,6 +226,9 @@ const WORK_TYPE_CATEGORIES = [
 const WORK_TYPE_RECENT_SECTION_LABEL = "最近使った作業";
 const WORK_TYPE_UNKNOWN_SECTION_LABEL = "既存項目（互換）";
 const WORK_TYPE_RECENT_LIMIT = 8;
+const WORK_TYPE_SEARCH_ALIASES = {
+  "開葯": ["かいやく"]
+};
 
 const form = document.getElementById("recordForm");
 const recordIdInput = document.getElementById("recordId");
@@ -657,6 +660,17 @@ function normalizeSearchText(value) {
   return normalizeText(value).toLocaleLowerCase("ja-JP");
 }
 
+function getWorkTypeSearchTexts(workType) {
+  const label = normalizeText(workType);
+  const aliases = Array.isArray(WORK_TYPE_SEARCH_ALIASES[label]) ? WORK_TYPE_SEARCH_ALIASES[label] : [];
+  return [label, ...aliases].map((value) => normalizeSearchText(value)).filter(Boolean);
+}
+
+function matchesWorkTypeQuery(workType, query) {
+  if (!query) return true;
+  return getWorkTypeSearchTexts(workType).some((text) => text.includes(query));
+}
+
 function normalizeWorkTypeList(values, fallbackValue = "") {
   const list = Array.isArray(values)
     ? values
@@ -843,7 +857,7 @@ function renderTaskTypeChecklist() {
   const visibleWorkTypeOptions = allWorkTypeOptions
     .filter((workType) => {
       if (!query) return true;
-      const matches = normalizeSearchText(workType).includes(query);
+      const matches = matchesWorkTypeQuery(workType, query);
       return matches || selectedSet.has(workType);
     });
   taskTypeList.innerHTML = "";
