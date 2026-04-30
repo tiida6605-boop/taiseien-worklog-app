@@ -6147,18 +6147,25 @@ function setSummarySection(sectionKey, options = {}) {
   focusElementLater(resolvedFocus);
 }
 
+function normalizeAppViewKey(viewKey) {
+  const normalized = normalizeText(viewKey);
+  if (normalized === "history") return "records";
+  return normalized;
+}
+
 function setAppView(viewKey, options = {}) {
-  if (!viewKey || !appViewPanelMap[viewKey] || !appViewPanels.length) return;
+  const normalizedViewKey = normalizeAppViewKey(viewKey);
+  if (!normalizedViewKey || !appViewPanelMap[normalizedViewKey] || !appViewPanels.length) return;
   const { scrollIntoView = true, focusElement = null } = options;
-  activeAppViewKey = viewKey;
+  activeAppViewKey = normalizedViewKey;
 
   appViewPanels.forEach((panel) => {
-    panel.hidden = !appViewPanelMap[viewKey].includes(panel.id);
+    panel.hidden = !appViewPanelMap[normalizedViewKey].includes(panel.id);
   });
 
   if (bottomNavButtons.length) {
     bottomNavButtons.forEach((button) => {
-      const isActive = button.dataset.appView === viewKey;
+      const isActive = button.dataset.appView === normalizedViewKey;
       button.classList.toggle("is-active", isActive);
       if (isActive) {
         button.setAttribute("aria-current", "page");
@@ -6168,15 +6175,15 @@ function setAppView(viewKey, options = {}) {
     });
   }
   if (document?.body) {
-    document.body.dataset.currentView = viewKey;
+    document.body.dataset.currentView = normalizedViewKey;
   }
 
-  if (viewKey === "settings") {
+  if (normalizedViewKey === "settings") {
     applySettingsSectionState();
     if (document?.body) {
       delete document.body.dataset.summarySection;
     }
-  } else if (viewKey === "summary") {
+  } else if (normalizedViewKey === "summary") {
     applySummarySectionState();
     if (document?.body) {
       delete document.body.dataset.settingsSection;
@@ -6188,13 +6195,13 @@ function setAppView(viewKey, options = {}) {
 
   if (scrollIntoView) {
     let activePanel = null;
-    if (viewKey === "settings") {
+    if (normalizedViewKey === "settings") {
       activePanel = activeSettingsSection === "qr" ? qrPanel : masterPanel;
-    } else if (viewKey === "summary") {
+    } else if (normalizedViewKey === "summary") {
       activePanel = analyticsPanel;
     }
     if (!activePanel) {
-      const firstPanelId = appViewPanelMap[viewKey][0];
+      const firstPanelId = appViewPanelMap[normalizedViewKey][0];
       activePanel = document.getElementById(firstPanelId);
     }
     if (activePanel) {
@@ -6203,6 +6210,25 @@ function setAppView(viewKey, options = {}) {
   }
 
   focusElementLater(focusElement);
+}
+
+function bindEvent(element, eventName, handler, options) {
+  if (!element || typeof element.addEventListener !== "function") {
+    console.warn("要素が見つかりません:", element);
+    return null;
+  }
+  element.addEventListener(eventName, handler, options);
+  return element;
+}
+
+function bindClick(id, handler) {
+  const el = document.getElementById(id);
+  if (!el) {
+    console.warn("要素が見つかりません:", id);
+    return null;
+  }
+  el.addEventListener("click", handler);
+  return el;
 }
 
 function moveToShortcut(targetPanel, focusElement) {
@@ -11140,7 +11166,7 @@ function openPayrollIndividualReportWindow(row, periodConfig, preferredAction = 
     popupBlockedMessage: "\u500b\u4eba\u5225\u660e\u7d30\u306e\u8868\u793a\u753b\u9762\u3092\u958b\u3051\u307e\u305b\u3093\u3067\u3057\u305f\u3002"
   });
 }
-form.addEventListener("submit", (event) => {
+bindEvent(form, "submit", (event) => {
   event.preventDefault();
   if (!orchardSelect.value || !plotSelect.value || !varietySelect.value) {
     window.alert("園地・区画・品種をすべて選択してください、E);
@@ -11206,7 +11232,7 @@ form.addEventListener("submit", (event) => {
   render();
 });
 
-orchardSelect.addEventListener("change", () => {
+bindEvent(orchardSelect, "change", () => {
   renderPlotOptions(orchardSelect.value);
   recordWeatherInfo = null;
   clearWeatherDetailInputs();
@@ -11219,7 +11245,7 @@ orchardSelect.addEventListener("change", () => {
 if (fetchWeatherButton) {
   fetchWeatherButton.addEventListener("click", handleFetchWeatherClick);
 }
-workDateInput.addEventListener("change", () => {
+bindEvent(workDateInput, "change", () => {
   const teamPlan = getTeamPlan(workDateInput.value, groupSelect.value);
   if (teamPlan) {
     selectedWorkerIds = teamPlan.workerIds.slice();
@@ -11234,7 +11260,7 @@ workDateInput.addEventListener("change", () => {
   syncWorkerCountFromSelection();
   renderWorkerSelectionList();
 });
-groupSelect.addEventListener("change", () => {
+bindEvent(groupSelect, "change", () => {
   const teamPlan = getTeamPlan(workDateInput.value, groupSelect.value);
   if (teamPlan) {
     selectedWorkerIds = teamPlan.workerIds.slice();
@@ -11249,12 +11275,12 @@ groupSelect.addEventListener("change", () => {
   syncWorkerCountFromSelection();
   renderWorkerSelectionList();
 });
-startTimeInput.addEventListener("change", updateTimeHint);
-endTimeInput.addEventListener("change", updateTimeHint);
+bindEvent(startTimeInput, "change", updateTimeHint);
+bindEvent(endTimeInput, "change", updateTimeHint);
 if (breakMinutesInput) {
   breakMinutesInput.addEventListener("input", updateTimeHint);
 }
-workHoursInput.addEventListener("input", updateTimeHint);
+bindEvent(workHoursInput, "input", updateTimeHint);
 if (workShiftTypeInput) {
   workShiftTypeInput.addEventListener("change", () => {
     applyShiftPresetToForm(workShiftTypeInput.value, true);
@@ -11285,11 +11311,11 @@ if (clearTaskTypesButton) {
     renderTaskTypeChecklist();
   });
 }
-resetButton.addEventListener("click", resetRecordForm);
-orchardFilterInput.addEventListener("change", renderRecords);
-varietyFilterInput.addEventListener("change", renderRecords);
-taskFilterInput.addEventListener("change", renderRecords);
-workerFilterInput.addEventListener("change", renderRecords);
+bindEvent(resetButton, "click", resetRecordForm);
+bindEvent(orchardFilterInput, "change", renderRecords);
+bindEvent(varietyFilterInput, "change", renderRecords);
+bindEvent(taskFilterInput, "change", renderRecords);
+bindEvent(workerFilterInput, "change", renderRecords);
 if (workerSearchInput) {
   workerSearchInput.addEventListener("input", renderMasterLists);
 }
@@ -11324,21 +11350,19 @@ if (historyCalendarTodayButton) {
     renderRecords();
   });
 }
-exportButton.addEventListener("click", exportCsvWithTemperature);
-if (shortcutRecordFormButton) {
-  shortcutRecordFormButton.addEventListener("click", () => moveToShortcut(recordFormPanel, workDateInput));
-}
-if (shortcutTeamPlanButton) {
-  shortcutTeamPlanButton.addEventListener("click", () => moveToShortcut(teamPlanPanel, teamPlanDateInput));
-}
-if (shortcutDailyReportButton) {
-  shortcutDailyReportButton.addEventListener("click", () => {
-    if (dailyReportDateInput && !dailyReportDateInput.value) {
-      dailyReportDateInput.value = getTodayString();
-    }
-    moveToShortcut(recordListPanel, dailyReportDateInput);
-  });
-}
+bindEvent(exportButton, "click", exportCsvWithTemperature);
+bindClick("shortcutRecordFormButton", () => {
+  setAppView("record", { scrollIntoView: true, focusElement: workDateInput });
+});
+bindClick("shortcutDailyReportButton", () => {
+  if (dailyReportDateInput && !dailyReportDateInput.value) {
+    dailyReportDateInput.value = getTodayString();
+  }
+  setAppView("history", { scrollIntoView: true, focusElement: dailyReportDateInput || orchardFilterInput });
+});
+bindClick("shortcutTeamPlanButton", () => {
+  setAppView("team", { scrollIntoView: true, focusElement: teamPlanDateInput });
+});
 if (shortcutMonthlyReportButton) {
   shortcutMonthlyReportButton.addEventListener("click", () => {
     setSettingsSection("company", {
@@ -11348,15 +11372,13 @@ if (shortcutMonthlyReportButton) {
     });
   });
 }
-if (shortcutAnnualReportButton) {
-  shortcutAnnualReportButton.addEventListener("click", () => {
-    setSummarySection("top", {
-      switchToSummaryView: true,
-      scrollIntoView: true,
-      focusElement: summaryMenuDailyButton
-    });
+bindClick("shortcutAnnualReportButton", () => {
+  setSummarySection("top", {
+    switchToSummaryView: true,
+    scrollIntoView: true,
+    focusElement: summaryMenuDailyButton
   });
-}
+});
 if (settingsMenuButtons.length) {
   settingsMenuButtons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -11412,7 +11434,7 @@ if (bottomNavButtons.length) {
     settings: settingsMenuCompanyButton
   };
   bottomNavButtons.forEach((button) => {
-    button.addEventListener("click", () => {
+    bindEvent(button, "click", () => {
       const targetView = button.dataset.appView;
       if (!targetView || !appViewPanelMap[targetView]) return;
       if (targetView === "settings") {
@@ -11496,8 +11518,8 @@ if (worktimePersonalCsvButton) {
 if (worktimeOverallCsvButton) {
   worktimeOverallCsvButton.addEventListener("click", exportWorktimeOverallCsv);
 }
-comparisonExportButton.addEventListener("click", exportCumulativeComparisonCsv);
-qrScanButton.addEventListener("click", openQrScanner);
+bindEvent(comparisonExportButton, "click", exportCumulativeComparisonCsv);
+bindEvent(qrScanButton, "click", openQrScanner);
 if (openOrchardQrSheetButton) {
   openOrchardQrSheetButton.addEventListener("click", () => openQrLabelSheet("orchard"));
 }
@@ -11537,17 +11559,17 @@ if (qrFilterCodeInput) {
 if (qrFilterTypeInput) {
   qrFilterTypeInput.addEventListener("change", renderQrCodeList);
 }
-backupButton.addEventListener("click", downloadJsonBackup);
-restoreButton.addEventListener("click", () => restoreInput.click());
-restoreInput.addEventListener("change", handleRestoreFile);
+bindEvent(backupButton, "click", downloadJsonBackup);
+bindEvent(restoreButton, "click", () => restoreInput?.click());
+bindEvent(restoreInput, "change", handleRestoreFile);
 if (resetAllDataButton) {
   resetAllDataButton.addEventListener("click", resetAllDataToSeedState);
 }
-comparisonPeriodInput.addEventListener("change", renderCumulativeComparison);
-comparisonSortMetricInput.addEventListener("change", renderCumulativeComparison);
-comparisonSortOrderInput.addEventListener("change", renderCumulativeComparison);
-comparisonFromDateInput.addEventListener("change", renderCumulativeComparison);
-comparisonToDateInput.addEventListener("change", renderCumulativeComparison);
+bindEvent(comparisonPeriodInput, "change", renderCumulativeComparison);
+bindEvent(comparisonSortMetricInput, "change", renderCumulativeComparison);
+bindEvent(comparisonSortOrderInput, "change", renderCumulativeComparison);
+bindEvent(comparisonFromDateInput, "change", renderCumulativeComparison);
+bindEvent(comparisonToDateInput, "change", renderCumulativeComparison);
 if (payrollCloseTypeInput) {
   payrollCloseTypeInput.addEventListener("change", renderPayrollSection);
 }
@@ -11629,9 +11651,9 @@ if (annualReportSortMetricInput) {
 if (annualReportSortOrderInput) {
   annualReportSortOrderInput.addEventListener("change", renderAnnualReport);
 }
-qrScannerCloseButton.addEventListener("click", closeQrScanner);
-qrScannerDialog.addEventListener("close", stopQrScannerStream);
-qrManualApplyButton.addEventListener("click", () => {
+bindEvent(qrScannerCloseButton, "click", closeQrScanner);
+bindEvent(qrScannerDialog, "close", stopQrScannerStream);
+bindEvent(qrManualApplyButton, "click", () => {
   const value = qrManualInput.value.trim();
   if (!value) {
     window.alert("手�E力コードを入力してください、E);
@@ -11640,7 +11662,7 @@ qrManualApplyButton.addEventListener("click", () => {
   handleQrDecodedValue(value);
 });
 
-orchardForm.addEventListener("submit", (event) => {
+bindEvent(orchardForm, "submit", (event) => {
   event.preventDefault();
   const id = orchardIdInput.value || createId("orchard");
   const name = orchardNameInput.value.trim();
@@ -11675,7 +11697,7 @@ orchardForm.addEventListener("submit", (event) => {
   render();
 });
 
-plotForm.addEventListener("submit", (event) => {
+bindEvent(plotForm, "submit", (event) => {
   event.preventDefault();
   const id = plotIdInput.value || createId("plot");
   const orchardId = plotOrchardInput.value;
@@ -11699,7 +11721,7 @@ plotForm.addEventListener("submit", (event) => {
   render();
 });
 
-varietyForm.addEventListener("submit", (event) => {
+bindEvent(varietyForm, "submit", (event) => {
   event.preventDefault();
   const id = varietyIdInput.value || createId("variety");
   const name = varietyNameInput.value.trim();
@@ -11717,7 +11739,7 @@ varietyForm.addEventListener("submit", (event) => {
   render();
 });
 
-groupForm.addEventListener("submit", (event) => {
+bindEvent(groupForm, "submit", (event) => {
   event.preventDefault();
   const id = groupIdInput.value || createId("group");
   const name = groupNameInput.value.trim();
@@ -11755,12 +11777,12 @@ groupForm.addEventListener("submit", (event) => {
   render();
 });
 
-teamSetGroupIdInput.addEventListener("change", () => {
+bindEvent(teamSetGroupIdInput, "change", () => {
   selectedTeamSetWorkerIds = selectedTeamSetWorkerIds.filter((workerId) => getWorkerById(workerId)?.isActive);
   renderTeamSetWorkerList();
 });
 
-teamSetForm.addEventListener("submit", (event) => {
+bindEvent(teamSetForm, "submit", (event) => {
   event.preventDefault();
   const id = teamSetIdInput.value || createId("team-set");
   const name = teamSetNameInput.value.trim();
@@ -11789,7 +11811,7 @@ teamSetForm.addEventListener("submit", (event) => {
   render();
 });
 
-workerForm.addEventListener("submit", (event) => {
+bindEvent(workerForm, "submit", (event) => {
   event.preventDefault();
   const id = workerIdInput.value || createId("worker");
   const fullName = workerFullNameInput.value.trim();
@@ -11811,13 +11833,13 @@ workerForm.addEventListener("submit", (event) => {
   render();
 });
 
-membershipWorkerIdInput.addEventListener("change", () => {
+bindEvent(membershipWorkerIdInput, "change", () => {
   selectedMembershipGroupIds = [];
   membershipPrimaryGroupIdInput.value = "";
   renderMembershipGroupList();
 });
 
-membershipForm.addEventListener("submit", (event) => {
+bindEvent(membershipForm, "submit", (event) => {
   event.preventDefault();
   const workerId = membershipWorkerIdInput.value;
   if (!workerId) {
@@ -11848,26 +11870,26 @@ membershipForm.addEventListener("submit", (event) => {
   render();
 });
 
-teamPlanDateInput.addEventListener("change", () => {
+bindEvent(teamPlanDateInput, "change", () => {
   selectedTeamPlanWorkerIds = [];
   teamPlanIdInput.value = "";
   renderTeamPlanWorkerList();
 });
 
-teamPlanGroupInput.addEventListener("change", () => {
+bindEvent(teamPlanGroupInput, "change", () => {
   selectedTeamPlanWorkerIds = [];
   teamPlanIdInput.value = "";
   renderTeamPlanWorkerList();
 });
 
-teamSetSelectInput.addEventListener("change", () => {
+bindEvent(teamSetSelectInput, "change", () => {
   const selected = getTeamSetById(teamSetSelectInput.value);
   teamSetHint.textContent = selected
     ? `現在選択中: ${selected.name}�E�忁E��に応じて欠勤老E��外し、応援老E��追加できます）`
     : "固定チームセチE��を呼び出すと、参加老E��一括で反映できます、E;
 });
 
-teamPlanForm.addEventListener("submit", (event) => {
+bindEvent(teamPlanForm, "submit", (event) => {
   event.preventDefault();
   if (!teamPlanDateInput.value || !teamPlanGroupInput.value) {
     window.alert("編成日と作業グループを選択してください、E);
@@ -11892,7 +11914,7 @@ teamPlanForm.addEventListener("submit", (event) => {
   render();
 });
 
-teamPlanCopyButton.addEventListener("click", () => {
+bindEvent(teamPlanCopyButton, "click", () => {
   if (!teamPlanDateInput.value || !teamPlanGroupInput.value) {
     window.alert("先に編成日と作業グループを選択してください、E);
     return;
@@ -11907,7 +11929,7 @@ teamPlanCopyButton.addEventListener("click", () => {
   renderTeamPlanWorkerList();
 });
 
-teamPlanLoadSetButton.addEventListener("click", () => {
+bindEvent(teamPlanLoadSetButton, "click", () => {
   if (!teamPlanGroupInput.value) {
     window.alert("先に作業グループを選択してください、E);
     return;
@@ -11921,7 +11943,7 @@ teamPlanLoadSetButton.addEventListener("click", () => {
   renderTeamPlanWorkerList();
 });
 
-teamPlanApplyButton.addEventListener("click", () => {
+bindEvent(teamPlanApplyButton, "click", () => {
   if (!teamPlanDateInput.value || !teamPlanGroupInput.value) {
     window.alert("先に編成日と作業グループを選択してください、E);
     return;
@@ -11940,24 +11962,24 @@ teamPlanApplyButton.addEventListener("click", () => {
   moveToShortcut(recordFormPanel, workDateInput);
 });
 
-teamPlanResetButton.addEventListener("click", () => {
+bindEvent(teamPlanResetButton, "click", () => {
   resetTeamPlanForm();
   renderTeamPlanWorkerList();
 });
 
-orchardResetButton.addEventListener("click", resetOrchardForm);
-plotResetButton.addEventListener("click", resetPlotForm);
-varietyResetButton.addEventListener("click", resetVarietyForm);
-groupResetButton.addEventListener("click", () => {
+bindEvent(orchardResetButton, "click", resetOrchardForm);
+bindEvent(plotResetButton, "click", resetPlotForm);
+bindEvent(varietyResetButton, "click", resetVarietyForm);
+bindEvent(groupResetButton, "click", () => {
   resetGroupForm();
   renderGroupMemberList();
 });
-teamSetResetButton.addEventListener("click", () => {
+bindEvent(teamSetResetButton, "click", () => {
   resetTeamSetForm();
   renderTeamSetWorkerList();
 });
-workerResetButton.addEventListener("click", resetWorkerForm);
-membershipResetButton.addEventListener("click", () => {
+bindEvent(workerResetButton, "click", resetWorkerForm);
+bindEvent(membershipResetButton, "click", () => {
   resetMembershipForm();
   renderMembershipGroupList();
 });
@@ -12045,8 +12067,8 @@ if (companySettingsForm) {
     const effectiveTimeUnitMinutes = previewSettings.payrollTimeUnitMinutes === 30 ? 15 : previewSettings.payrollTimeUnitMinutes;
     companyFiscalYearPreview.textContent = `\u73fe\u5728\u306e\u6c7a\u7b97\u5e74\u5ea6: ${formatDateYmd(fiscalRange.from)}\u301c${formatDateYmd(fiscalRange.to)} / \u7a4d\u7b97\u6e29\u5ea6\u57fa\u6e96: ${baseTemperatureText}\u2103 / \u6a19\u6e96\u52e4\u52d9: ${previewSettings.workdayStartTime}\u301c${previewSettings.workdayEndTime}\uff08\u4f11\u61a9 ${breakText}\uff09= ${defaultHours}\u6642\u9593 / \u4e38\u3081: ${effectiveTimeUnitMinutes}\u5206`;
   };
-  fiscalClosingMonthInput.addEventListener("input", updatePreview);
-  fiscalClosingDayInput.addEventListener("input", updatePreview);
+  bindEvent(fiscalClosingMonthInput, "input", updatePreview);
+  bindEvent(fiscalClosingDayInput, "input", updatePreview);
   if (degreeDayBaseTemperatureInput) {
     degreeDayBaseTemperatureInput.addEventListener("input", updatePreview);
   }
@@ -12166,7 +12188,13 @@ resetTeamSetForm();
 resetWorkerForm();
 resetMembershipForm();
 resetTeamPlanForm();
-render();
 setAppView(activeAppViewKey, { scrollIntoView: false });
+try {
+  render();
+} catch (error) {
+  console.error("初期描画中にエラーが発生しました。", error);
+} finally {
+  setAppView(activeAppViewKey, { scrollIntoView: false });
+}
 setWeatherFetchStatus(WEATHER_FETCH_HINT_TEXT);
 
