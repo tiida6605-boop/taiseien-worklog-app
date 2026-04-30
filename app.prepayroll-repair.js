@@ -378,8 +378,7 @@ const WORK_SHIFT_TYPE = Object.freeze({
   FULL_DAY: "full-day",
   MORNING: "morning",
   AFTERNOON: "afternoon",
-  CUSTOM: "custom",
-  MANUAL: "manual"
+  CUSTOM: "custom"
 });
 /*
 const FIXED_WEATHER_SOURCE = {
@@ -938,11 +937,10 @@ function ensureWorkShiftTypeInput() {
   const select = document.createElement("select");
   select.id = "workShiftType";
   [
-    { value: WORK_SHIFT_TYPE.FULL_DAY, label: "\u6a19\u6e96\u0031\u65e5" },
-    { value: WORK_SHIFT_TYPE.MORNING, label: "\u5348\u524d\u306e\u307f" },
-    { value: WORK_SHIFT_TYPE.AFTERNOON, label: "\u5348\u5f8c\u306e\u307f" },
-    { value: WORK_SHIFT_TYPE.CUSTOM, label: "\u6642\u9593\u6307\u5b9a" },
-    { value: WORK_SHIFT_TYPE.MANUAL, label: "\u624b\u5165\u529b" }
+    { value: WORK_SHIFT_TYPE.FULL_DAY, label: "1\u65e5\u52e4\u52d9" },
+    { value: WORK_SHIFT_TYPE.MORNING, label: "\u5348\u524d\u52e4\u52d9" },
+    { value: WORK_SHIFT_TYPE.AFTERNOON, label: "\u5348\u5f8c\u52e4\u52d9" },
+    { value: WORK_SHIFT_TYPE.CUSTOM, label: "\u5909\u5247\u52e4\u52d9" }
   ].forEach((optionItem) => {
     const option = document.createElement("option");
     option.value = optionItem.value;
@@ -973,7 +971,7 @@ function applyWorktimeUiText() {
   const worktimeSection = startTimeInput?.closest(".worktime-subsection");
   const hintNodes = worktimeSection ? worktimeSection.querySelectorAll(".form-hint") : [];
   if (hintNodes[0]) {
-    hintNodes[0].textContent = "\u6a19\u6e96\u0031\u65e5\u52e4\u52d9\u306f7:30\u301c17:00\u3001\u663c\u4f11\u307f\u30fb\u4f11\u61a9\u3068120\u5206\u3092\u63a7\u9664\u3057\u307e\u3059\u3002\u5348\u524d\u306e\u307f\u30fb\u5348\u5f8c\u306e\u307f\u306f15\u5206\u63a7\u9664\u3067\u3059\u3002\u6642\u9593\u6307\u5b9a\u3068\u624b\u5165\u529b\u306f\u5fc5\u8981\u306b\u5fdc\u3058\u3066\u8abf\u6574\u3057\u3066\u304f\u3060\u3055\u3044\u3002";
+    hintNodes[0].textContent = "\u901a\u5e38\u52e4\u52d9\u306f\u663c\u4f11\u307f90\u5206\u30fb\u4f11\u61a930\u5206\u306e\u5408\u8a08120\u5206\u3092\u63a7\u9664\u3057\u307e\u3059\u3002\u5348\u524d\u30fb\u5348\u5f8c\u52e4\u52d9\u306f15\u5206\u3092\u63a7\u9664\u3057\u307e\u3059\u3002\u5909\u5247\u52e4\u52d9\u306f\u63a7\u9664\u6642\u9593\u3092\u8abf\u6574\u3057\u3066\u304f\u3060\u3055\u3044\u3002";
   }
   if (timeHint) {
     timeHint.textContent = "\u958b\u59cb\u30fb\u7d42\u4e86\u30fb\u63a7\u9664\u6642\u9593\u304b\u3089\u3001\u7d66\u4e0e\u8a08\u7b97\u7528\u306e\u5b9f\u52b4\u50cd\u6642\u9593\u3092\u81ea\u52d5\u8a08\u7b97\u3057\u307e\u3059\u3002";
@@ -1071,20 +1069,17 @@ function matchesWorkTypeQuery(workType, query) {
 function normalizeShiftType(value, fallback = WORK_SHIFT_TYPE.FULL_DAY) {
   const normalized = normalizeSearchText(value).replace(/\s+/g, "");
   if (!normalized) return fallback;
-  if ([WORK_SHIFT_TYPE.FULL_DAY, "full", "day", "daily", "1day", "allday", "1\u65e5", "\u4e00\u65e5", "\u901a\u5e38", "\u901a\u5e38\u52e4\u52d9", "\u6a19\u6e96\u0031\u65e5", "\u6a19\u6e96\u0031\u65e5\u52e4\u52d9"].includes(normalized)) {
+  if ([WORK_SHIFT_TYPE.FULL_DAY, "full", "day", "daily", "1day", "allday", "1\u65e5", "\u4e00\u65e5", "\u901a\u5e38", "\u901a\u5e38\u52e4\u52d9"].includes(normalized)) {
     return WORK_SHIFT_TYPE.FULL_DAY;
   }
-  if ([WORK_SHIFT_TYPE.MORNING, "am", "morning", "\u5348\u524d", "\u5348\u524d\u306e\u307f"].includes(normalized)) {
+  if ([WORK_SHIFT_TYPE.MORNING, "am", "morning", "\u5348\u524d"].includes(normalized)) {
     return WORK_SHIFT_TYPE.MORNING;
   }
-  if ([WORK_SHIFT_TYPE.AFTERNOON, "pm", "afternoon", "\u5348\u5f8c", "\u5348\u5f8c\u306e\u307f"].includes(normalized)) {
+  if ([WORK_SHIFT_TYPE.AFTERNOON, "pm", "afternoon", "\u5348\u5f8c"].includes(normalized)) {
     return WORK_SHIFT_TYPE.AFTERNOON;
   }
-  if ([WORK_SHIFT_TYPE.CUSTOM, "custom", "irregular", "\u5909\u5247", "\u6642\u9593\u6307\u5b9a", "\u6642\u9593\u6307\u5b9a\u52e4\u52d9"].includes(normalized)) {
+  if ([WORK_SHIFT_TYPE.CUSTOM, "custom", "irregular", "\u5909\u5247", "\u6642\u9593\u6307\u5b9a"].includes(normalized)) {
     return WORK_SHIFT_TYPE.CUSTOM;
-  }
-  if ([WORK_SHIFT_TYPE.MANUAL, "manual", "\u624b\u5165\u529b", "\u6642\u9593\u624b\u5165\u529b"].includes(normalized)) {
-    return WORK_SHIFT_TYPE.MANUAL;
   }
   return fallback;
 }
@@ -1101,11 +1096,10 @@ function getShiftTypeLabel(shiftType) {
 */
 function getShiftTypeLabel(shiftType) {
   const normalized = normalizeShiftType(shiftType, WORK_SHIFT_TYPE.CUSTOM);
-  if (normalized === WORK_SHIFT_TYPE.MORNING) return "\u5348\u524d\u306e\u307f";
-  if (normalized === WORK_SHIFT_TYPE.AFTERNOON) return "\u5348\u5f8c\u306e\u307f";
-  if (normalized === WORK_SHIFT_TYPE.CUSTOM) return "\u6642\u9593\u6307\u5b9a";
-  if (normalized === WORK_SHIFT_TYPE.MANUAL) return "\u624b\u5165\u529b";
-  return "\u6a19\u6e96\u0031\u65e5";
+  if (normalized === WORK_SHIFT_TYPE.MORNING) return "\u5348\u524d";
+  if (normalized === WORK_SHIFT_TYPE.AFTERNOON) return "\u5348\u5f8c";
+  if (normalized === WORK_SHIFT_TYPE.CUSTOM) return "\u5909\u5247";
+  return "1\u65e5";
 }
 
 /*
@@ -1307,14 +1301,14 @@ function appendTaskTypeGroup(container, title, items, selectedSet) {
 function updateTaskTypeSummary(visibleCount, totalCount, query) {
   if (!taskTypeSummary) return;
   if (selectedTaskTypes.length) {
-    taskTypeSummary.textContent = `選択中: ${selectedTaskTypes.join(WORK_TYPE_SEPARATOR)} / 表示 ${visibleCount}/${totalCount} 件`;
+    taskTypeSummary.textContent = `選択中: ${selectedTaskTypes.join(WORK_TYPE_SEPARATOR)}�E�表示 ${visibleCount}/${totalCount} 件�E�`;
     return;
   }
   if (query) {
-    taskTypeSummary.textContent = `検索結果: ${visibleCount}件（部分一致）`;
+    taskTypeSummary.textContent = `検索結果: ${visibleCount}件�E�部刁E��致�E�`;
     return;
   }
-  taskTypeSummary.textContent = "最近使った作業項目を上に表示します。1つ以上選択してください。";
+  taskTypeSummary.textContent = "最近使った頁E��を上に表示してぁE��す、Eつ以上選択してください、E;
 }
 
 function renderTaskTypeChecklist() {
@@ -1333,7 +1327,7 @@ function renderTaskTypeChecklist() {
   taskTypeList.innerHTML = "";
 
   if (!visibleWorkTypeOptions.length) {
-    taskTypeList.appendChild(buildEmptyState("該当する作業項目はありません。"));
+    taskTypeList.appendChild(buildEmptyState("該当する作業頁E��はありません、E));
     updateTaskTypeSummary(0, allWorkTypeOptions.length, query);
     setSelectedTaskTypes(selectedTaskTypes);
     return;
@@ -1878,12 +1872,9 @@ function normalizeRecord(record) {
     ? record.workerTimeDetails
     : {};
   const workerTimeFallback = {
-    workType: shiftType,
-    shiftType,
     startTime,
     endTime,
     breakMinutes,
-    payrollHours: resolvedWorkHours,
     workHours: resolvedWorkHours
   };
   const workerTimeDetails = normalizedAssignedWorkers.reduce((acc, item) => {
@@ -1907,14 +1898,10 @@ function normalizeRecord(record) {
     taskType: primaryTaskType,
     workTypes,
     workHours: resolvedWorkHours,
-    payrollHours: resolvedWorkHours,
     manualWorkHours,
-    manualHours: manualWorkHours,
     calculatedWorkHours: Number.isFinite(calculatedWorkHours) ? calculatedWorkHours : null,
     breakMinutes,
-    timeBreakMinutes: breakMinutes,
     nonCountedMinutes: breakMinutes,
-    nonWorkingMinutes: breakMinutes,
     shiftType,
     workShiftType: shiftType,
     dailyGroupId: normalizeText(record.dailyGroupId || record.groupId),
@@ -2072,26 +2059,26 @@ function migrateLegacyRecords(legacyRecords) {
   const groupMap = new Map();
   const workerMap = new Map();
   const memberships = [];
-  const fallbackGroupName = "未所属グループ";
+  const fallbackGroupName = "未所属グルーチE;
 
   groupMap.set(fallbackGroupName, {
     id: createId("group"),
     name: fallbackGroupName,
     sortOrder: 999,
-    description: "旧データから移行",
+    description: "旧チE�Eタから移衁E,
     isActive: true
   });
 
   const migratedRecords = legacyRecords.map((record) => {
     const orchardName = normalizeText(record.fieldName) || "移行済み園地";
     const varietyName = normalizeText(record.variety);
-    const workerName = normalizeText(record.workerName) || "未登録作業者";
+    const workerName = normalizeText(record.workerName) || "未登録作業老E;
 
     if (!orchardMap.has(orchardName)) {
-      orchardMap.set(orchardName, { id: createId("orchard"), name: orchardName, note: "旧データから移行" });
+      orchardMap.set(orchardName, { id: createId("orchard"), name: orchardName, note: "旧チE�Eタから移衁E });
     }
     if (varietyName && !varietyMap.has(varietyName)) {
-      varietyMap.set(varietyName, { id: createId("variety"), name: varietyName, note: "旧データから移行" });
+      varietyMap.set(varietyName, { id: createId("variety"), name: varietyName, note: "旧チE�Eタから移衁E });
     }
     if (!workerMap.has(workerName)) {
       const worker = {
@@ -2099,7 +2086,7 @@ function migrateLegacyRecords(legacyRecords) {
         fullName: workerName,
         displayName: workerName,
         primaryGroupId: groupMap.get(fallbackGroupName).id,
-        category: "その他",
+        category: "そ�E仁E,
         hourlyRate: 0,
         isActive: true
       };
@@ -2313,11 +2300,11 @@ function mergeStateForAppend(currentState, incomingState) {
 
 function parseRestorePayload(payload) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    throw new Error("JSONの形式が不正です。バックアップファイルを確認してください。");
+    throw new Error("JSONの形式が不正です。バチE��アチE�Eファイルを確認してください、E);
   }
   const hasStateLikeData = Boolean(payload.data) || Boolean(payload.companySettings) || Boolean(payload.masters) || Boolean(payload.records) || Boolean(payload.teamPlans) || Boolean(payload.payrollAdjustments);
   if (!hasStateLikeData) {
-    throw new Error("JSONの形式が不正です。必要なデータ項目が見つかりません。");
+    throw new Error("JSONの形式が不正です。忁E��なチE�Eタ頁E��が見つかりません、E);
   }
   const restoredRaw = payload?.data ?? payload;
   const normalized = normalizeState(restoredRaw);
@@ -2325,7 +2312,7 @@ function parseRestorePayload(payload) {
 }
 
 function formatDate(value) {
-  if (!value) return "日付未設定";
+  if (!value) return "日付未設宁E;
   return new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "long", day: "numeric" }).format(new Date(value));
 }
 
@@ -2364,18 +2351,18 @@ function formatHoursQuarter(value) {
 function getComparisonPeriodLabel(mode) {
   if (mode === "month") return "今月";
   if (mode === "fiscal") return "決算年度";
-  if (mode === "custom") return "任意期間";
+  if (mode === "custom") return "任意期閁E;
   return "全期間";
 }
 
 function formatMonth(value) {
-  if (!value) return "未設定";
+  if (!value) return "未設宁E;
   const [year, month] = value.split("-");
-  return `${year}年${Number(month)}月`;
+  return `${year}年${Number(month)}朁E;
 }
 
 function formatCurrency(value) {
-  return `${Number(value || 0).toLocaleString("ja-JP")}円`;
+  return `${Number(value || 0).toLocaleString("ja-JP")}冁E;
 }
 
 function formatHours(value) {
@@ -2383,22 +2370,22 @@ function formatHours(value) {
 }
 
 function formatTemperature(value) {
-  if (value === null || value === undefined || value === "") return "未入力";
+  if (value === null || value === undefined || value === "") return "未入劁E;
   const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) return "未入力";
+  if (!Number.isFinite(numericValue)) return "未入劁E;
   return `${numericValue.toFixed(1).replace(/\.0$/, "")}℃`;
 }
 
 function formatPrecipitationMm(value) {
-  if (value === null || value === undefined || value === "") return "未入力";
+  if (value === null || value === undefined || value === "") return "未入劁E;
   const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) return "未入力";
+  if (!Number.isFinite(numericValue)) return "未入劁E;
   return `${numericValue.toFixed(1).replace(/\.0$/, "")}mm`;
 }
 
 function formatCoordinate(value) {
   const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) return "未設定";
+  if (!Number.isFinite(numericValue)) return "未設宁E;
   return numericValue.toFixed(6).replace(/\.?0+$/, "");
 }
 
@@ -2410,13 +2397,13 @@ function formatWeatherInfoSummary(weatherInfo, includeCurrent = false) {
     parts.push(`現在 ${formatTemperature(normalized.currentTemp)}`);
   }
   if (Number.isFinite(normalized.tempAvg)) {
-    parts.push(`平均 ${formatTemperature(normalized.tempAvg)}`);
+    parts.push(`平坁E${formatTemperature(normalized.tempAvg)}`);
   }
   if (Number.isFinite(normalized.tempMax)) {
-    parts.push(`最高 ${formatTemperature(normalized.tempMax)}`);
+    parts.push(`最髁E${formatTemperature(normalized.tempMax)}`);
   }
   if (Number.isFinite(normalized.tempMin)) {
-    parts.push(`最低 ${formatTemperature(normalized.tempMin)}`);
+    parts.push(`最佁E${formatTemperature(normalized.tempMin)}`);
   }
   if (Number.isFinite(normalized.precipitation)) {
     parts.push(`降水 ${formatPrecipitationMm(normalized.precipitation)}`);
@@ -2425,7 +2412,7 @@ function formatWeatherInfoSummary(weatherInfo, includeCurrent = false) {
     parts.push(`湿度 ${Math.round(normalized.humidity)}%`);
   }
   if (Number.isFinite(normalized.windSpeed)) {
-    parts.push(`風速 ${Number(normalized.windSpeed).toFixed(1).replace(/\.0$/, "")}m/s`);
+    parts.push(`風送E${Number(normalized.windSpeed).toFixed(1).replace(/\.0$/, "")}m/s`);
   }
   return parts.join(" / ");
 }
@@ -2433,7 +2420,7 @@ function formatWeatherInfoSummary(weatherInfo, includeCurrent = false) {
 function formatFieldObservationSummary(observation) {
   const normalized = normalizeFieldObservation(observation);
   const parts = [];
-  if (normalized.diseaseObserved) parts.push("病害あり");
+  if (normalized.diseaseObserved) parts.push("痁E��あめE);
   if (normalized.pestObserved) parts.push("害虫あり");
   if (normalized.sprayApplied) parts.push("散币E��施");
   if (normalized.damageLevel) parts.push(`痁E��/食害: ${normalized.damageLevel}`);
@@ -2512,12 +2499,11 @@ function calculateBoundHoursByRange(startTime, endTime) {
 
 function getDefaultWorkHours(settings = companySettings) {
   const normalized = normalizeCompanySettings(settings);
-  const effectiveTimeUnitMinutes = normalized.payrollTimeUnitMinutes === 30 ? 15 : normalized.payrollTimeUnitMinutes;
   const hours = calculateWorkHoursByRange(
     normalized.workdayStartTime,
     normalized.workdayEndTime,
     normalized.workdayBreakMinutes,
-    effectiveTimeUnitMinutes
+    normalized.payrollTimeUnitMinutes
   );
   return Number.isFinite(hours) ? hours : 8;
 }
@@ -2526,8 +2512,7 @@ function normalizeHoursByTimeUnit(hours, settings = companySettings) {
   const numericHours = Number(hours);
   if (!Number.isFinite(numericHours) || numericHours <= 0) return 0;
   const normalized = normalizeCompanySettings(settings);
-  const effectiveTimeUnitMinutes = normalized.payrollTimeUnitMinutes === 30 ? 15 : normalized.payrollTimeUnitMinutes;
-  const roundedMinutes = roundMinutesByTimeUnit(numericHours * 60, effectiveTimeUnitMinutes);
+  const roundedMinutes = roundMinutesByTimeUnit(numericHours * 60, normalized.payrollTimeUnitMinutes);
   return Number((Math.max(0, roundedMinutes) / 60).toFixed(2));
 }
 
@@ -2551,12 +2536,11 @@ function calculateHoursFromRange(startTime, endTime, settings = companySettings,
     breakMinutesOverride,
     normalized.workdayBreakMinutes
   );
-  const effectiveTimeUnitMinutes = normalized.payrollTimeUnitMinutes === 30 ? 15 : normalized.payrollTimeUnitMinutes;
   return calculateWorkHoursByRange(
     startTime,
     endTime,
     breakMinutes,
-    effectiveTimeUnitMinutes
+    normalized.payrollTimeUnitMinutes
   );
 }
 
@@ -2598,14 +2582,6 @@ function getShiftPreset(shiftType, settings = companySettings) {
   if (normalizedShiftType === WORK_SHIFT_TYPE.CUSTOM) {
     return {
       shiftType: WORK_SHIFT_TYPE.CUSTOM,
-      startTime: "",
-      endTime: "",
-      breakMinutes: 0
-    };
-  }
-  if (normalizedShiftType === WORK_SHIFT_TYPE.MANUAL) {
-    return {
-      shiftType: WORK_SHIFT_TYPE.MANUAL,
       startTime: "",
       endTime: "",
       breakMinutes: 0
@@ -2660,7 +2636,7 @@ function getDefaultBreakMinutesForShiftType(shiftType, settings = companySetting
 
 function getRecordBreakMinutes(record, settings = companySettings) {
   const normalized = normalizeCompanySettings(settings);
-  const rawBreakMinutes = record?.breakMinutes ?? record?.timeBreakMinutes ?? record?.nonCountedMinutes ?? record?.nonWorkingMinutes;
+  const rawBreakMinutes = record?.breakMinutes ?? record?.timeBreakMinutes ?? record?.nonCountedMinutes;
   if (rawBreakMinutes !== undefined && rawBreakMinutes !== null && normalizeText(rawBreakMinutes) !== "") {
     return normalizeBreakMinutes(rawBreakMinutes, normalized.workdayBreakMinutes);
   }
@@ -2677,15 +2653,6 @@ function getRecordResolvedWorkHours(record, settings = companySettings) {
   const manualHours = normalizeManualHours(record?.manualWorkHours, normalizedSettings);
   if (manualHours !== null) return manualHours;
 
-  const startTime = getRecordStartTime(record);
-  const endTime = getRecordEndTime(record);
-  const breakMinutes = getRecordBreakMinutes(record, normalizedSettings);
-  const calculatedFromTimes = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
-  if (Number.isFinite(calculatedFromTimes)) return calculatedFromTimes;
-
-  const payrollHours = normalizeManualHours(record?.payrollHours, normalizedSettings);
-  if (payrollHours !== null) return payrollHours;
-
   const explicitHours = normalizeManualHours(record?.workHours, normalizedSettings);
   if (explicitHours !== null) return explicitHours;
 
@@ -2698,24 +2665,11 @@ function getRecordResolvedWorkHours(record, settings = companySettings) {
   );
   if (legacyDurationHours !== null) return legacyDurationHours;
 
-  const rawWorkerTimeDetails = record?.workerTimeDetails && typeof record.workerTimeDetails === "object"
-    ? Object.values(record.workerTimeDetails)
-    : [];
-  if (rawWorkerTimeDetails.length) {
-    const detailHours = rawWorkerTimeDetails
-      .map((entry) => {
-        const manual = normalizeManualHours(entry?.manualHours ?? entry?.manualWorkHours, normalizedSettings);
-        if (manual !== null) return manual;
-        return normalizeManualHours(
-          entry?.payrollHours ?? entry?.workHours ?? entry?.resolvedHours ?? entry?.calculatedHours,
-          normalizedSettings
-        );
-      })
-      .filter((value) => Number.isFinite(value) && value > 0);
-    if (detailHours.length) {
-      return Number(Math.max(...detailHours).toFixed(2));
-    }
-  }
+  const startTime = getRecordStartTime(record);
+  const endTime = getRecordEndTime(record);
+  const breakMinutes = getRecordBreakMinutes(record, normalizedSettings);
+  const calculatedHours = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
+  if (Number.isFinite(calculatedHours)) return calculatedHours;
 
   return getDefaultWorkHours(normalizedSettings);
 }
@@ -2723,54 +2677,31 @@ function getRecordResolvedWorkHours(record, settings = companySettings) {
 function normalizeWorkerTimeDetailEntry(rawDetail, fallbackDetail, settings = companySettings) {
   const normalizedSettings = normalizeCompanySettings(settings);
   const fallback = fallbackDetail || {};
-  const workType = normalizeShiftType(
-    rawDetail?.workType ?? rawDetail?.shiftType ?? fallback.workType ?? fallback.shiftType ?? "",
-    WORK_SHIFT_TYPE.CUSTOM
-  );
-  const preset = getShiftPreset(workType, normalizedSettings);
-
-  const startTime = normalizeTimeText(
-    rawDetail?.startTime || rawDetail?.timeStart,
-    fallback.startTime || preset.startTime || ""
-  );
-  const endTime = normalizeTimeText(
-    rawDetail?.endTime || rawDetail?.timeEnd,
-    fallback.endTime || preset.endTime || ""
-  );
+  const startTime = normalizeTimeText(rawDetail?.startTime || rawDetail?.timeStart, fallback.startTime || "");
+  const endTime = normalizeTimeText(rawDetail?.endTime || rawDetail?.timeEnd, fallback.endTime || "");
   const breakMinutes = normalizeBreakMinutes(
     rawDetail?.breakMinutes ?? rawDetail?.timeBreakMinutes,
-    fallback.breakMinutes ?? preset.breakMinutes ?? normalizedSettings.workdayBreakMinutes
+    fallback.breakMinutes ?? normalizedSettings.workdayBreakMinutes
   );
-  const calculatedHoursRaw = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
-  const calculatedHours = Number.isFinite(calculatedHoursRaw)
-    ? calculatedHoursRaw
-    : (workType === WORK_SHIFT_TYPE.MANUAL ? null : null);
+  const calculatedHours = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
   const manualHours = normalizeManualHours(
     rawDetail?.manualHours ?? rawDetail?.manualWorkHours,
     normalizedSettings
   );
-  const explicitPayrollHours = normalizeManualHours(rawDetail?.payrollHours, normalizedSettings);
-  const fallbackResolvedHours = normalizeManualHours(
-    fallback.payrollHours ?? fallback.workHours ?? fallback.resolvedHours,
-    normalizedSettings
-  );
-  const payrollHours = manualHours !== null
+  const fallbackResolvedHours = normalizeManualHours(fallback.workHours ?? fallback.resolvedHours, normalizedSettings);
+  const resolvedHours = manualHours !== null
     ? manualHours
-    : (Number.isFinite(calculatedHours) ? calculatedHours : (explicitPayrollHours ?? fallbackResolvedHours ?? null));
-  const resolvedHours = payrollHours;
+    : (Number.isFinite(calculatedHours) ? calculatedHours : (fallbackResolvedHours ?? null));
 
   return {
-    workType,
-    shiftType: workType,
     startTime,
     endTime,
     breakMinutes,
     calculatedHours: Number.isFinite(calculatedHours) ? calculatedHours : null,
     manualHours,
     manualWorkHours: manualHours,
-    payrollHours,
     workHours: resolvedHours,
-    resolvedHours: payrollHours
+    resolvedHours
   };
 }
 
@@ -2782,12 +2713,9 @@ function getRecordWorkerTimeDetails(record, settings = companySettings) {
     ? record.workerTimeDetails
     : {};
   const commonFallback = {
-    workType: inferRecordShiftType(record, normalizedSettings),
-    shiftType: inferRecordShiftType(record, normalizedSettings),
     startTime: getRecordStartTime(record),
     endTime: getRecordEndTime(record),
     breakMinutes: getRecordBreakMinutes(record, normalizedSettings),
-    payrollHours: getRecordResolvedWorkHours(record, normalizedSettings),
     workHours: getRecordResolvedWorkHours(record, normalizedSettings)
   };
 
@@ -2802,7 +2730,6 @@ function getWorkerHoursForRecord(record, workerId, settings = companySettings) {
   if (!workerId) return getRecordResolvedWorkHours(record, settings);
   const detail = getRecordWorkerTimeDetails(record, settings)?.[workerId];
   if (!detail) return getRecordResolvedWorkHours(record, settings);
-  if (Number.isFinite(detail.payrollHours)) return detail.payrollHours;
   if (Number.isFinite(detail.manualHours)) return detail.manualHours;
   if (Number.isFinite(detail.calculatedHours)) return detail.calculatedHours;
   if (Number.isFinite(detail.resolvedHours)) return detail.resolvedHours;
@@ -2821,13 +2748,7 @@ function applyDefaultWorkScheduleToForm(force = false, options = {}) {
     workShiftTypeInput.value = requestedShiftType;
   }
 
-  if (requestedShiftType === WORK_SHIFT_TYPE.CUSTOM || requestedShiftType === WORK_SHIFT_TYPE.MANUAL) {
-    if (startTimeInput && force) {
-      startTimeInput.value = "";
-    }
-    if (endTimeInput && force) {
-      endTimeInput.value = "";
-    }
+  if (requestedShiftType === WORK_SHIFT_TYPE.CUSTOM) {
     if (breakMinutesInput && (force || !normalizeText(breakMinutesInput.value))) {
       breakMinutesInput.value = "0";
     }
@@ -2889,8 +2810,8 @@ function getWeatherLabelFromCode(weatherCode) {
   const rainCodes = new Set([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99]);
   if (snowCodes.has(weatherCode)) return "雪";
   if (rainCodes.has(weatherCode)) return "雨";
-  if (weatherCode === 0) return "晴れ";
-  return "くもり";
+  if (weatherCode === 0) return "晴めE;
+  return "くもめE;
 }
 
 function setWeatherFetchStatus(message = WEATHER_FETCH_HINT_TEXT, state = "") {
@@ -3348,46 +3269,67 @@ function renderHistoryCalendar() {
 
 function getComparisonPeriodConfig() {
   const mode = comparisonPeriodInput.value || "all";
-  const label = getComparisonPeriodLabel(mode);
+  {
+    if (mode === "all") {
+      return { mode, label: getComparisonPeriodLabel(mode), from: "", to: "", rangeText: "全チE�Eタ", isValid: true };
+    }
+    if (mode === "month") {
+      const range = getCurrentMonthRange(today);
+      return {
+        mode,
+        label: getComparisonPeriodLabel(mode),
+        ...range,
+        rangeText: `${formatDateYmd(range.from)}、E{formatDateYmd(range.to)}`,
+        isValid: true
+      };
+    }
+    if (mode === "fiscal") {
+      const range = getFiscalYearRange(today);
+      return {
+        mode,
+        label: getComparisonPeriodLabel(mode),
+        ...range,
+        rangeText: `${formatDateYmd(range.from)}、E{formatDateYmd(range.to)}`,
+        isValid: true
+      };
+    }
+    const customFrom = comparisonFromDateInput.value;
+    const customTo = comparisonToDateInput.value;
+    if (!customFrom || !customTo) {
+      return { mode, label: getComparisonPeriodLabel(mode), from: customFrom, to: customTo, isValid: false, error: "任意期間では開始日と終亁E��を�E力してください、E };
+    }
+    if (customFrom > customTo) {
+      return { mode, label: getComparisonPeriodLabel(mode), from: customFrom, to: customTo, isValid: false, error: "任意期間�E終亁E��は開始日以降を持E��してください、E };
+    }
+    return {
+      mode,
+      label: getComparisonPeriodLabel(mode),
+      from: customFrom,
+      to: customTo,
+      rangeText: `${formatDateYmd(customFrom)}、E{formatDateYmd(customTo)}`,
+      isValid: true
+    };
+  }
   if (mode === "all") {
-    return { mode, label, from: "", to: "", rangeText: "全期間", isValid: true };
+    return { mode, label: "全期間", from: "", to: "", isValid: true };
   }
   if (mode === "month") {
     const range = getCurrentMonthRange(today);
-    return {
-      mode,
-      label,
-      ...range,
-      rangeText: `${formatDateYmd(range.from)}〜${formatDateYmd(range.to)}`,
-      isValid: true
-    };
+    return { mode, label: "今月", ...range, isValid: true };
   }
   if (mode === "fiscal") {
     const range = getFiscalYearRange(today);
-    return {
-      mode,
-      label,
-      ...range,
-      rangeText: `${formatDateYmd(range.from)}〜${formatDateYmd(range.to)}`,
-      isValid: true
-    };
+    return { mode, label: `${range.from.slice(0, 4)}年度`, ...range, isValid: true };
   }
   const from = comparisonFromDateInput.value;
   const to = comparisonToDateInput.value;
   if (!from || !to) {
-    return { mode, label, from, to, isValid: false, error: "任意期間では開始日と終了日を入力してください。" };
+    return { mode, label: "任意期閁E, from, to, isValid: false, error: "任意期間では開始日と終亁E��を�E力してください、E };
   }
   if (from > to) {
-    return { mode, label, from, to, isValid: false, error: "任意期間の終了日は開始日以降にしてください。" };
+    return { mode, label: "任意期閁E, from, to, isValid: false, error: "任意期間�E終亁E��は開始日以降を持E��してください、E };
   }
-  return {
-    mode,
-    label,
-    from,
-    to,
-    rangeText: `${formatDateYmd(from)}〜${formatDateYmd(to)}`,
-    isValid: true
-  };
+  return { mode, label: `${formatDate(from)} �E�E${formatDate(to)}`, from, to, isValid: true };
 }
 
 function filterRecordsByPeriod(config) {
@@ -3397,21 +3339,21 @@ function filterRecordsByPeriod(config) {
 }
 
 function getPayrollCloseTypeLabel(closeType) {
-  if (closeType === "half-first") return "半月締め（前半）";
-  if (closeType === "half-second") return "半月締め（後半）";
-  if (closeType === "custom") return "任意期間";
-  return "月締め";
+  if (closeType === "half-first") return "半月締めE��前半！E;
+  if (closeType === "half-second") return "半月締めE��後半�E�E;
+  if (closeType === "custom") return "任意期閁E;
+  return "月締めE;
 }
 
 function getPayrollWorkerScopeLabel(scope) {
-  return scope === "all" ? "全作業者" : "パートのみ";
+  return scope === "all" ? "全作業老E : "パ�Eト�Eみ";
 }
 
 function isPartTimeWorker(worker) {
   if (!worker) return false;
   const category = normalizeText(worker.category).toLocaleLowerCase("ja-JP");
   const workerId = normalizeText(worker.id).toLocaleLowerCase("ja-JP");
-  return category.includes("パート") || category.includes("part") || workerId.includes("part");
+  return category.includes("パ�EチE) || category.includes("part") || workerId.includes("part");
 }
 
 function getPayrollPeriodConfig() {
@@ -3433,7 +3375,7 @@ function getPayrollPeriodConfig() {
         to,
         rangeText: "",
         isValid: false,
-        error: "任意期間では開始日と終了日を入力してください。"
+        error: "任意期間では開始日と終亁E��を�E力してください、E
       };
     }
     if (from > to) {
@@ -3446,7 +3388,7 @@ function getPayrollPeriodConfig() {
         to,
         rangeText: "",
         isValid: false,
-        error: "任意期間の終了日は開始日以降にしてください。"
+        error: "任意期間�E終亁E��は開始日以降�E日付を持E��してください、E
       };
     }
     return {
@@ -3456,7 +3398,7 @@ function getPayrollPeriodConfig() {
       targetMonth,
       from,
       to,
-      rangeText: `${formatDateYmd(from)}〜${formatDateYmd(to)}`,
+      rangeText: `${formatDateYmd(from)}、E{formatDateYmd(to)}`,
       isValid: true
     };
   }
@@ -3471,7 +3413,7 @@ function getPayrollPeriodConfig() {
       to: "",
       rangeText: "",
       isValid: false,
-      error: "対象年月を指定してください。"
+      error: "対象年月を持E��してください、E
     };
   }
 
@@ -3491,7 +3433,7 @@ function getPayrollPeriodConfig() {
     targetMonth,
     from,
     to,
-    rangeText: `${formatDateYmd(from)}〜${formatDateYmd(to)}`,
+    rangeText: `${formatDateYmd(from)}、E{formatDateYmd(to)}`,
     isValid: true
   };
 }
@@ -3562,8 +3504,6 @@ function buildPayrollRows(periodConfig) {
         workTypeSet: new Set(),
         earliestStartMinutes: null,
         latestEndMinutes: null,
-        timeRangeSet: new Set(),
-        timeRanges: [],
         startTime: "",
         endTime: ""
       };
@@ -3588,17 +3528,6 @@ function buildPayrollRows(periodConfig) {
       if (endMinutes !== null && (current.latestEndMinutes === null || endMinutes > current.latestEndMinutes)) {
         current.latestEndMinutes = endMinutes;
         current.endTime = endTime;
-      }
-      if (startTime && endTime) {
-        const timeRangeText = `${startTime}〜${endTime}`;
-        if (!current.timeRangeSet.has(timeRangeText)) {
-          current.timeRangeSet.add(timeRangeText);
-          current.timeRanges.push({
-            text: timeRangeText,
-            startMinutes: startMinutes === null ? 9999 : startMinutes,
-            endMinutes: endMinutes === null ? 9999 : endMinutes
-          });
-        }
       }
 
       workTypes.forEach((workType) => current.workTypeSet.add(workType));
@@ -3629,12 +3558,7 @@ function buildPayrollRows(periodConfig) {
       workDate: dayEntry.workDate,
       weekdayLabel: getWeekdayLabelJa(dayEntry.workDate),
       workTypes: Array.from(dayEntry.workTypeSet),
-      workTypeText: Array.from(dayEntry.workTypeSet).join("、"),
-      timeRangeText: dayEntry.timeRanges
-        .slice()
-        .sort((a, b) => a.startMinutes - b.startMinutes || a.endMinutes - b.endMinutes)
-        .map((item) => item.text)
-        .join(" / "),
+      workTypeText: Array.from(dayEntry.workTypeSet).join(" / "),
       startTime: dayEntry.startTime || "",
       endTime: dayEntry.endTime || "",
       breakMinutes: Math.max(0, Math.round(dayEntry.totalBreakMinutes || 0)),
@@ -3658,8 +3582,8 @@ function buildPayrollRows(periodConfig) {
     const netPay = basicPay + allowance - deduction;
     return {
       workerId: item.worker.id,
-      fullName: item.worker.fullName || item.worker.displayName || "未設定",
-      displayName: item.worker.displayName || item.worker.fullName || "未設定",
+      fullName: item.worker.fullName || item.worker.displayName || "未設宁E,
+      displayName: item.worker.displayName || item.worker.fullName || "未設宁E,
       category: item.worker.category || "",
       attendanceDays,
       totalHours,
@@ -4174,6 +4098,471 @@ function renderWorktimeAnalysis() {
   renderWorktimeBreakdownRows({
     tab: snapshot.tab,
     breakdown: snapshot.breakdown
+  });
+}
+
+function renderPayrollSummaryCards(data) {
+  if (!payrollSummaryCards) return;
+  const summary = data.summary;
+  const cards = [
+    { label: "対象老E��", value: formatPeople(summary.workerCount) },
+    { label: "総労働時閁E, value: formatHours(summary.totalHours) },
+    { label: "基本支給額合訁E, value: formatCurrency(summary.basicPay) },
+    { label: "差引支給額合訁E, value: formatCurrency(summary.netPay) }
+  ];
+  payrollSummaryCards.innerHTML = "";
+  cards.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "summary-card payroll-summary-card";
+    const label = document.createElement("span");
+    label.className = "summary-card__label";
+    label.textContent = item.label;
+    const value = document.createElement("strong");
+    value.textContent = item.value;
+    card.append(label, value);
+    payrollSummaryCards.appendChild(card);
+  });
+}
+
+function renderPayrollList(data) {
+  if (!payrollList) return;
+  payrollList.innerHTML = "";
+  if (!data.rows.length) {
+    payrollList.appendChild(buildEmptyState("対象期間の給与集計データがありません、E));
+    return;
+  }
+
+  data.rows.forEach((row) => {
+    const card = document.createElement("article");
+    card.className = "payroll-row";
+    if (row.workerId === activePayrollWorkerId) {
+      card.classList.add("is-active");
+    }
+    card.addEventListener("click", () => {
+      activePayrollWorkerId = row.workerId;
+      renderPayrollSection();
+    });
+
+    const header = document.createElement("div");
+    header.className = "payroll-row__header";
+    const heading = document.createElement("h4");
+    heading.textContent = `${row.fullName}${row.category ? `�E�E{row.category}�E�` : ""}`;
+    const actions = document.createElement("div");
+    actions.className = "payroll-row__actions";
+    const detailButton = document.createElement("button");
+    detailButton.type = "button";
+    detailButton.className = "button button--view button--small";
+    detailButton.textContent = "個別明細を開ぁE;
+    detailButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      activePayrollWorkerId = row.workerId;
+      renderPayrollSection();
+    });
+    const printButton = document.createElement("button");
+    printButton.type = "button";
+    printButton.className = "button button--save button--small";
+    printButton.textContent = "こ�E人を印刷";
+    printButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openPayrollIndividualReportWindow(row, data.periodConfig);
+    });
+    actions.append(detailButton, printButton);
+    header.append(heading, actions);
+
+    const metrics = document.createElement("div");
+    metrics.className = "payroll-row__metrics";
+    metrics.innerHTML = `
+      <span>出勤日数: <strong>${formatDays(row.attendanceDays)}</strong></span>
+      <span>総労働時閁E <strong>${formatHours(row.totalHours)}</strong></span>
+      <span>基本支給顁E <strong>${formatCurrency(row.basicPay)}</strong></span>
+      <span>差引支給顁E <strong>${formatCurrency(row.netPay)}</strong></span>
+    `;
+
+    card.append(header, metrics);
+    payrollList.appendChild(card);
+  });
+}
+
+function renderPayrollDetail(data) {
+  if (!payrollDetail) return;
+  if (!data.rows.length) {
+    payrollDetail.innerHTML = "";
+    payrollDetail.appendChild(buildEmptyState("個別明細を表示できるチE�Eタがありません、E));
+    return;
+  }
+
+  if (!data.rows.some((row) => row.workerId === activePayrollWorkerId)) {
+    activePayrollWorkerId = data.rows[0].workerId;
+  }
+  const selectedRow = data.rows.find((row) => row.workerId === activePayrollWorkerId) || data.rows[0];
+  const periodText = data.periodConfig.rangeText || `${formatDateYmd(data.periodConfig.from)}、E{formatDateYmd(data.periodConfig.to)}`;
+
+  payrollDetail.innerHTML = `
+    <article class="payroll-detail-card">
+      <div class="payroll-detail-card__header">
+        <h4>${escapeHtml(selectedRow.fullName)}</h4>
+        <span class="chip chip--soft">${escapeHtml(selectedRow.category || "区刁E��設宁E)}</span>
+      </div>
+
+      <div class="payroll-detail-grid">
+        <div><span>対象期間</span><strong>${escapeHtml(periodText)}</strong></div>
+        <div><span>締め区刁E/span><strong>${escapeHtml(data.periodConfig.closeLabel)}</strong></div>
+        <div><span>出勤日数</span><strong>${escapeHtml(formatDays(selectedRow.attendanceDays))}</strong></div>
+        <div><span>総労働時閁E/span><strong>${escapeHtml(formatHours(selectedRow.totalHours))}</strong></div>
+        <div><span>時給</span><strong>${escapeHtml(formatCurrency(selectedRow.hourlyRate))}</strong></div>
+        <div><span>基本支給顁E/span><strong>${escapeHtml(formatCurrency(selectedRow.basicPay))}</strong></div>
+      </div>
+
+      <div class="payroll-adjustment-row">
+        <label>
+          手当（�E�E�E          <input type="number" id="payrollAllowanceInput" min="0" step="1" value="${selectedRow.allowance}">
+        </label>
+        <label>
+          控除�E��E�E�E          <input type="number" id="payrollDeductionInput" min="0" step="1" value="${selectedRow.deduction}">
+        </label>
+      </div>
+
+      <p class="payroll-netpay">差引支給顁E <strong>${escapeHtml(formatCurrency(selectedRow.netPay))}</strong></p>
+      <p class="form-hint">差引支給顁E= 基本支給顁E+ 手彁E- 控除�E�税��・社会保険の自動計算�Eしません�E�E/p>
+      <div class="payroll-detail-actions">
+        <button type="button" class="button button--save" id="payrollAdjustmentSaveButton">手当�E控除を保孁E/button>
+        <button type="button" class="button button--view" id="payrollIndividualPrintButton">こ�E人の明細を印刷</button>
+      </div>
+    </article>
+  `;
+
+  const allowanceInput = document.getElementById("payrollAllowanceInput");
+  const deductionInput = document.getElementById("payrollDeductionInput");
+  const saveButton = document.getElementById("payrollAdjustmentSaveButton");
+  const printButton = document.getElementById("payrollIndividualPrintButton");
+  if (!allowanceInput || !deductionInput || !saveButton || !printButton) return;
+
+  saveButton.addEventListener("click", () => {
+    const allowance = Number(allowanceInput.value || 0);
+    const deduction = Number(deductionInput.value || 0);
+    upsertPayrollAdjustment(selectedRow.workerId, data.periodConfig, allowance, deduction);
+    renderPayrollSection();
+  });
+  printButton.addEventListener("click", () => {
+    openPayrollIndividualReportWindow(selectedRow, data.periodConfig);
+  });
+}
+
+function renderPayrollSection() {
+  if (!payrollPeriodInfo || !payrollList || !payrollDetail) return;
+  const periodConfig = getPayrollPeriodConfig();
+  if (payrollCustomRange) {
+    payrollCustomRange.hidden = periodConfig.closeType !== "custom";
+  }
+
+  if (!periodConfig.isValid) {
+    payrollPeriodInfo.textContent = periodConfig.error || "給与集計�E条件を設定してください、E;
+    if (payrollSummaryCards) payrollSummaryCards.innerHTML = "";
+    payrollList.innerHTML = "";
+    payrollList.appendChild(buildEmptyState("条件を設定すると給与一覧が表示されます、E));
+    payrollDetail.innerHTML = "";
+    payrollDetail.appendChild(buildEmptyState("個別明細を表示する対象がありません、E));
+    return;
+  }
+
+  const data = getPayrollData(periodConfig);
+  const scopeLabel = getPayrollWorkerScopeLabel(periodConfig.workerScope);
+  const settings = normalizeCompanySettings(companySettings);
+  const breakText = `${Math.floor(settings.workdayBreakMinutes / 60)}時間${String(settings.workdayBreakMinutes % 60).padStart(2, "0")}刁E;
+  const defaultHours = getDefaultWorkHours(settings);
+  payrollPeriodInfo.textContent = `${periodConfig.closeLabel} / ${periodConfig.rangeText} / 対象: ${scopeLabel} / 雁E��記録: ${formatCount(data.filteredRecords.length)} / 標準勤勁E ${settings.workdayStartTime}、E{settings.workdayEndTime}�E�休�E ${breakText}�E�E ${defaultHours}時間`;
+
+  renderPayrollSummaryCards(data);
+  renderPayrollList(data);
+  renderPayrollDetail(data);
+}
+
+function exportPayrollCsv() {
+  const data = getPayrollData(getPayrollPeriodConfig());
+  if (!data.periodConfig.isValid) {
+    window.alert(data.periodConfig.error || "給与集計�E条件を確認してください、E);
+    return;
+  }
+  if (!data.rows.length) {
+    window.alert("CSV出力できる給与データがありません、E);
+    return;
+  }
+
+  const periodText = data.periodConfig.rangeText || `${formatDateYmd(data.periodConfig.from)}、E{formatDateYmd(data.periodConfig.to)}`;
+  const rows = [
+    ["氏名", "対象期間", "締め区刁E, "出勤日数", "総労働時閁E, "時給", "基本支給顁E, "手彁E, "控除", "差引支給顁E]
+  ];
+  data.rows.forEach((row) => {
+    rows.push([
+      row.fullName,
+      periodText,
+      data.periodConfig.closeLabel,
+      row.attendanceDays,
+      row.totalHours,
+      row.hourlyRate,
+      row.basicPay,
+      row.allowance,
+      row.deduction,
+      row.netPay
+    ]);
+  });
+
+  rows.push([
+    "合訁E,
+    periodText,
+    data.periodConfig.closeLabel,
+    data.summary.attendanceDays,
+    Number(data.summary.totalHours.toFixed(2)),
+    "",
+    Math.round(data.summary.basicPay),
+    Math.round(data.summary.allowance),
+    Math.round(data.summary.deduction),
+    Math.round(data.summary.netPay)
+  ]);
+
+  const csv = rows.map((row) => row.map(escapeCsvValue).join(",")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `taiseien-simple-payroll-${data.periodConfig.from}_${data.periodConfig.to}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function buildPayrollReportHtml(data) {
+  const periodText = data.periodConfig.rangeText || `${formatDateYmd(data.periodConfig.from)}、E{formatDateYmd(data.periodConfig.to)}`;
+  const scopeLabel = getPayrollWorkerScopeLabel(data.periodConfig.workerScope);
+  const rowsHtml = data.rows.length
+    ? data.rows.map((row) => `
+      <tr>
+        <td>${escapeHtml(row.fullName)}</td>
+        <td>${escapeHtml(formatDays(row.attendanceDays))}</td>
+        <td>${escapeHtml(formatHours(row.totalHours))}</td>
+        <td>${escapeHtml(formatCurrency(row.hourlyRate))}</td>
+        <td>${escapeHtml(formatCurrency(row.basicPay))}</td>
+        <td>${escapeHtml(formatCurrency(row.allowance))}</td>
+        <td>${escapeHtml(formatCurrency(row.deduction))}</td>
+        <td>${escapeHtml(formatCurrency(row.netPay))}</td>
+      </tr>
+    `).join("")
+    : `<tr><td colspan="8">対象チE�Eタがありません、E/td></tr>`;
+
+  return `
+    <html lang="ja">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>(株)大成園 作業記録アプリ 簡易給与�E細</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm; }
+          * { box-sizing: border-box; }
+          body { margin: 0; background: #f6f3ec; color: #2f2921; font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif; }
+          .toolbar { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #d8d2c8; background: #ffffffee; backdrop-filter: blur(6px); }
+          .toolbar h1 { margin: 0; font-size: 16px; }
+          .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+          .button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
+          .button--print { background: #3f6f3f; color: #fff; }
+          .button--close { background: #ece8de; color: #3c352f; }
+          .body { width: min(210mm, 100%); margin: 0 auto; padding: 7mm 0 12mm; }
+          .header { padding: 5mm; border-radius: 4mm; background: #fff; border: 1px solid #dfd8cd; }
+          .app { margin: 0; font-size: 20px; line-height: 1.3; }
+          .title { margin: 2mm 0 1mm; font-size: 18px; }
+          .meta { margin: 0.8mm 0; color: #5f564b; font-size: 13px; }
+          .summary { margin-top: 3mm; display: grid; gap: 2mm; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .summary div { border: 1px solid #dfd8cd; border-radius: 3mm; background: #fff; padding: 2.5mm 3mm; display: grid; gap: 1mm; }
+          .summary span { color: #61574b; font-size: 11px; }
+          .summary strong { font-size: 15px; }
+          .table-wrap { margin-top: 4mm; overflow-x: auto; border: 1px solid #dfd8cd; border-radius: 3mm; background: #fff; }
+          table { width: 100%; border-collapse: collapse; min-width: 760px; }
+          th, td { border: 1px solid #ddd3c3; padding: 6px 8px; text-align: right; font-size: 12px; white-space: nowrap; }
+          th:first-child, td:first-child { text-align: left; white-space: normal; }
+          thead th { background: #f3eee3; font-size: 11px; }
+          tfoot td { background: #faf6ee; font-weight: 700; }
+          @media (max-width: 720px) {
+            .toolbar { position: static; padding: 10px 12px; }
+            .actions { width: 100%; }
+            .button { flex: 1; }
+            .body { width: 100%; padding: 12px; }
+            .summary { grid-template-columns: 1fr; }
+          }
+          @media print {
+            body { background: #fff; }
+            .toolbar { display: none; }
+            .body { width: auto; margin: 0; padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <header class="toolbar">
+          <h1>簡易給与�E細</h1>
+          <div class="actions">
+            <button class="button button--print" type="button" onclick="window.print()">こ�E画面を印刷</button>
+            <button class="button button--close" type="button" onclick="window.close()">閉じめE/button>
+          </div>
+        </header>
+        <main class="body">
+          <section class="header">
+            <p class="app">(株)大成園　作業記録アプリ</p>
+            <h2 class="title">簡易給与�E細�E�一覧�E�E/h2>
+            <p class="meta">対象期間: ${escapeHtml(periodText)}</p>
+            <p class="meta">締め区刁E ${escapeHtml(data.periodConfig.closeLabel)} / 対象: ${escapeHtml(scopeLabel)}</p>
+            <div class="summary">
+              <div><span>対象老E��</span><strong>${escapeHtml(formatPeople(data.summary.workerCount))}</strong></div>
+              <div><span>総労働時閁E/span><strong>${escapeHtml(formatHours(data.summary.totalHours))}</strong></div>
+              <div><span>基本支給額合訁E/span><strong>${escapeHtml(formatCurrency(data.summary.basicPay))}</strong></div>
+              <div><span>差引支給額合訁E/span><strong>${escapeHtml(formatCurrency(data.summary.netPay))}</strong></div>
+            </div>
+          </section>
+
+          <section class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>氏名</th>
+                  <th>出勤日数</th>
+                  <th>総労働時閁E/th>
+                  <th>時給</th>
+                  <th>基本支給顁E/th>
+                  <th>手彁E/th>
+                  <th>控除</th>
+                  <th>差引支給顁E/th>
+                </tr>
+              </thead>
+              <tbody>${rowsHtml}</tbody>
+              <tfoot>
+                <tr>
+                  <td>合訁E/td>
+                  <td>${escapeHtml(formatDays(data.summary.attendanceDays))}</td>
+                  <td>${escapeHtml(formatHours(data.summary.totalHours))}</td>
+                  <td>-</td>
+                  <td>${escapeHtml(formatCurrency(data.summary.basicPay))}</td>
+                  <td>${escapeHtml(formatCurrency(data.summary.allowance))}</td>
+                  <td>${escapeHtml(formatCurrency(data.summary.deduction))}</td>
+                  <td>${escapeHtml(formatCurrency(data.summary.netPay))}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </section>
+        </main>
+      </body>
+    </html>
+  `;
+}
+
+function openPayrollReportWindow() {
+  const data = getPayrollData(getPayrollPeriodConfig());
+  if (!data.periodConfig.isValid) {
+    window.alert(data.periodConfig.error || "給与集計�E条件を確認してください、E);
+    return;
+  }
+  if (!data.rows.length) {
+    window.alert("表示・印刷できる給与データがありません、E);
+    return;
+  }
+  openGeneratedDocumentWindow(buildPayrollReportHtml(data), {
+    width: 1280,
+    height: 920,
+    popupBlockedMessage: "簡易給与�E細の表示画面を開けませんでした。ブラウザのポップアチE�E設定を確認してください、E
+  });
+}
+
+function buildPayrollIndividualReportHtml(row, periodConfig) {
+  const periodText = periodConfig.rangeText || `${formatDateYmd(periodConfig.from)}、E{formatDateYmd(periodConfig.to)}`;
+  const attendanceLabel = formatDays(row.attendanceDays);
+  const hoursLabel = formatHours(row.totalHours);
+  const hourlyRateLabel = formatCurrency(row.hourlyRate);
+  const basicPayLabel = formatCurrency(row.basicPay);
+  const allowanceLabel = formatCurrency(row.allowance);
+  const deductionLabel = formatCurrency(row.deduction);
+  const netPayLabel = formatCurrency(row.netPay);
+  return `
+    <html lang="ja">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>(株)大成園 作業記録アプリ 個人別簡易給与�E細</title>
+        <style>
+          @page { size: A4 portrait; margin: 14mm; }
+          * { box-sizing: border-box; }
+          body { margin: 0; background: #f6f3ec; color: #2f2921; font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif; }
+          .toolbar { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #d8d2c8; background: #ffffffee; backdrop-filter: blur(6px); }
+          .toolbar h1 { margin: 0; font-size: 16px; }
+          .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+          .button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
+          .button--print { background: #3f6f3f; color: #fff; }
+          .button--close { background: #ece8de; color: #3c352f; }
+          .sheet { width: min(210mm, 100%); margin: 0 auto; padding: 8mm 0 12mm; }
+          .card { background: #fff; border: 1px solid #dfd8cd; border-radius: 4mm; padding: 6mm; }
+          .app-name { margin: 0; font-size: 18px; line-height: 1.35; }
+          .title { margin: 2mm 0 0; font-size: 20px; }
+          .meta { margin: 1.2mm 0; color: #5f564b; font-size: 13px; }
+          .name { margin-top: 3mm; font-size: 19px; font-weight: 700; }
+          .grid { margin-top: 4mm; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.2mm; }
+          .item { border: 1px solid #dfd8cd; border-radius: 3mm; background: #fff; padding: 2.8mm 3.2mm; display: grid; gap: 1.2mm; }
+          .item span { color: #61574b; font-size: 12px; }
+          .item strong { font-size: 16px; }
+          .net { margin-top: 4mm; padding: 3.2mm 3.6mm; border-radius: 3mm; border: 1px solid #dcb49b; background: #fff5ef; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+          .net span { color: #7a4a34; font-size: 13px; font-weight: 700; }
+          .net strong { color: #8f351e; font-size: 22px; }
+          .note { margin-top: 3mm; font-size: 11px; color: #6b5f52; }
+          @media (max-width: 720px) {
+            .toolbar { position: static; padding: 10px 12px; }
+            .actions { width: 100%; }
+            .button { flex: 1; }
+            .sheet { width: 100%; padding: 12px; }
+            .grid { grid-template-columns: 1fr; }
+          }
+          @media print {
+            body { background: #fff; }
+            .toolbar { display: none; }
+            .sheet { width: auto; margin: 0; padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <header class="toolbar">
+          <h1>個人別 簡易給与�E細</h1>
+          <div class="actions">
+            <button class="button button--print" type="button" onclick="window.print()">こ�E明細を印刷</button>
+            <button class="button button--close" type="button" onclick="window.close()">閉じめE/button>
+          </div>
+        </header>
+        <main class="sheet">
+          <section class="card">
+            <p class="app-name">(株)大成園　作業記録アプリ</p>
+            <h2 class="title">個人別 簡易給与�E細</h2>
+            <p class="meta">対象期間: ${escapeHtml(periodText)}</p>
+            <p class="meta">締め区刁E ${escapeHtml(periodConfig.closeLabel)}</p>
+            <p class="name">${escapeHtml(row.fullName)}${row.category ? `�E�E{escapeHtml(row.category)}�E�` : ""}</p>
+
+            <div class="grid">
+              <div class="item"><span>出勤日数</span><strong>${escapeHtml(attendanceLabel)}</strong></div>
+              <div class="item"><span>総労働時閁E/span><strong>${escapeHtml(hoursLabel)}</strong></div>
+              <div class="item"><span>時給</span><strong>${escapeHtml(hourlyRateLabel)}</strong></div>
+              <div class="item"><span>基本支給顁E/span><strong>${escapeHtml(basicPayLabel)}</strong></div>
+              <div class="item"><span>手彁E/span><strong>${escapeHtml(allowanceLabel)}</strong></div>
+              <div class="item"><span>控除</span><strong>${escapeHtml(deductionLabel)}</strong></div>
+            </div>
+
+            <div class="net">
+              <span>差引支給顁E/span>
+              <strong>${escapeHtml(netPayLabel)}</strong>
+            </div>
+            <p class="note">※ 簡易�E細のため、税��・社会保険の計算�E含みません、E/p>
+          </section>
+        </main>
+      </body>
+    </html>
+  `;
+}
+
+function openPayrollIndividualReportWindow(row, periodConfig) {
+  if (!row || !periodConfig) return;
+  openGeneratedDocumentWindow(buildPayrollIndividualReportHtml(row, periodConfig), {
+    width: 1040,
+    height: 900,
+    popupBlockedMessage: "個人別明細の表示画面を開けませんでした。ブラウザのポップアチE�E設定を確認してください、E
   });
 }
 
@@ -5015,10 +5404,7 @@ function getSelectedFormShiftType() {
 
 function getFormBreakMinutes(settings = companySettings) {
   const normalized = normalizeCompanySettings(settings);
-  const selectedShiftType = getSelectedFormShiftType();
-  const fallbackBreakMinutes = selectedShiftType === WORK_SHIFT_TYPE.MANUAL
-    ? 0
-    : getDefaultBreakMinutesForShiftType(selectedShiftType, normalized);
+  const fallbackBreakMinutes = getDefaultBreakMinutesForShiftType(getSelectedFormShiftType(), normalized);
   return normalizeBreakMinutes(
     breakMinutesInput?.value,
     fallbackBreakMinutes
@@ -5041,10 +5427,8 @@ function getFormCalculatedWorkHours(settings = companySettings) {
 
 function getResolvedWorkHoursFromForm(settings = companySettings) {
   const normalizedSettings = normalizeCompanySettings(settings);
-  const shiftType = getSelectedFormShiftType();
   const manualHours = getFormManualWorkHours(settings);
   if (manualHours !== null) return manualHours;
-  if (shiftType === WORK_SHIFT_TYPE.MANUAL) return 0;
   const calculatedHours = getFormCalculatedWorkHours(settings);
   if (Number.isFinite(calculatedHours)) return calculatedHours;
   const standardByInputBreak = calculateHoursFromRange(
@@ -5068,14 +5452,12 @@ function pruneWorkerTimeDetailsDraft() {
 
 function applyCommonTimeToSelectedWorkers() {
   if (!selectedWorkerIds.length) return;
-  const commonManualHours = getFormManualWorkHours(companySettings);
   const commonDetail = {
-    workType: getSelectedFormShiftType(),
     startTime: normalizeTimeText(startTimeInput?.value, ""),
     endTime: normalizeTimeText(endTimeInput?.value, ""),
     breakMinutes: getFormBreakMinutes(companySettings),
-    manualHours: commonManualHours,
-    manualWorkHours: commonManualHours
+    manualHours: null,
+    manualWorkHours: null
   };
   selectedWorkerIds.forEach((workerId) => {
     workerTimeDetailsDraft[workerId] = { ...commonDetail };
@@ -5087,16 +5469,14 @@ function renderWorkerTimeDetailList() {
   if (!workerTimeDetailList) return;
   workerTimeDetailList.innerHTML = "";
   if (!selectedWorkerIds.length) {
-    workerTimeDetailList.appendChild(buildEmptyState("作業者を選ぶと、ここで個別の勤務時間を調整できます。"));
+    workerTimeDetailList.appendChild(buildEmptyState("作業老E��選ぶと、ここで個別の勤務時間を調整できます、E));
     return;
   }
   const normalizedSettings = normalizeCompanySettings(companySettings);
   const commonDetail = {
-    workType: getSelectedFormShiftType(),
     startTime: normalizeTimeText(startTimeInput?.value, ""),
     endTime: normalizeTimeText(endTimeInput?.value, ""),
     breakMinutes: getFormBreakMinutes(normalizedSettings),
-    payrollHours: getResolvedWorkHoursFromForm(normalizedSettings),
     workHours: getResolvedWorkHoursFromForm(normalizedSettings)
   };
 
@@ -5109,14 +5489,11 @@ function renderWorkerTimeDetailList() {
       normalizedSettings
     );
     workerTimeDetailsDraft[workerId] = {
-      workType: normalizedDetail.workType,
-      shiftType: normalizedDetail.workType,
       startTime: normalizedDetail.startTime,
       endTime: normalizedDetail.endTime,
       breakMinutes: normalizedDetail.breakMinutes,
       manualHours: normalizedDetail.manualHours,
-      manualWorkHours: normalizedDetail.manualWorkHours,
-      payrollHours: normalizedDetail.payrollHours
+      manualWorkHours: normalizedDetail.manualWorkHours
     };
 
     const card = document.createElement("article");
@@ -5133,53 +5510,11 @@ function renderWorkerTimeDetailList() {
     const row = document.createElement("div");
     row.className = "form-row form-row--triple";
 
-    const shiftLabel = document.createElement("label");
-    shiftLabel.textContent = "勤務区分";
-    const shiftInput = document.createElement("select");
-    [
-      { value: WORK_SHIFT_TYPE.FULL_DAY, label: "標準1日" },
-      { value: WORK_SHIFT_TYPE.MORNING, label: "午前のみ" },
-      { value: WORK_SHIFT_TYPE.AFTERNOON, label: "午後のみ" },
-      { value: WORK_SHIFT_TYPE.CUSTOM, label: "時間指定" },
-      { value: WORK_SHIFT_TYPE.MANUAL, label: "手入力" }
-    ].forEach((optionItem) => {
-      const option = document.createElement("option");
-      option.value = optionItem.value;
-      option.textContent = optionItem.label;
-      shiftInput.appendChild(option);
-    });
-    shiftInput.value = normalizeShiftType(normalizedDetail.workType, WORK_SHIFT_TYPE.CUSTOM);
-    shiftInput.addEventListener("change", () => {
-      const nextWorkType = normalizeShiftType(shiftInput.value, WORK_SHIFT_TYPE.CUSTOM);
-      const preset = getShiftPreset(nextWorkType, normalizedSettings);
-      const previous = workerTimeDetailsDraft[workerId] || {};
-      const nextDraft = {
-        ...previous,
-        workType: nextWorkType,
-        shiftType: nextWorkType
-      };
-      if (nextWorkType === WORK_SHIFT_TYPE.MANUAL) {
-        nextDraft.startTime = "";
-        nextDraft.endTime = "";
-        nextDraft.breakMinutes = 0;
-      } else if (nextWorkType === WORK_SHIFT_TYPE.CUSTOM) {
-        nextDraft.breakMinutes = normalizeBreakMinutes(previous.breakMinutes, 0);
-      } else {
-        nextDraft.startTime = preset.startTime;
-        nextDraft.endTime = preset.endTime;
-        nextDraft.breakMinutes = preset.breakMinutes;
-      }
-      workerTimeDetailsDraft[workerId] = nextDraft;
-      renderWorkerTimeDetailList();
-    });
-    shiftLabel.appendChild(shiftInput);
-
     const startLabel = document.createElement("label");
-    startLabel.textContent = "開始";
+    startLabel.textContent = "開姁E;
     const startInput = document.createElement("input");
     startInput.type = "time";
     startInput.value = normalizedDetail.startTime;
-    startInput.disabled = normalizedDetail.workType === WORK_SHIFT_TYPE.MANUAL;
     startInput.addEventListener("change", () => {
       workerTimeDetailsDraft[workerId] = {
         ...workerTimeDetailsDraft[workerId],
@@ -5190,11 +5525,10 @@ function renderWorkerTimeDetailList() {
     startLabel.appendChild(startInput);
 
     const endLabel = document.createElement("label");
-    endLabel.textContent = "終了";
+    endLabel.textContent = "終亁E;
     const endInput = document.createElement("input");
     endInput.type = "time";
     endInput.value = normalizedDetail.endTime;
-    endInput.disabled = normalizedDetail.workType === WORK_SHIFT_TYPE.MANUAL;
     endInput.addEventListener("change", () => {
       workerTimeDetailsDraft[workerId] = {
         ...workerTimeDetailsDraft[workerId],
@@ -5205,7 +5539,8 @@ function renderWorkerTimeDetailList() {
     endLabel.appendChild(endInput);
 
     const breakLabel = document.createElement("label");
-    breakLabel.textContent = "控除時間（分）";
+    breakLabel.textContent = "控除刁E���E�E�E;
+    breakLabel.textContent = "控除時間�E��E�E�E;
     const breakInput = document.createElement("input");
     breakInput.type = "number";
     breakInput.min = "0";
@@ -5213,7 +5548,6 @@ function renderWorkerTimeDetailList() {
     breakInput.step = "15";
     breakInput.inputMode = "numeric";
     breakInput.value = String(normalizedDetail.breakMinutes);
-    breakInput.disabled = normalizedDetail.workType === WORK_SHIFT_TYPE.MANUAL;
     breakInput.addEventListener("change", () => {
       workerTimeDetailsDraft[workerId] = {
         ...workerTimeDetailsDraft[workerId],
@@ -5224,14 +5558,14 @@ function renderWorkerTimeDetailList() {
     breakLabel.appendChild(breakInput);
 
     const manualLabel = document.createElement("label");
-    manualLabel.textContent = "実労働時間（手入力）";
+    manualLabel.textContent = "手�E力上書き（時間！E;
     const manualInput = document.createElement("input");
     manualInput.type = "number";
     manualInput.min = "0";
     manualInput.max = "24";
     manualInput.step = "0.25";
     manualInput.inputMode = "decimal";
-    manualInput.placeholder = "例: 4.0";
+    manualInput.placeholder = "侁E 4.0";
     manualInput.value = normalizedDetail.manualHours ?? "";
     manualInput.addEventListener("change", () => {
       workerTimeDetailsDraft[workerId] = {
@@ -5243,21 +5577,18 @@ function renderWorkerTimeDetailList() {
     });
     manualLabel.appendChild(manualInput);
 
-    row.append(shiftLabel, startLabel, endLabel);
-    const row2 = document.createElement("div");
-    row2.className = "form-row form-row--triple";
-    row2.append(breakLabel, manualLabel);
-    card.append(header, row, row2);
+    row.append(startLabel, endLabel, breakLabel);
+    card.append(header, row, manualLabel);
 
     const calcText = Number.isFinite(normalizedDetail.calculatedHours)
-      ? `${normalizedDetail.calculatedHours.toFixed(2).replace(/\.?0+$/, "")}時間`
-      : "-";
-    const resolvedText = Number.isFinite(normalizedDetail.payrollHours)
-      ? `${normalizedDetail.payrollHours.toFixed(2).replace(/\.?0+$/, "")}時間`
-      : "-";
+      ? `${normalizedDetail.calculatedHours.toFixed(1)}時間`
+      : "未計箁E;
+    const resolvedText = Number.isFinite(normalizedDetail.resolvedHours)
+      ? `${normalizedDetail.resolvedHours.toFixed(1)}時間`
+      : "未計箁E;
     const summary = document.createElement("p");
     summary.className = "worker-time-detail-card__calc";
-    summary.textContent = `勤務区分: ${getShiftTypeLabel(normalizedDetail.workType)} / 自動計算: ${calcText} / 給与計算に使う時間: ${resolvedText}`;
+    summary.textContent = `自動計箁E ${calcText} / 採用時間: ${resolvedText}`;
     card.append(summary);
 
     workerTimeDetailList.appendChild(card);
@@ -5743,23 +6074,13 @@ function getFormData() {
     commonBreakMinutes
   );
   const manualHours = getFormManualWorkHours(normalizedSettings);
-  let resolvedWorkHours;
-  if (manualHours !== null) {
-    resolvedWorkHours = manualHours;
-  } else if (shiftType === WORK_SHIFT_TYPE.MANUAL) {
-    resolvedWorkHours = 0;
-  } else if (Number.isFinite(autoHours)) {
-    resolvedWorkHours = autoHours;
-  } else {
-    resolvedWorkHours = getDefaultWorkHours(normalizedSettings);
-  }
+  const resolvedWorkHours = manualHours !== null
+    ? manualHours
+    : (Number.isFinite(autoHours) ? autoHours : getDefaultWorkHours(normalizedSettings));
   const workerTimeFallback = {
-    workType: shiftType,
-    shiftType,
     startTime: commonStartTime,
     endTime: commonEndTime,
     breakMinutes: commonBreakMinutes,
-    payrollHours: resolvedWorkHours,
     workHours: resolvedWorkHours
   };
   const workerTimeDetails = assignedWorkers.reduce((acc, worker) => {
@@ -5813,14 +6134,10 @@ function getFormData() {
     taskType: workTypes[0] || "",
     workTypes,
     workHours: resolvedWorkHours,
-    payrollHours: resolvedWorkHours,
     manualWorkHours: manualHours,
-    manualHours,
     calculatedWorkHours: Number.isFinite(autoHours) ? autoHours : null,
     breakMinutes: commonBreakMinutes,
-    timeBreakMinutes: commonBreakMinutes,
     nonCountedMinutes: commonBreakMinutes,
-    nonWorkingMinutes: commonBreakMinutes,
     shiftType,
     workShiftType: shiftType,
     dailyGroupId: dailyGroup?.id || "",
@@ -6289,12 +6606,9 @@ function fillRecordForm(record) {
     ? record.workerTimeDetails
     : {};
   const fallbackDetail = {
-    workType: recordShiftType,
-    shiftType: recordShiftType,
     startTime: recordStartTime,
     endTime: recordEndTime,
     breakMinutes: recordBreakMinutes,
-    payrollHours: getRecordResolvedWorkHours(record, normalizedSettings),
     workHours: getRecordResolvedWorkHours(record, normalizedSettings)
   };
   workerTimeDetailsDraft = selectedWorkerIds.reduce((acc, workerId) => {
@@ -6304,14 +6618,11 @@ function fillRecordForm(record) {
       normalizedSettings
     );
     acc[workerId] = {
-      workType: detail.workType,
-      shiftType: detail.shiftType,
       startTime: detail.startTime,
       endTime: detail.endTime,
       breakMinutes: detail.breakMinutes,
       manualHours: detail.manualHours,
-      manualWorkHours: detail.manualWorkHours,
-      payrollHours: detail.payrollHours
+      manualWorkHours: detail.manualWorkHours
     };
     return acc;
   }, {});
@@ -7560,8 +7871,6 @@ function updateTimeHint() {
     if (timeHint) {
       if (manualHours !== null) {
         timeHint.textContent = `\u52e4\u52d9\u533a\u5206 ${shiftLabel} / \u5b9f\u52b4\u50cd ${manualHours}\u6642\u9593\uff08\u624b\u5165\u529b\u5024\u3092\u4f7f\u7528\uff09`;
-      } else if (shiftType === WORK_SHIFT_TYPE.MANUAL) {
-        timeHint.textContent = "\u52e4\u52d9\u533a\u5206 \u624b\u5165\u529b / \u5b9f\u52b4\u50cd\u6642\u9593\u3092\u76f4\u63a5\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044\u3002";
       } else {
         timeHint.textContent = `\u6642\u523b\u672a\u5165\u529b\u306e\u305f\u3081\u3001\u6a19\u6e96\u52e4\u52d9 ${settings.workdayStartTime}\u301c${settings.workdayEndTime}\uff08\u63a7\u9664 ${settings.workdayBreakMinutes}\u5206\uff09= ${defaultHours}\u6642\u9593\u3067\u8a08\u7b97\u3057\u307e\u3059\u3002`;
       }
@@ -10700,7 +11009,7 @@ function exportCsvWithTemperature() {
 
 function getPayrollPeriodText(periodConfig) {
   if (!periodConfig) return "";
-  return periodConfig.rangeText || `${formatDateYmd(periodConfig.from)}〜${formatDateYmd(periodConfig.to)}`;
+  return periodConfig.rangeText || `${formatDateYmd(periodConfig.from)}~${formatDateYmd(periodConfig.to)}`;
 }
 
 function renderPayrollSummaryCards(data) {
@@ -10821,10 +11130,9 @@ function renderPayrollDetail(data) {
         </div>
         <div class="payroll-day-card__grid">
           <div><span>\u4f5c\u696d\u5185\u5bb9</span><strong>${escapeHtml(day.workTypeText || "\u672a\u8a2d\u5b9a")}</strong></div>
-          <div><span>\u52e4\u52d9\u6642\u9593</span><strong>${escapeHtml(day.timeRangeText || `${day.startTime || "--"}\u301c${day.endTime || "--"}`)}</strong></div>
           <div><span>\u958b\u59cb\u6642\u523b</span><strong>${escapeHtml(day.startTime || "--")}</strong></div>
           <div><span>\u7d42\u4e86\u6642\u523b</span><strong>${escapeHtml(day.endTime || "--")}</strong></div>
-          <div><span>\u30ab\u30a6\u30f3\u30c8\u3057\u306a\u3044\u6642\u9593</span><strong>${escapeHtml(String(Math.round(day.breakMinutes || 0)))}\u5206</strong></div>
+          <div><span>\u63a7\u9664\u6642\u9593</span><strong>${escapeHtml(String(Math.round(day.breakMinutes || 0)))}\u5206</strong></div>
           <div><span>\u5b9f\u52b4\u50cd\u6642\u9593</span><strong>${escapeHtml(formatHoursQuarter(day.workHours))}</strong></div>
           <div><span>\u6642\u7d66</span><strong>${escapeHtml(formatCurrency(day.hourlyRate || 0))}</strong></div>
           <div><span>\u65e5\u5225\u8cc3\u91d1</span><strong>${escapeHtml(formatCurrency(day.dayPay || 0))}</strong></div>
@@ -10848,19 +11156,7 @@ function renderPayrollDetail(data) {
         <div><span>\u6642\u7d66</span><strong>${escapeHtml(formatCurrency(selectedRow.hourlyRate))}</strong></div>
         <div><span>\u57fa\u672c\u652f\u7d66\u984d</span><strong>${escapeHtml(formatCurrency(selectedRow.basicPay))}</strong></div>
       </div>
-      <h5 class="payroll-day-section-title">\u65e5\u5225\u660e\u7d30</h5>
       <section class="payroll-day-list">${dayRowsHtml}</section>
-      <section class="payroll-total-summary">
-        <h5>\u5408\u8a08</h5>
-        <div class="payroll-total-summary__grid">
-          <div><span>\u51fa\u52e4\u65e5\u6570</span><strong>${escapeHtml(formatDays(selectedRow.attendanceDays))}</strong></div>
-          <div><span>\u7dcf\u52b4\u50cd\u6642\u9593</span><strong>${escapeHtml(formatHoursQuarter(selectedRow.totalHours))}</strong></div>
-          <div><span>\u57fa\u672c\u652f\u7d66\u984d</span><strong>${escapeHtml(formatCurrency(selectedRow.basicPay))}</strong></div>
-          <div><span>\u624b\u5f53</span><strong>${escapeHtml(formatCurrency(selectedRow.allowance))}</strong></div>
-          <div><span>\u63a7\u9664</span><strong>${escapeHtml(formatCurrency(selectedRow.deduction))}</strong></div>
-          <div><span>\u5dee\u5f15\u652f\u7d66\u984d</span><strong>${escapeHtml(formatCurrency(selectedRow.netPay))}</strong></div>
-        </div>
-      </section>
       <div class="payroll-adjustment-row">
         <label>\u624b\u5f53\uff08\u5186\uff09<input type="number" id="payrollAllowanceInput" min="0" step="1" value="${selectedRow.allowance}"></label>
         <label>\u63a7\u9664\uff08\u5186\uff09<input type="number" id="payrollDeductionInput" min="0" step="1" value="${selectedRow.deduction}"></label>
@@ -10975,13 +11271,12 @@ function exportPayrollCsv() {
 }
 
 function buildPayrollWorkerDailyRowsHtml(dailyDetails) {
-  if (!dailyDetails.length) return `<tr><td colspan="10">\u5bfe\u8c61\u671f\u9593\u306e\u660e\u7d30\u304c\u3042\u308a\u307e\u305b\u3093\u3002</td></tr>`;
+  if (!dailyDetails.length) return `<tr><td colspan="9">\u5bfe\u8c61\u671f\u9593\u306e\u660e\u7d30\u304c\u3042\u308a\u307e\u305b\u3093\u3002</td></tr>`;
   return dailyDetails.map((day) => `
     <tr>
       <td>${escapeHtml(formatDateYmd(day.workDate))}</td>
       <td>${escapeHtml(day.weekdayLabel || getWeekdayLabelJa(day.workDate))}</td>
       <td>${escapeHtml(day.workTypeText || "\u672a\u8a2d\u5b9a")}</td>
-      <td>${escapeHtml(day.timeRangeText || `${day.startTime || "--"}\u301c${day.endTime || "--"}`)}</td>
       <td>${escapeHtml(day.startTime || "--")}</td>
       <td>${escapeHtml(day.endTime || "--")}</td>
       <td>${escapeHtml(String(Math.round(day.breakMinutes || 0)))}\u5206</td>
@@ -10998,11 +11293,10 @@ function buildPayrollReportHtml(data, preferredAction = "print") {
   const workerSections = data.rows.map((row) => `
     <section class="sheet-section">
       <h3>${escapeHtml(row.fullName)}${row.category ? `(${escapeHtml(row.category)})` : ""}</h3>
-      <h4 class="detail-subtitle">\u65e5\u5225\u660e\u7d30</h4>
       <table>
-        <thead><tr><th>\u65e5\u4ed8</th><th>\u66dc</th><th>\u4f5c\u696d\u5185\u5bb9</th><th>\u52e4\u52d9\u6642\u9593</th><th>\u958b\u59cb</th><th>\u7d42\u4e86</th><th>\u30ab\u30a6\u30f3\u30c8\u3057\u306a\u3044\u6642\u9593</th><th>\u5b9f\u52b4\u50cd</th><th>\u6642\u7d66</th><th>\u65e5\u5225\u8cc3\u91d1</th></tr></thead>
+        <thead><tr><th>\u65e5\u4ed8</th><th>\u66dc</th><th>\u4f5c\u696d\u5185\u5bb9</th><th>\u958b\u59cb</th><th>\u7d42\u4e86</th><th>\u63a7\u9664</th><th>\u5b9f\u52b4\u50cd</th><th>\u6642\u7d66</th><th>\u65e5\u5225\u8cc3\u91d1</th></tr></thead>
         <tbody>${buildPayrollWorkerDailyRowsHtml(row.dailyDetails || [])}</tbody>
-        <tfoot><tr><td colspan="7">\u671f\u9593\u5408\u8a08</td><td>${escapeHtml(formatHoursQuarter(row.totalHours))}</td><td>${escapeHtml(formatCurrency(row.hourlyRate || 0))}</td><td>${escapeHtml(formatCurrency(row.basicPay || 0))}</td></tr></tfoot>
+        <tfoot><tr><td colspan="5">\u671f\u9593\u5408\u8a08</td><td>${escapeHtml(String(Math.round(row.totalBreakMinutes || 0)))}\u5206</td><td>${escapeHtml(formatHoursQuarter(row.totalHours))}</td><td>${escapeHtml(formatCurrency(row.hourlyRate || 0))}</td><td>${escapeHtml(formatCurrency(row.basicPay || 0))}</td></tr></tfoot>
       </table>
       <p class="worker-adjustment">\u624b\u5f53: ${escapeHtml(formatCurrency(row.allowance || 0))} / \u63a7\u9664: ${escapeHtml(formatCurrency(row.deduction || 0))} / \u5dee\u5f15\u652f\u7d66\u984d: ${escapeHtml(formatCurrency(row.netPay || 0))}</p>
     </section>
@@ -11025,7 +11319,6 @@ function buildPayrollReportHtml(data, preferredAction = "print") {
       .summary span { font-size: 11px; color: #61574b; } .summary strong { font-size: 14px; }
       .sheet-section { border: 1px solid #dfd8cd; border-radius: 4mm; background: #fff; padding: 4mm; margin-bottom: 3mm; }
       .sheet-section h3 { margin: 0 0 2mm; font-size: 16px; }
-      .detail-subtitle { margin: 0 0 2mm; font-size: 13px; color: #4f463b; }
       table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #ddd3c3; padding: 5px 6px; font-size: 11px; text-align: center; }
       th { background: #f3eee3; } td:nth-child(3), th:nth-child(3) { text-align: left; } tfoot td { background: #faf6ee; font-weight: 700; }
       .worker-adjustment { margin: 2mm 0 0; font-size: 12px; color: #5a4d40; }
@@ -11088,16 +11381,12 @@ function buildPayrollIndividualReportHtml(row, periodConfig, preferredAction = "
       .sheet { width: min(210mm, 100%); margin: 0 auto; padding: 8mm 0 12mm; }
       .header { border: 1px solid #dfd8cd; border-radius: 4mm; background: #fff; padding: 5mm; margin-bottom: 3mm; }
       .app { margin: 0; font-size: 18px; } .title { margin: 2mm 0 1mm; font-size: 18px; } .meta { margin: 1mm 0; color: #5f564b; font-size: 13px; }
-      .detail-subtitle { margin: 0 0 2mm; font-size: 13px; color: #4f463b; }
-      .summary { display: grid; gap: 2mm; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 2.4mm 0 3mm; }
-      .summary div { border: 1px solid #dfd8cd; border-radius: 3mm; background: #fff; padding: 2.5mm 3mm; display: grid; gap: 1mm; }
-      .summary span { font-size: 11px; color: #61574b; } .summary strong { font-size: 14px; }
       table { width: 100%; border-collapse: collapse; background: #fff; }
       th, td { border: 1px solid #ddd3c3; padding: 6px 7px; font-size: 12px; text-align: center; }
       th { background: #f3eee3; } td:nth-child(3), th:nth-child(3) { text-align: left; } tfoot td { background: #faf6ee; font-weight: 700; }
       .netpay { margin-top: 3mm; border: 1px solid #dcb49b; border-radius: 3mm; background: #fff5ef; padding: 2.8mm 3.4mm; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
       .netpay span { color: #7a4a34; font-weight: 700; } .netpay strong { color: #8f351e; font-size: 20px; }
-      @media (max-width: 720px) { .toolbar { position: static; padding: 10px 12px; } .actions { width: 100%; } .button { flex: 1; } .sheet { width: 100%; padding: 12px; } .summary { grid-template-columns: 1fr; } }
+      @media (max-width: 720px) { .toolbar { position: static; padding: 10px 12px; } .actions { width: 100%; } .button { flex: 1; } .sheet { width: 100%; padding: 12px; } }
       @media print { body { background: #fff; } .toolbar { display: none; } .sheet { width: auto; margin: 0; padding: 0; } }
     </style></head>
     <body>
@@ -11109,21 +11398,11 @@ function buildPayrollIndividualReportHtml(row, periodConfig, preferredAction = "
           <p class="meta">\u4f5c\u696d\u8005\u540d: ${escapeHtml(row.fullName || "")}</p>
           <p class="meta">\u5bfe\u8c61\u671f\u9593: ${escapeHtml(periodText)}</p>
           <p class="meta">\u7de0\u3081\u533a\u5206: ${escapeHtml(periodConfig.closeLabel || "")}</p>
-          <div class="summary">
-            <div><span>\u51fa\u52e4\u65e5\u6570</span><strong>${escapeHtml(formatDays(row.attendanceDays || 0))}</strong></div>
-            <div><span>\u7dcf\u5b9f\u52b4\u50cd\u6642\u9593</span><strong>${escapeHtml(formatHoursQuarter(row.totalHours || 0))}</strong></div>
-            <div><span>\u57fa\u672c\u652f\u7d66\u984d</span><strong>${escapeHtml(formatCurrency(row.basicPay || 0))}</strong></div>
-            <div><span>\u6642\u7d66</span><strong>${escapeHtml(formatCurrency(row.hourlyRate || 0))}</strong></div>
-            <div><span>\u624b\u5f53</span><strong>${escapeHtml(formatCurrency(row.allowance || 0))}</strong></div>
-            <div><span>\u63a7\u9664</span><strong>${escapeHtml(formatCurrency(row.deduction || 0))}</strong></div>
-            <div><span>\u5dee\u5f15\u652f\u7d66\u984d</span><strong>${escapeHtml(formatCurrency(row.netPay || 0))}</strong></div>
-          </div>
         </section>
-        <h3 class="detail-subtitle">\u65e5\u5225\u660e\u7d30</h3>
         <table>
-          <thead><tr><th>\u65e5\u4ed8</th><th>\u66dc</th><th>\u4f5c\u696d\u5185\u5bb9</th><th>\u52e4\u52d9\u6642\u9593</th><th>\u958b\u59cb</th><th>\u7d42\u4e86</th><th>\u30ab\u30a6\u30f3\u30c8\u3057\u306a\u3044\u6642\u9593</th><th>\u5b9f\u52b4\u50cd</th><th>\u6642\u7d66</th><th>\u65e5\u5225\u8cc3\u91d1</th></tr></thead>
+          <thead><tr><th>\u65e5\u4ed8</th><th>\u66dc</th><th>\u4f5c\u696d\u5185\u5bb9</th><th>\u958b\u59cb</th><th>\u7d42\u4e86</th><th>\u63a7\u9664</th><th>\u5b9f\u52b4\u50cd</th><th>\u6642\u7d66</th><th>\u65e5\u5225\u8cc3\u91d1</th></tr></thead>
           <tbody>${buildPayrollWorkerDailyRowsHtml(dailyDetails)}</tbody>
-          <tfoot><tr><td colspan="7">\u671f\u9593\u5408\u8a08</td><td>${escapeHtml(formatHoursQuarter(row.totalHours || 0))}</td><td>${escapeHtml(formatCurrency(row.hourlyRate || 0))}</td><td>${escapeHtml(formatCurrency(row.basicPay || 0))}</td></tr></tfoot>
+          <tfoot><tr><td colspan="5">\u671f\u9593\u5408\u8a08</td><td>${escapeHtml(String(Math.round(row.totalBreakMinutes || 0)))}\u5206</td><td>${escapeHtml(formatHoursQuarter(row.totalHours || 0))}</td><td>${escapeHtml(formatCurrency(row.hourlyRate || 0))}</td><td>${escapeHtml(formatCurrency(row.basicPay || 0))}</td></tr></tfoot>
         </table>
         <div class="netpay"><span>\u5dee\u5f15\u652f\u7d66\u984d</span><strong>${escapeHtml(formatCurrency(row.netPay || 0))}</strong></div>
       </main>
@@ -11161,8 +11440,6 @@ form.addEventListener("submit", (event) => {
     return;
   }
   const breakMinutesValue = getFormBreakMinutes(companySettings);
-  const selectedShiftType = getSelectedFormShiftType();
-  const manualHoursValue = getFormManualWorkHours(companySettings);
   if (!Number.isFinite(breakMinutesValue) || breakMinutesValue < 0 || breakMinutesValue > 600) {
     window.alert("カウントしなぁE��間（�E�E��E0、E00で入力してください、E);
     return;
@@ -11179,25 +11456,8 @@ form.addEventListener("submit", (event) => {
     window.alert("終亁E��刻は開始時刻より後に設定してください、E);
     return;
   }
-  if (selectedShiftType === WORK_SHIFT_TYPE.MANUAL && manualHoursValue === null && !Object.keys(workerTimeDetailsDraft || {}).length) {
-    window.alert("勤務区分が「手入力」の場合は、実労働時間（手入力）を入力してください。");
-    return;
-  }
   pruneWorkerTimeDetailsDraft();
   const record = getFormData();
-  if (selectedShiftType === WORK_SHIFT_TYPE.MANUAL && Number(record.workHours || 0) <= 0) {
-    window.alert("勤務区分が「手入力」の場合は、実労働時間（手入力）を入力してください。");
-    return;
-  }
-  const missingWorkerPayroll = getAssignedWorkers(record).some((worker) => {
-    const detail = record.workerTimeDetails?.[worker.id] || {};
-    const payrollHours = Number(detail.payrollHours ?? detail.manualHours ?? detail.calculatedHours ?? 0);
-    return !Number.isFinite(payrollHours) || payrollHours <= 0;
-  });
-  if (missingWorkerPayroll) {
-    window.alert("作業者ごとの勤務時間が不足しています。各作業者の実労働時間を確認してください。");
-    return;
-  }
   const index = records.findIndex((item) => item.id === record.id);
   if (index >= 0) records[index] = record;
   else records.push(record);
@@ -12042,8 +12302,7 @@ if (companySettingsForm) {
     const baseTemperatureText = Number(previewSettings.degreeDayBaseTemperatureC).toFixed(1).replace(/\.0$/, "");
     const breakText = `${Math.floor(previewSettings.workdayBreakMinutes / 60)}時間${String(previewSettings.workdayBreakMinutes % 60).padStart(2, "0")}刁E;
     const defaultHours = getDefaultWorkHours(previewSettings);
-    const effectiveTimeUnitMinutes = previewSettings.payrollTimeUnitMinutes === 30 ? 15 : previewSettings.payrollTimeUnitMinutes;
-    companyFiscalYearPreview.textContent = `\u73fe\u5728\u306e\u6c7a\u7b97\u5e74\u5ea6: ${formatDateYmd(fiscalRange.from)}\u301c${formatDateYmd(fiscalRange.to)} / \u7a4d\u7b97\u6e29\u5ea6\u57fa\u6e96: ${baseTemperatureText}\u2103 / \u6a19\u6e96\u52e4\u52d9: ${previewSettings.workdayStartTime}\u301c${previewSettings.workdayEndTime}\uff08\u4f11\u61a9 ${breakText}\uff09= ${defaultHours}\u6642\u9593 / \u4e38\u3081: ${effectiveTimeUnitMinutes}\u5206`;
+    companyFiscalYearPreview.textContent = `\u73fe\u5728\u306e\u6c7a\u7b97\u5e74\u5ea6: ${formatDateYmd(fiscalRange.from)}\u301c${formatDateYmd(fiscalRange.to)} / \u7a4d\u7b97\u6e29\u5ea6\u57fa\u6e96: ${baseTemperatureText}\u2103 / \u6a19\u6e96\u52e4\u52d9: ${previewSettings.workdayStartTime}\u301c${previewSettings.workdayEndTime}\uff08\u4f11\u61a9 ${breakText}\uff09= ${defaultHours}\u6642\u9593 / \u4e38\u3081: ${previewSettings.payrollTimeUnitMinutes}\u5206`;
   };
   fiscalClosingMonthInput.addEventListener("input", updatePreview);
   fiscalClosingDayInput.addEventListener("input", updatePreview);
@@ -12088,8 +12347,7 @@ function renderCompanySettings() {
   const baseTemperatureText = Number(normalized.degreeDayBaseTemperatureC).toFixed(1).replace(/\.0$/, "");
   const breakText = `${Math.floor(normalized.workdayBreakMinutes / 60)}時間${String(normalized.workdayBreakMinutes % 60).padStart(2, "0")}刁E;
   const defaultHours = getDefaultWorkHours(normalized);
-  const effectiveTimeUnitMinutes = normalized.payrollTimeUnitMinutes === 30 ? 15 : normalized.payrollTimeUnitMinutes;
-  companyFiscalYearPreview.textContent = `\u73fe\u5728\u306e\u6c7a\u7b97\u5e74\u5ea6: ${formatDateYmd(fiscalRange.from)}\u301c${formatDateYmd(fiscalRange.to)} / \u7a4d\u7b97\u6e29\u5ea6\u57fa\u6e96: ${baseTemperatureText}\u2103 / \u6a19\u6e96\u52e4\u52d9: ${normalized.workdayStartTime}\u301c${normalized.workdayEndTime}\uff08\u4f11\u61a9 ${breakText}\uff09= ${defaultHours}\u6642\u9593 / \u4e38\u3081: ${effectiveTimeUnitMinutes}\u5206`;
+  companyFiscalYearPreview.textContent = `\u73fe\u5728\u306e\u6c7a\u7b97\u5e74\u5ea6: ${formatDateYmd(fiscalRange.from)}\u301c${formatDateYmd(fiscalRange.to)} / \u7a4d\u7b97\u6e29\u5ea6\u57fa\u6e96: ${baseTemperatureText}\u2103 / \u6a19\u6e96\u52e4\u52d9: ${normalized.workdayStartTime}\u301c${normalized.workdayEndTime}\uff08\u4f11\u61a9 ${breakText}\uff09= ${defaultHours}\u6642\u9593 / \u4e38\u3081: ${normalized.payrollTimeUnitMinutes}\u5206`;
   applyDefaultWorkScheduleToForm();
 }
 
@@ -12169,4 +12427,3 @@ resetTeamPlanForm();
 render();
 setAppView(activeAppViewKey, { scrollIntoView: false });
 setWeatherFetchStatus(WEATHER_FETCH_HINT_TEXT);
-
