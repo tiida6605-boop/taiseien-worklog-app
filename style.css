@@ -289,11 +289,6 @@ main,
   display: none !important;
 }
 
-.is-hidden,
-[hidden] {
-  display: none !important;
-}
-
 .layout {
   grid-template-columns: 1fr;
   align-items: start;
@@ -1278,110 +1273,6 @@ textarea {
   color: var(--accent-dark);
 }
 
-.payroll-day-list {
-  display: grid;
-  gap: 0.58rem;
-}
-
-.payroll-day-section-title {
-  margin: 0.12rem 0 0;
-  font-size: 0.92rem;
-  color: #5a3e20;
-}
-
-.payroll-day-card {
-  border-radius: 12px;
-  border: 1px solid rgba(96, 68, 38, 0.12);
-  background: rgba(255, 255, 255, 0.72);
-  padding: 0.6rem;
-  display: grid;
-  gap: 0.45rem;
-}
-
-.payroll-day-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.55rem;
-}
-
-.payroll-day-card__header h5 {
-  margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.35;
-}
-
-.payroll-day-card__header strong {
-  color: var(--accent-dark);
-  font-size: 1rem;
-}
-
-.payroll-day-card__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.42rem 0.55rem;
-}
-
-.payroll-day-card__grid > div {
-  border-radius: 10px;
-  border: 1px solid rgba(96, 68, 38, 0.08);
-  background: rgba(255, 250, 241, 0.6);
-  padding: 0.45rem 0.52rem;
-  display: grid;
-  gap: 0.16rem;
-}
-
-.payroll-day-card__grid span {
-  font-size: 0.77rem;
-  color: var(--muted);
-}
-
-.payroll-day-card__grid strong {
-  font-size: 0.9rem;
-  color: var(--accent-dark);
-  line-height: 1.35;
-}
-
-.payroll-total-summary {
-  border-radius: 12px;
-  border: 1px solid rgba(96, 68, 38, 0.12);
-  background: rgba(255, 255, 255, 0.72);
-  padding: 0.62rem;
-  display: grid;
-  gap: 0.48rem;
-}
-
-.payroll-total-summary h5 {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #5a3e20;
-}
-
-.payroll-total-summary__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem 0.5rem;
-}
-
-.payroll-total-summary__grid > div {
-  border-radius: 10px;
-  border: 1px solid rgba(96, 68, 38, 0.08);
-  background: rgba(255, 250, 241, 0.6);
-  padding: 0.42rem 0.5rem;
-  display: grid;
-  gap: 0.14rem;
-}
-
-.payroll-total-summary__grid span {
-  font-size: 0.76rem;
-  color: var(--muted);
-}
-
-.payroll-total-summary__grid strong {
-  font-size: 0.9rem;
-  color: var(--accent-dark);
-}
-
 .payroll-adjustment-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2198,8 +2089,6 @@ textarea {
   .payroll-summary-cards,
   .payroll-row__metrics,
   .payroll-detail-grid,
-  .payroll-day-card__grid,
-  .payroll-total-summary__grid,
   .payroll-adjustment-row,
   .task-report-card__summary,
   .comparison-row__metrics,
@@ -2348,7 +2237,6 @@ textarea {
   .payroll-summary-cards,
   .payroll-row__metrics,
   .payroll-detail-grid,
-  .payroll-day-card__grid,
   .payroll-adjustment-row,
   .worktime-tab-switch,
   .worktime-period-switch,

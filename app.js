@@ -1,36 +1,35 @@
-﻿const APP_STORAGE_KEY = "capple-farm-state-v5";
+const APP_STORAGE_KEY = "capple-farm-state-v5";
 const PREVIOUS_STATE_KEY = "capple-farm-state-v4";
 const LEGACY_RECORD_KEY = "capple-farm-records-v1";
 const LAST_BACKUP_AT_KEY = "capple-farm-last-backup-at";
 
-/*
 const sampleMasters = {
   orchards: [
-    { id: "orchard-north", name: "北園地", managementCode: "O-01", latitude: 40.760812, longitude: 140.467915, note: "主力�Eふじ中忁E },
-    { id: "orchard-east", name: "東園地", managementCode: "O-02", latitude: 40.762734, longitude: 140.475901, note: "つがる中忁E�E園地" },
+    { id: "orchard-north", name: "北園地", managementCode: "O-01", latitude: 40.760812, longitude: 140.467915, note: "主力のふじ中心" },
+    { id: "orchard-east", name: "東園地", managementCode: "O-02", latitude: 40.762734, longitude: 140.475901, note: "つがる中心の園地" },
     { id: "orchard-south", name: "南園地", managementCode: "O-03", latitude: 40.754329, longitude: 140.469842, note: "傾斜があり作業量が多い" }
   ],
   plots: [
-    { id: "plot-north-a1", orchardId: "orchard-north", name: "A-1", managementCode: "K-01", note: "防風ネット沿ぁE },
+    { id: "plot-north-a1", orchardId: "orchard-north", name: "A-1", managementCode: "K-01", note: "防風ネット沿い" },
     { id: "plot-north-a2", orchardId: "orchard-north", name: "A-2", managementCode: "K-02", note: "更新樹あり" },
-    { id: "plot-east-b1", orchardId: "orchard-east", name: "B-1", managementCode: "K-03", note: "若木中忁E },
-    { id: "plot-south-c1", orchardId: "orchard-south", name: "C-1", managementCode: "K-04", note: "傾斜強めE }
+    { id: "plot-east-b1", orchardId: "orchard-east", name: "B-1", managementCode: "K-03", note: "若木中心" },
+    { id: "plot-south-c1", orchardId: "orchard-south", name: "C-1", managementCode: "K-04", note: "傾斜強め" }
   ],
   varieties: [
-    { id: "variety-fuji", name: "ふぁE, note: "晩生�E主力品種" },
-    { id: "variety-tsugaru", name: "つがる", note: "早生で着色が早ぁE },
-    { id: "variety-ourin", name: "王林", note: "香りの良ぁE��E��品種" }
+    { id: "variety-fuji", name: "ふじ", note: "晩生の主力品種" },
+    { id: "variety-tsugaru", name: "つがる", note: "早生で着色が早い" },
+    { id: "variety-ourin", name: "王林", note: "香りの良い黄色品種" }
   ],
   groups: [
-    { id: "group-1", name: "第1班", sortOrder: 1, description: "摘果と葉摘み中忁E, isActive: true },
-    { id: "group-2", name: "第2班", sortOrder: 2, description: "受粉と見回り中忁E, isActive: true },
+    { id: "group-1", name: "第1班", sortOrder: 1, description: "摘果と葉摘み中心", isActive: true },
+    { id: "group-2", name: "第2班", sortOrder: 2, description: "受粉と見回り中心", isActive: true },
     { id: "group-support", name: "応援班", sortOrder: 3, description: "繁忙期の応援作業", isActive: false }
   ],
   workers: [
-    { id: "worker-family-taro", fullName: "田中 太郁E, displayName: "太郁E, primaryGroupId: "group-1", category: "家旁E, hourlyRate: 0, isActive: true },
+    { id: "worker-family-taro", fullName: "田中 太郎", displayName: "太郎", primaryGroupId: "group-1", category: "家族", hourlyRate: 0, isActive: true },
     { id: "worker-employee-yui", fullName: "佐藤 結衣", displayName: "結衣", primaryGroupId: "group-2", category: "社員", hourlyRate: 1500, isActive: true },
-    { id: "worker-part-ken", fullName: "高橁E健", displayName: "健", primaryGroupId: "group-1", category: "パ�EチE, hourlyRate: 1200, isActive: true },
-    { id: "worker-other-guest", fullName: "応援スタチE��", displayName: "応援", primaryGroupId: "group-support", category: "そ�E仁E, hourlyRate: 1300, isActive: false }
+    { id: "worker-part-ken", fullName: "高橋 健", displayName: "健", primaryGroupId: "group-1", category: "パート", hourlyRate: 1200, isActive: true },
+    { id: "worker-other-guest", fullName: "応援スタッフ", displayName: "応援", primaryGroupId: "group-support", category: "その他", hourlyRate: 1300, isActive: false }
   ],
   workerGroupMemberships: [
     { id: "membership-taro-1", workerId: "worker-family-taro", groupId: "group-1", isPrimary: true },
@@ -74,17 +73,17 @@ const sampleRecords = [
     workerId: "worker-family-taro",
     assignedWorkers: [{ workerId: "worker-family-taro" }, { workerId: "worker-part-ken" }],
     workerIds: ["worker-family-taro", "worker-part-ken"],
-    workerName: "田中 太郁E,
-    workerNames: ["太郁E, "健"],
-    workerDisplayName: "太郁E,
-    workerCategory: "家旁E,
+    workerName: "田中 太郎",
+    workerNames: ["太郎", "健"],
+    workerDisplayName: "太郎",
+    workerCategory: "家族",
     workerHourlyRate: 0,
     startTime: "07:30",
     endTime: "10:00",
     temperatureC: 18,
-    weather: "晴めE,
+    weather: "晴れ",
     materials: "摘果用はさみ 2本",
-    notes: "混み合ってぁE��枝を優先して整琁E��E,
+    notes: "混み合っている枝を優先して整理。",
     updatedAt: "2026-04-05T09:00:00.000Z"
   },
   {
@@ -93,8 +92,8 @@ const sampleRecords = [
     orchardId: "orchard-east",
     plotId: "plot-east-b1",
     varietyId: "variety-tsugaru",
-    taskType: "受粁E,
-    workTypes: ["受粁E],
+    taskType: "受粉",
+    workTypes: ["受粉"],
     workHours: 1.5,
     dailyGroupId: "group-2",
     dailyGroupName: "第2班",
@@ -112,9 +111,9 @@ const sampleRecords = [
     startTime: "08:00",
     endTime: "09:30",
     temperatureC: 21.5,
-    weather: "くもめE,
+    weather: "くもり",
     materials: "",
-    notes: "開花が進んでぁE��列を先に対応、E,
+    notes: "開花が進んでいる列を先に対応。",
     updatedAt: "2026-04-06T05:30:00.000Z"
   },
   {
@@ -134,17 +133,17 @@ const sampleRecords = [
     workerId: "worker-part-ken",
     assignedWorkers: [{ workerId: "worker-part-ken" }, { workerId: "worker-family-taro" }],
     workerIds: ["worker-part-ken", "worker-family-taro"],
-    workerName: "高橁E健",
-    workerNames: ["健", "太郁E],
+    workerName: "高橋 健",
+    workerNames: ["健", "太郎"],
     workerDisplayName: "健",
-    workerCategory: "パ�EチE,
+    workerCategory: "パート",
     workerHourlyRate: 1200,
     startTime: "05:30",
     endTime: "08:30",
     temperatureC: 24.5,
-    weather: "晴めE,
-    materials: "作業手袁E3絁E,
-    notes: "南面の着色を見ながら実施、E,
+    weather: "晴れ",
+    materials: "作業手袋 3組",
+    notes: "南面の着色を見ながら実施。",
     updatedAt: "2026-04-07T02:15:00.000Z"
   }
 ];
@@ -170,335 +169,65 @@ const sampleTeamPlans = [
   }
 ];
 
-*/
-
-const sampleMasters = {
-  orchards: [
-    { id: "orchard-north", name: "\u5317\u5712\u5730", managementCode: "O-01", latitude: 40.760812, longitude: 140.467915, note: "\u4e3b\u756a\u5730\u306e\u3075\u3058\u4e2d\u5fc3" },
-    { id: "orchard-east", name: "\u6771\u5712\u5730", managementCode: "O-02", latitude: 40.762734, longitude: 140.475901, note: "\u3064\u304c\u308b\u4e2d\u5fc3\u306e\u5712\u5730" },
-    { id: "orchard-south", name: "\u5357\u5712\u5730", managementCode: "O-03", latitude: 40.754329, longitude: 140.469842, note: "\u50be\u659c\u5730\u3067\u4f5c\u696d\u91cf\u304c\u591a\u3044" }
-  ],
-  plots: [
-    { id: "plot-north-a1", orchardId: "orchard-north", name: "A-1", managementCode: "K-01", note: "\u526a\u5b9a\u30a8\u30ea\u30a2" },
-    { id: "plot-north-a2", orchardId: "orchard-north", name: "A-2", managementCode: "K-02", note: "\u66f4\u65b0\u6a39\u3042\u308a" },
-    { id: "plot-east-b1", orchardId: "orchard-east", name: "B-1", managementCode: "K-03", note: "\u5e73\u5766\u5730\u533a\u753b" },
-    { id: "plot-south-c1", orchardId: "orchard-south", name: "C-1", managementCode: "K-04", note: "\u5357\u5074\u659c\u9762" }
-  ],
-  varieties: [
-    { id: "variety-fuji", name: "\u3075\u3058", note: "\u665a\u751f\u4e3b\u529b\u54c1\u7a2e" },
-    { id: "variety-tsugaru", name: "\u3064\u304c\u308b", note: "\u65e9\u751f\u3067\u7740\u8272\u304c\u65e9\u3044" },
-    { id: "variety-ourin", name: "\u738b\u6797", note: "\u9999\u308a\u304c\u5f37\u3044\u9ec4\u7dd1\u54c1\u7a2e" }
-  ],
-  groups: [
-    { id: "group-1", name: "\u7b2c1\u73ed", sortOrder: 1, description: "\u526a\u5b9a\u3068\u6574\u67dd\u304c\u4e2d\u5fc3", isActive: true },
-    { id: "group-2", name: "\u7b2c2\u73ed", sortOrder: 2, description: "\u6458\u679c\u3068\u898b\u56de\u308a\u304c\u4e2d\u5fc3", isActive: true },
-    { id: "group-support", name: "\u5fdc\u63f4\u73ed", sortOrder: 3, description: "\u7e41\u5fd9\u671f\u306e\u5fdc\u63f4\u4f5c\u696d", isActive: false }
-  ],
-  workers: [
-    { id: "worker-family-taro", fullName: "\u7530\u4e2d \u592a\u90ce", displayName: "\u592a\u90ce", primaryGroupId: "group-1", category: "\u5bb6\u65cf", hourlyRate: 0, isActive: true },
-    { id: "worker-employee-yui", fullName: "\u9ad8\u6a4b \u7d50\u8863", displayName: "\u7d50\u8863", primaryGroupId: "group-2", category: "\u793e\u54e1", hourlyRate: 1500, isActive: true },
-    { id: "worker-part-ken", fullName: "\u4f50\u85e4 \u5065", displayName: "\u5065", primaryGroupId: "group-1", category: "\u30d1\u30fc\u30c8", hourlyRate: 1200, isActive: true },
-    { id: "worker-other-guest", fullName: "\u5fdc\u63f4\u30b9\u30bf\u30c3\u30d5", displayName: "\u5fdc\u63f4", primaryGroupId: "group-support", category: "\u305d\u306e\u4ed6", hourlyRate: 1300, isActive: false }
-  ],
-  workerGroupMemberships: [
-    { id: "membership-taro-1", workerId: "worker-family-taro", groupId: "group-1", isPrimary: true },
-    { id: "membership-taro-2", workerId: "worker-family-taro", groupId: "group-2", isPrimary: false },
-    { id: "membership-yui-1", workerId: "worker-employee-yui", groupId: "group-2", isPrimary: true },
-    { id: "membership-ken-1", workerId: "worker-part-ken", groupId: "group-1", isPrimary: true },
-    { id: "membership-ken-2", workerId: "worker-part-ken", groupId: "group-support", isPrimary: false },
-    { id: "membership-guest-1", workerId: "worker-other-guest", groupId: "group-support", isPrimary: true }
-  ],
-  fixedTeamSets: [
-    {
-      id: "team-set-pruning-a",
-      name: "\u526a\u5b9a\u73edA",
-      groupId: "group-1",
-      workerIds: ["worker-family-taro", "worker-part-ken"]
-    },
-    {
-      id: "team-set-fruit-thin-b",
-      name: "\u6458\u679c\u73edB",
-      groupId: "group-2",
-      workerIds: ["worker-employee-yui", "worker-family-taro"]
-    }
-  ]
-};
-
-const sampleRecords = [
-  {
-    id: "record-1",
-    workDate: "2026-04-05",
-    orchardId: "orchard-north",
-    plotId: "plot-north-a1",
-    varietyId: "variety-fuji",
-    taskType: "\u6458\u679c",
-    workTypes: ["\u6458\u679c"],
-    workHours: 7.5,
-    manualWorkHours: null,
-    calculatedWorkHours: 7.5,
-    breakMinutes: 120,
-    nonCountedMinutes: 120,
-    shiftType: "full-day",
-    workShiftType: "full-day",
-    dailyGroupId: "group-1",
-    dailyGroupName: "\u7b2c1\u73ed",
-    fixedTeamSetId: "team-set-pruning-a",
-    fixedTeamSetName: "\u526a\u5b9a\u73edA",
-    workerCount: 2,
-    workerId: "worker-part-ken",
-    assignedWorkers: [{ workerId: "worker-family-taro" }, { workerId: "worker-part-ken" }],
-    workerIds: ["worker-family-taro", "worker-part-ken"],
-    workerName: "\u4f50\u85e4 \u5065",
-    workerNames: ["\u592a\u90ce", "\u5065"],
-    workerDisplayName: "\u5065",
-    workerCategory: "\u30d1\u30fc\u30c8",
-    workerHourlyRate: 1200,
-    startTime: "07:30",
-    endTime: "17:00",
-    timeStart: "07:30",
-    timeEnd: "17:00",
-    temperatureC: 18,
-    weather: "\u6674\u308c",
-    materials: "\u6458\u679c\u30cf\u30b5\u30df 2\u672c",
-    notes: "\u5357\u5074\u306f\u82b1\u82bd\u304c\u591a\u3044\u305f\u3081\u8abf\u6574\u4f5c\u696d\u5b9f\u65bd",
-    updatedAt: "2026-04-05T09:00:00.000Z"
-  },
-  {
-    id: "record-2",
-    workDate: "2026-04-06",
-    orchardId: "orchard-east",
-    plotId: "plot-east-b1",
-    varietyId: "variety-tsugaru",
-    taskType: "\u6458\u82b1",
-    workTypes: ["\u6458\u82b1"],
-    workHours: 3.75,
-    manualWorkHours: null,
-    calculatedWorkHours: 3.75,
-    breakMinutes: 15,
-    nonCountedMinutes: 15,
-    shiftType: "morning",
-    workShiftType: "morning",
-    dailyGroupId: "group-2",
-    dailyGroupName: "\u7b2c2\u73ed",
-    fixedTeamSetId: "team-set-fruit-thin-b",
-    fixedTeamSetName: "\u6458\u679c\u73edB",
-    workerCount: 1,
-    workerId: "worker-employee-yui",
-    assignedWorkers: [{ workerId: "worker-employee-yui" }],
-    workerIds: ["worker-employee-yui"],
-    workerName: "\u9ad8\u6a4b \u7d50\u8863",
-    workerNames: ["\u7d50\u8863"],
-    workerDisplayName: "\u7d50\u8863",
-    workerCategory: "\u793e\u54e1",
-    workerHourlyRate: 1500,
-    startTime: "07:30",
-    endTime: "11:30",
-    timeStart: "07:30",
-    timeEnd: "11:30",
-    temperatureC: 21.5,
-    weather: "\u304f\u3082\u308a",
-    materials: "",
-    notes: "\u96e8\u524d\u3067\u5c11\u3057\u6e7f\u3063\u3066\u3044\u305f",
-    updatedAt: "2026-04-06T05:30:00.000Z"
-  },
-  {
-    id: "record-3",
-    workDate: "2026-04-07",
-    orchardId: "orchard-south",
-    plotId: "plot-south-c1",
-    varietyId: "variety-ourin",
-    taskType: "\u958b\u8459",
-    workTypes: ["\u958b\u8459"],
-    workHours: 3.75,
-    manualWorkHours: null,
-    calculatedWorkHours: 3.75,
-    breakMinutes: 15,
-    nonCountedMinutes: 15,
-    shiftType: "afternoon",
-    workShiftType: "afternoon",
-    dailyGroupId: "group-1",
-    dailyGroupName: "\u7b2c1\u73ed",
-    fixedTeamSetId: "team-set-pruning-a",
-    fixedTeamSetName: "\u526a\u5b9a\u73edA",
-    workerCount: 2,
-    workerId: "worker-part-ken",
-    assignedWorkers: [{ workerId: "worker-part-ken" }, { workerId: "worker-family-taro" }],
-    workerIds: ["worker-part-ken", "worker-family-taro"],
-    workerName: "\u4f50\u85e4 \u5065",
-    workerNames: ["\u5065", "\u592a\u90ce"],
-    workerDisplayName: "\u5065",
-    workerCategory: "\u30d1\u30fc\u30c8",
-    workerHourlyRate: 1200,
-    startTime: "13:00",
-    endTime: "17:00",
-    timeStart: "13:00",
-    timeEnd: "17:00",
-    temperatureC: 24.5,
-    weather: "\u6674\u308c",
-    materials: "\u958b\u8459\u30c8\u30ec\u30a4 3\u7bb1",
-    notes: "\u82b1\u7c89\u4f5c\u696d\u306e\u6e96\u5099\u3092\u5b9f\u65bd",
-    updatedAt: "2026-04-07T02:15:00.000Z"
-  }
-];
-
-const sampleTeamPlans = [
-  {
-    id: "team-plan-1",
-    workDate: "2026-04-07",
-    groupId: "group-1",
-    fixedTeamSetId: "team-set-pruning-a",
-    fixedTeamSetName: "\u526a\u5b9a\u73edA",
-    workerIds: ["worker-family-taro", "worker-part-ken"],
-    updatedAt: "2026-04-07T00:30:00.000Z"
-  },
-  {
-    id: "team-plan-2",
-    workDate: "2026-04-07",
-    groupId: "group-2",
-    fixedTeamSetId: "team-set-fruit-thin-b",
-    fixedTeamSetName: "\u6458\u679c\u73edB",
-    workerIds: ["worker-employee-yui", "worker-family-taro"],
-    updatedAt: "2026-04-07T00:45:00.000Z"
-  }
-];
-
 const defaultCompanySettings = {
   fiscalClosingMonth: 3,
   fiscalClosingDay: 31,
   degreeDayBaseTemperatureC: 10,
   workdayStartTime: "07:30",
   workdayEndTime: "17:00",
-  workdayBreakMinutes: 120,
+  workdayBreakMinutes: 90,
   payrollTimeUnitMinutes: 30
 };
-const MORNING_WORK_END_TIME = "11:30";
-const AFTERNOON_WORK_START_TIME = "13:00";
-const HALF_DAY_BREAK_MINUTES = 15;
-const WORK_SHIFT_TYPE = Object.freeze({
-  FULL_DAY: "full-day",
-  MORNING: "morning",
-  AFTERNOON: "afternoon",
-  CUSTOM: "custom",
-  MANUAL: "manual"
-});
-/*
 const FIXED_WEATHER_SOURCE = {
-  locationName: "弘前币E,
+  locationName: "弘前市",
   latitude: 40.6031,
   longitude: 140.4639
 };
 const WEATHER_FETCH_BUTTON_TEXT = `${FIXED_WEATHER_SOURCE.locationName}の天気を取得`;
-const WEATHER_FETCH_HINT_TEXT = `、E{WEATHER_FETCH_BUTTON_TEXT}」を押すと、現在気温を�E動�E力できます。`;
+const WEATHER_FETCH_HINT_TEXT = `「${WEATHER_FETCH_BUTTON_TEXT}」を押すと、現在気温を自動入力できます。`;
 const WORK_TYPE_SEPARATOR = " / ";
 const WORK_TYPE_CATEGORIES = [
   {
     key: "pruning",
-    label: "剪定�E枝�E琁E,
-    items: ["剪宁E, "剪定枝雁E��", "剪定枝焼却", "剪定枝破码E, "支柱雁E��"]
+    label: "剪定・枝処理",
+    items: ["剪定", "剪定枝集め", "剪定枝焼却", "剪定枝破砕", "支柱集め"]
   },
   {
     key: "soil",
-    label: "土づくり・肥培管琁E,
-    items: ["施肥", "たい肥散币E, "土壌改良", "潁E��"]
+    label: "土づくり・肥培管理",
+    items: ["施肥", "たい肥散布", "土壌改良", "潅水"]
   },
   {
     key: "grass",
-    label: "草�E地面管琁E,
-    items: ["草�EめE, "芝集めE, "蒔き雁E��"]
+    label: "草・地面管理",
+    items: ["草刈り", "芝集め", "蒔き集め"]
   },
   {
     key: "tree",
-    label: "樹体管琁E,
-    items: ["摘花", "摘花�E�花粉！E, "開葯", "摘果", "葉取めE, "チE��回し", "シルバ�E作業", "袋掛ぁE]
+    label: "樹体管理",
+    items: ["摘花", "摘花（花粉）", "開葯", "摘果", "葉取り", "ツル回し", "シルバー作業", "袋掛け"]
   },
   {
     key: "protection",
-    label: "防除・痁E��虫対筁E,
-    items: ["防除", "見回めE, "痁E��虫確誁E, "捕殺", "トラチE�E確誁E]
+    label: "防除・病害虫対策",
+    items: ["防除", "見回り", "病害虫確認", "捕殺", "トラップ確認"]
   },
   {
     key: "fruit",
-    label: "果実�E園地管琁E,
-    items: ["落ち実拾ぁE, "収穫準備", "収穫", "運搬", "選果補助"]
+    label: "果実・園地管理",
+    items: ["落ち実拾い", "収穫準備", "収穫", "運搬", "選果補助"]
   },
   {
     key: "facility",
-    label: "設備�E賁E��・そ�E仁E,
-    items: ["賁E��運搬", "機械整傁E, "牁E��け", "渁E��", "そ�E仁E]
+    label: "設備・資材・その他",
+    items: ["資材運搬", "機械整備", "片付け", "清掃", "その他"]
   }
 ];
 const WORK_TYPE_RECENT_SECTION_LABEL = "最近使った作業";
-const WORK_TYPE_UNKNOWN_SECTION_LABEL = "既存頁E���E�互換�E�E;
+const WORK_TYPE_UNKNOWN_SECTION_LABEL = "既存項目（互換）";
 const WORK_TYPE_RECENT_LIMIT = 8;
 const WORK_TYPE_SEARCH_ALIASES = {
-  "開葯": ["かいめE��"]
-};
-
-*/
-const FIXED_WEATHER_SOURCE = {
-  locationName: "\u5f18\u524d\u5e02",
-  latitude: 40.6031,
-  longitude: 140.4639
-};
-const WEATHER_FETCH_BUTTON_TEXT = `${FIXED_WEATHER_SOURCE.locationName}\u306e\u5929\u6c17\u3092\u53d6\u5f97`;
-const WEATHER_FETCH_HINT_TEXT = `\u300c${WEATHER_FETCH_BUTTON_TEXT}\u300d\u3092\u62bc\u3059\u3068\u3001\u73fe\u5728\u6c17\u6e29\u3092\u81ea\u52d5\u5165\u529b\u3067\u304d\u307e\u3059\u3002`;
-const WORK_TYPE_SEPARATOR = " / ";
-const WORK_TYPE_CATEGORIES = [
-  {
-    key: "pruning",
-    label: "\u526a\u5b9a\u30fb\u679d\u51e6\u7406",
-    items: ["\u526a\u5b9a", "\u526a\u5b9a\u679d\u96c6\u3081", "\u526a\u5b9a\u679d\u713c\u5374", "\u526a\u5b9a\u679d\u7834\u7815", "\u652f\u67f1\u96c6\u3081"]
-  },
-  {
-    key: "soil",
-    label: "\u571f\u3065\u304f\u308a\u30fb\u80a5\u57f9\u7ba1\u7406",
-    items: ["\u65bd\u80a5", "\u305f\u3044\u80a5\u6563\u5e03", "\u571f\u58cc\u6539\u826f", "\u6f45\u6c34"]
-  },
-  {
-    key: "grass",
-    label: "\u8349\u30fb\u5730\u9762\u7ba1\u7406",
-    items: ["\u8349\u5208\u308a", "\u829d\u96c6\u3081", "\u8494\u304d\u96c6\u3081"]
-  },
-  {
-    key: "tree",
-    label: "\u6a39\u4f53\u7ba1\u7406",
-    items: [
-      "\u6458\u82b1",
-      "\u6458\u82b1\uff08\u82b1\u7c89\uff09",
-      "\u958b\u8459",
-      "\u6458\u679c",
-      "\u8449\u53d6\u308a",
-      "\u30c4\u30eb\u56de\u3057",
-      "\u30b7\u30eb\u30d0\u30fc\u4f5c\u696d",
-      "\u888b\u639b\u3051"
-    ]
-  },
-  {
-    key: "protection",
-    label: "\u9632\u9664\u30fb\u75c5\u5bb3\u866b\u5bfe\u7b56",
-    items: ["\u9632\u9664", "\u898b\u56de\u308a", "\u75c5\u5bb3\u866b\u78ba\u8a8d", "\u6355\u6bba", "\u30c8\u30e9\u30c3\u30d7\u78ba\u8a8d"]
-  },
-  {
-    key: "fruit",
-    label: "\u679c\u5b9f\u30fb\u5712\u5730\u7ba1\u7406",
-    items: ["\u843d\u3061\u5b9f\u62fe\u3044", "\u53ce\u7a6b\u6e96\u5099", "\u53ce\u7a6b", "\u904b\u642c", "\u9078\u679c\u88dc\u52a9"]
-  },
-  {
-    key: "facility",
-    label: "\u8a2d\u5099\u30fb\u8cc7\u6750\u30fb\u305d\u306e\u4ed6",
-    items: ["\u8cc7\u6750\u904b\u642c", "\u6a5f\u68b0\u6574\u5099", "\u7247\u4ed8\u3051", "\u6e05\u6383", "\u305d\u306e\u4ed6"]
-  }
-];
-const WORK_TYPE_RECENT_SECTION_LABEL = "\u6700\u8fd1\u4f7f\u3063\u305f\u4f5c\u696d";
-const WORK_TYPE_UNKNOWN_SECTION_LABEL = "\u65e2\u5b58\u30c7\u30fc\u30bf\u7531\u6765\u306e\u4f5c\u696d";
-const WORK_TYPE_RECENT_LIMIT = 8;
-const WORK_TYPE_SEARCH_ALIASES = {
-  "\u958b\u8459": ["\u304b\u3044\u3084\u304f"],
-  "\u6458\u82b1\uff08\u82b1\u7c89\uff09": ["\u82b1\u7c89"],
-  "\u526a\u5b9a\u679d\u713c\u5374": ["\u526a\u5b9a"],
-  "\u526a\u5b9a\u679d\u7834\u7815": ["\u526a\u5b9a"],
-  "\u65bd\u80a5": ["\u65bd"],
-  "\u30b7\u30eb\u30d0\u30fc\u4f5c\u696d": ["\u30b7\u30eb\u30d0\u30fc"]
+  "開葯": ["かいやく"]
 };
 
 const form = document.getElementById("recordForm");
@@ -523,7 +252,6 @@ const workerPickerHint = document.getElementById("workerPickerHint");
 const workerSelectionList = document.getElementById("workerSelectionList");
 const applyCommonTimeToWorkersButton = document.getElementById("applyCommonTimeToWorkersButton");
 const workerTimeDetailList = document.getElementById("workerTimeDetailList");
-let workShiftTypeInput = document.getElementById("workShiftType");
 const startTimeInput = document.getElementById("startTime");
 const endTimeInput = document.getElementById("endTime");
 const breakMinutesInput = document.getElementById("breakMinutes");
@@ -579,7 +307,6 @@ const payrollWorkerScopeInput = document.getElementById("payrollWorkerScope");
 const payrollRefreshButton = document.getElementById("payrollRefreshButton");
 const payrollExportButton = document.getElementById("payrollExportButton");
 const payrollPrintButton = document.getElementById("payrollPrintButton");
-const payrollPdfButton = document.getElementById("payrollPdfButton");
 const payrollCustomRange = document.getElementById("payrollCustomRange");
 const payrollFromDateInput = document.getElementById("payrollFromDate");
 const payrollToDateInput = document.getElementById("payrollToDate");
@@ -652,7 +379,7 @@ const summaryNavButtons = Array.from(document.querySelectorAll("[data-summary-na
 const summaryMenuDailyButton = document.getElementById("summaryMenuDailyButton");
 const bottomNav = document.getElementById("bottomNav");
 const bottomNavButtons = bottomNav
-  ? Array.from(bottomNav.querySelectorAll("[data-view-target],[data-app-view]"))
+  ? Array.from(bottomNav.querySelectorAll("[data-app-view]"))
   : [];
 const appViewPanelMap = {
   home: ["homePanel"],
@@ -663,22 +390,11 @@ const appViewPanelMap = {
   settings: ["masterPanel", "qrPanel"]
 };
 const appViewKeys = Object.keys(appViewPanelMap);
-const appViewOptionalPanelIds = [
-  "payrollPanel",
-  "backupPanel"
-];
-const appViewManagedPanelIds = Array.from(
-  new Set([
-    ...appViewKeys.flatMap((viewKey) => appViewPanelMap[viewKey]),
-    ...appViewOptionalPanelIds
-  ])
-);
 const appViewPanels = Array.from(
   new Set(
-    [
-      ...appViewManagedPanelIds.map((panelId) => document.getElementById(panelId)),
-      ...Array.from(document.querySelectorAll("[data-mobile-tab-panel]"))
-    ]
+    appViewKeys
+      .flatMap((viewKey) => appViewPanelMap[viewKey])
+      .map((panelId) => document.getElementById(panelId))
       .filter(Boolean)
   )
 );
@@ -687,7 +403,6 @@ let activeSettingsSection = "top";
 let activeSummarySection = "top";
 let activeWorktimeTab = "personal";
 let activeWorktimeWorkerId = "";
-let hasBoundViewTargetDelegation = false;
 const shortcutRecordFormButton = document.getElementById("shortcutRecordFormButton");
 const shortcutTeamPlanButton = document.getElementById("shortcutTeamPlanButton");
 const shortcutDailyReportButton = document.getElementById("shortcutDailyReportButton");
@@ -870,130 +585,6 @@ const workdayBreakMinutesInput = document.getElementById("workdayBreakMinutes");
 const payrollTimeUnitMinutesInput = document.getElementById("payrollTimeUnitMinutes");
 const companyFiscalYearPreview = document.getElementById("companyFiscalYearPreview");
 
-/*
-function ensureWorkShiftTypeInput() {
-  if (workShiftTypeInput) return workShiftTypeInput;
-  const startInput = document.getElementById("startTime");
-  const firstTimeRow = startInput?.closest(".form-row");
-  const worktimeSection = firstTimeRow?.parentElement;
-  if (!firstTimeRow || !worktimeSection) return null;
-
-  const row = document.createElement("div");
-  row.className = "form-row";
-  const label = document.createElement("label");
-  label.textContent = "勤務区刁E;
-  const select = document.createElement("select");
-  select.id = "workShiftType";
-  [
-    { value: WORK_SHIFT_TYPE.FULL_DAY, label: "1日勤勁E },
-    { value: WORK_SHIFT_TYPE.MORNING, label: "午前勤勁E },
-    { value: WORK_SHIFT_TYPE.AFTERNOON, label: "午後勤勁E },
-    { value: WORK_SHIFT_TYPE.CUSTOM, label: "変則勤勁E }
-  ].forEach((optionItem) => {
-    const option = document.createElement("option");
-    option.value = optionItem.value;
-    option.textContent = optionItem.label;
-    select.appendChild(option);
-  });
-  label.appendChild(select);
-  row.appendChild(label);
-  worktimeSection.insertBefore(row, firstTimeRow);
-  workShiftTypeInput = select;
-  return workShiftTypeInput;
-}
-
-ensureWorkShiftTypeInput();
-
-function resetLabelText(labelElement, text) {
-  if (!labelElement) return;
-  const childElements = Array.from(labelElement.children);
-  labelElement.textContent = text;
-  childElements.forEach((child) => labelElement.appendChild(child));
-}
-
-function applyWorktimeUiText() {
-  resetLabelText(startTimeInput?.closest("label"), "開始時刻");
-  resetLabelText(endTimeInput?.closest("label"), "終亁E��刻");
-  resetLabelText(breakMinutesInput?.closest("label"), "控除時間�E�休�E・昼休み�E�E);
-  resetLabelText(calculatedWorkHoursInput?.closest("label"), "自動計算された実労働時間（時間！E);
-  resetLabelText(workHoursInput?.closest("label"), "実労働時間を手�E力で上書き（任意！E);
-  if (breakMinutesInput) {
-    breakMinutesInput.placeholder = "侁E 120";
-  }
-  if (workHoursInput) {
-    workHoursInput.placeholder = "侁E 7.5";
-  }
-  const worktimeSection = startTimeInput?.closest(".worktime-subsection");
-  const hintNodes = worktimeSection ? worktimeSection.querySelectorAll(".form-hint") : [];
-  if (hintNodes[0]) {
-    hintNodes[0].textContent = "通常勤務�E昼休み90刁E��休�E30刁E��E20刁E��控除します。半日勤務�E休�E15刁E��控除します。変則勤務�E場合�E控除時間を調整してください、E;
-  }
-  if (timeHint) {
-    timeHint.textContent = "開始�E終亁E�E控除時間から、給与計算に使ぁE��労働時間を自動計算します、E;
-  }
-}
-
-applyWorktimeUiText();
-*/
-
-function ensureWorkShiftTypeInput() {
-  if (workShiftTypeInput) return workShiftTypeInput;
-  const startInput = document.getElementById("startTime");
-  const firstTimeRow = startInput?.closest(".form-row");
-  const worktimeSection = firstTimeRow?.parentElement;
-  if (!firstTimeRow || !worktimeSection) return null;
-
-  const row = document.createElement("div");
-  row.className = "form-row";
-  const label = document.createElement("label");
-  label.textContent = "\u52e4\u52d9\u533a\u5206";
-  const select = document.createElement("select");
-  select.id = "workShiftType";
-  [
-    { value: WORK_SHIFT_TYPE.FULL_DAY, label: "\u6a19\u6e96\u0031\u65e5" },
-    { value: WORK_SHIFT_TYPE.MORNING, label: "\u5348\u524d\u306e\u307f" },
-    { value: WORK_SHIFT_TYPE.AFTERNOON, label: "\u5348\u5f8c\u306e\u307f" },
-    { value: WORK_SHIFT_TYPE.CUSTOM, label: "\u6642\u9593\u6307\u5b9a" },
-    { value: WORK_SHIFT_TYPE.MANUAL, label: "\u624b\u5165\u529b" }
-  ].forEach((optionItem) => {
-    const option = document.createElement("option");
-    option.value = optionItem.value;
-    option.textContent = optionItem.label;
-    select.appendChild(option);
-  });
-  label.appendChild(select);
-  row.appendChild(label);
-  worktimeSection.insertBefore(row, firstTimeRow);
-  workShiftTypeInput = select;
-  return workShiftTypeInput;
-}
-
-ensureWorkShiftTypeInput();
-
-function applyWorktimeUiText() {
-  resetLabelText(startTimeInput?.closest("label"), "\u958b\u59cb\u6642\u523b");
-  resetLabelText(endTimeInput?.closest("label"), "\u7d42\u4e86\u6642\u523b");
-  resetLabelText(breakMinutesInput?.closest("label"), "\u63a7\u9664\u6642\u9593\uff08\u4f11\u61a9\u30fb\u663c\u4f11\u307f\uff09");
-  resetLabelText(calculatedWorkHoursInput?.closest("label"), "\u81ea\u52d5\u8a08\u7b97\u3055\u308c\u305f\u5b9f\u52b4\u50cd\u6642\u9593\uff08\u6642\u9593\uff09");
-  resetLabelText(workHoursInput?.closest("label"), "\u5b9f\u52b4\u50cd\u6642\u9593\u3092\u624b\u5165\u529b\u3067\u4e0a\u66f8\u304d\uff08\u4efb\u610f\uff09");
-  if (breakMinutesInput) {
-    breakMinutesInput.placeholder = "\u4f8b: 120";
-  }
-  if (workHoursInput) {
-    workHoursInput.placeholder = "\u4f8b: 7.5";
-  }
-  const worktimeSection = startTimeInput?.closest(".worktime-subsection");
-  const hintNodes = worktimeSection ? worktimeSection.querySelectorAll(".form-hint") : [];
-  if (hintNodes[0]) {
-    hintNodes[0].textContent = "\u6a19\u6e96\u0031\u65e5\u52e4\u52d9\u306f7:30\u301c17:00\u3001\u663c\u4f11\u307f\u30fb\u4f11\u61a9\u3068120\u5206\u3092\u63a7\u9664\u3057\u307e\u3059\u3002\u5348\u524d\u306e\u307f\u30fb\u5348\u5f8c\u306e\u307f\u306f15\u5206\u63a7\u9664\u3067\u3059\u3002\u6642\u9593\u6307\u5b9a\u3068\u624b\u5165\u529b\u306f\u5fc5\u8981\u306b\u5fdc\u3058\u3066\u8abf\u6574\u3057\u3066\u304f\u3060\u3055\u3044\u3002";
-  }
-  if (timeHint) {
-    timeHint.textContent = "\u958b\u59cb\u30fb\u7d42\u4e86\u30fb\u63a7\u9664\u6642\u9593\u304b\u3089\u3001\u7d66\u4e0e\u8a08\u7b97\u7528\u306e\u5b9f\u52b4\u50cd\u6642\u9593\u3092\u81ea\u52d5\u8a08\u7b97\u3057\u307e\u3059\u3002";
-  }
-}
-
-applyWorktimeUiText();
-
 const today = getTodayString();
 workDateInput.value = today;
 if (dailyReportDateInput) {
@@ -1080,53 +671,11 @@ function matchesWorkTypeQuery(workType, query) {
   return getWorkTypeSearchTexts(workType).some((text) => text.includes(query));
 }
 
-function normalizeShiftType(value, fallback = WORK_SHIFT_TYPE.FULL_DAY) {
-  const normalized = normalizeSearchText(value).replace(/\s+/g, "");
-  if (!normalized) return fallback;
-  if ([WORK_SHIFT_TYPE.FULL_DAY, "full", "day", "daily", "1day", "allday", "1\u65e5", "\u4e00\u65e5", "\u901a\u5e38", "\u901a\u5e38\u52e4\u52d9", "\u6a19\u6e96\u0031\u65e5", "\u6a19\u6e96\u0031\u65e5\u52e4\u52d9"].includes(normalized)) {
-    return WORK_SHIFT_TYPE.FULL_DAY;
-  }
-  if ([WORK_SHIFT_TYPE.MORNING, "am", "morning", "\u5348\u524d", "\u5348\u524d\u306e\u307f"].includes(normalized)) {
-    return WORK_SHIFT_TYPE.MORNING;
-  }
-  if ([WORK_SHIFT_TYPE.AFTERNOON, "pm", "afternoon", "\u5348\u5f8c", "\u5348\u5f8c\u306e\u307f"].includes(normalized)) {
-    return WORK_SHIFT_TYPE.AFTERNOON;
-  }
-  if ([WORK_SHIFT_TYPE.CUSTOM, "custom", "irregular", "\u5909\u5247", "\u6642\u9593\u6307\u5b9a", "\u6642\u9593\u6307\u5b9a\u52e4\u52d9"].includes(normalized)) {
-    return WORK_SHIFT_TYPE.CUSTOM;
-  }
-  if ([WORK_SHIFT_TYPE.MANUAL, "manual", "\u624b\u5165\u529b", "\u6642\u9593\u624b\u5165\u529b"].includes(normalized)) {
-    return WORK_SHIFT_TYPE.MANUAL;
-  }
-  return fallback;
-}
-
-/*
-function getShiftTypeLabel(shiftType) {
-  const normalized = normalizeShiftType(shiftType, WORK_SHIFT_TYPE.CUSTOM);
-  if (normalized === WORK_SHIFT_TYPE.MORNING) return "午前";
-  if (normalized === WORK_SHIFT_TYPE.AFTERNOON) return "午征E;
-  if (normalized === WORK_SHIFT_TYPE.CUSTOM) return "変則";
-  return "1日";
-}
-
-*/
-function getShiftTypeLabel(shiftType) {
-  const normalized = normalizeShiftType(shiftType, WORK_SHIFT_TYPE.CUSTOM);
-  if (normalized === WORK_SHIFT_TYPE.MORNING) return "\u5348\u524d\u306e\u307f";
-  if (normalized === WORK_SHIFT_TYPE.AFTERNOON) return "\u5348\u5f8c\u306e\u307f";
-  if (normalized === WORK_SHIFT_TYPE.CUSTOM) return "\u6642\u9593\u6307\u5b9a";
-  if (normalized === WORK_SHIFT_TYPE.MANUAL) return "\u624b\u5165\u529b";
-  return "\u6a19\u6e96\u0031\u65e5";
-}
-
-/*
 function normalizeWorkTypeList(values, fallbackValue = "") {
   const list = Array.isArray(values)
     ? values
     : (normalizeText(values)
-      ? String(values).split(/__legacy_disabled__/g)
-/*
+      ? String(values).split(/\s*[\/／]\s*/g)
       : []);
   if (!list.length && normalizeText(fallbackValue)) {
     return normalizeWorkTypeList(String(fallbackValue));
@@ -1144,41 +693,10 @@ function getRecordWorkTypes(record, options = {}) {
   const { includeUnset = false } = options;
   const workTypes = normalizeWorkTypeList(record?.workTypes, record?.taskType);
   if (workTypes.length) return workTypes;
-  return includeUnset ? ["未設宁E] : [];
+  return includeUnset ? ["未設定"] : [];
 }
 
-function getRecordTaskTypeText(record, fallback = "未設宁E) {
-  const workTypes = getRecordWorkTypes(record);
-  return workTypes.length ? workTypes.join(WORK_TYPE_SEPARATOR) : fallback;
-}
-
-*/
-function normalizeWorkTypeList(values, fallbackValue = "") {
-  const list = Array.isArray(values)
-    ? values
-    : (normalizeText(values)
-      ? String(values).split(/\s*(?:\/|・|,)\s*/g)
-      : []);
-  if (!list.length && normalizeText(fallbackValue)) {
-    return normalizeWorkTypeList(String(fallbackValue));
-  }
-  return Array.from(
-    new Set(
-      list
-        .map((value) => normalizeText(value))
-        .filter(Boolean)
-    )
-  );
-}
-
-function getRecordWorkTypes(record, options = {}) {
-  const { includeUnset = false } = options;
-  const workTypes = normalizeWorkTypeList(record?.workTypes, record?.taskType);
-  if (workTypes.length) return workTypes;
-  return includeUnset ? ["\u672a\u8a2d\u5b9a"] : [];
-}
-
-function getRecordTaskTypeText(record, fallback = "\u672a\u8a2d\u5b9a") {
+function getRecordTaskTypeText(record, fallback = "未設定") {
   const workTypes = getRecordWorkTypes(record);
   return workTypes.length ? workTypes.join(WORK_TYPE_SEPARATOR) : fallback;
 }
@@ -1319,14 +837,14 @@ function appendTaskTypeGroup(container, title, items, selectedSet) {
 function updateTaskTypeSummary(visibleCount, totalCount, query) {
   if (!taskTypeSummary) return;
   if (selectedTaskTypes.length) {
-    taskTypeSummary.textContent = `選択中: ${selectedTaskTypes.join(WORK_TYPE_SEPARATOR)} / 表示 ${visibleCount}/${totalCount} 件`;
+    taskTypeSummary.textContent = `選択中: ${selectedTaskTypes.join(WORK_TYPE_SEPARATOR)}（表示 ${visibleCount}/${totalCount} 件）`;
     return;
   }
   if (query) {
     taskTypeSummary.textContent = `検索結果: ${visibleCount}件（部分一致）`;
     return;
   }
-  taskTypeSummary.textContent = "最近使った作業項目を上に表示します。1つ以上選択してください。";
+  taskTypeSummary.textContent = "最近使った項目を上に表示しています。1つ以上選択してください。";
 }
 
 function renderTaskTypeChecklist() {
@@ -1783,7 +1301,7 @@ function normalizePayrollAdjustment(adjustment, index) {
 function normalizeWorker(worker, index) {
   const fullName = normalizeText(worker.fullName || worker.name || worker.workerName);
   const displayName = normalizeText(worker.displayName || fullName);
-  const category = ["家旁E, "社員", "パ�EチE, "そ�E仁E].includes(worker.category) ? worker.category : "そ�E仁E;
+  const category = ["家族", "社員", "パート", "その他"].includes(worker.category) ? worker.category : "その他";
   const hourlyRate = Number(worker.hourlyRate ?? worker.rate ?? 0);
   if (!fullName || !displayName) {
     return null;
@@ -1879,7 +1397,6 @@ function normalizeRecord(record) {
   const startTime = getRecordStartTime(record);
   const endTime = getRecordEndTime(record);
   const breakMinutes = getRecordBreakMinutes(record, normalizedSettings);
-  const shiftType = inferRecordShiftType(record, normalizedSettings);
   const calculatedWorkHours = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
   const manualWorkHours = normalizeManualHours(
     record.manualWorkHours ?? record.manualHours,
@@ -1890,12 +1407,9 @@ function normalizeRecord(record) {
     ? record.workerTimeDetails
     : {};
   const workerTimeFallback = {
-    workType: shiftType,
-    shiftType,
     startTime,
     endTime,
     breakMinutes,
-    payrollHours: resolvedWorkHours,
     workHours: resolvedWorkHours
   };
   const workerTimeDetails = normalizedAssignedWorkers.reduce((acc, item) => {
@@ -1919,16 +1433,9 @@ function normalizeRecord(record) {
     taskType: primaryTaskType,
     workTypes,
     workHours: resolvedWorkHours,
-    payrollHours: resolvedWorkHours,
     manualWorkHours,
-    manualHours: manualWorkHours,
     calculatedWorkHours: Number.isFinite(calculatedWorkHours) ? calculatedWorkHours : null,
     breakMinutes,
-    timeBreakMinutes: breakMinutes,
-    nonCountedMinutes: breakMinutes,
-    nonWorkingMinutes: breakMinutes,
-    shiftType,
-    workShiftType: shiftType,
     dailyGroupId: normalizeText(record.dailyGroupId || record.groupId),
     dailyGroupName: normalizeText(record.dailyGroupName || record.groupName),
     fixedTeamSetId: normalizeText(record.fixedTeamSetId),
@@ -2216,9 +1723,9 @@ function formatCountsSummary(counts) {
     `園地数: ${counts.orchards}件`,
     `区画数: ${counts.plots}件`,
     `品種数: ${counts.varieties}件`,
-    `作業老E��: ${counts.workers}件`,
+    `作業者数: ${counts.workers}件`,
     `グループ数: ${counts.groups}件`,
-    `日別チ�Eム編成数: ${counts.teamPlans}件`,
+    `日別チーム編成数: ${counts.teamPlans}件`,
     `作業記録数: ${counts.records}件`
   ].join("\n");
 }
@@ -2241,9 +1748,9 @@ function setBackupMessage(text) {
 /*
 function updateBackupTimestamp(value) {
   if (!value) {
-    backupTimestamp.textContent = "未実衁E;
+    backupTimestamp.textContent = "未実行";
     // marker removed
-    window.alert("CSV出力できる作業記録がありません、E);
+    window.alert("CSV出力できる作業記録がありません。");
     return;
   }
   backupTimestamp.textContent = new Intl.DateTimeFormat("ja-JP", {
@@ -2259,7 +1766,7 @@ function updateBackupTimestamp(value) {
 /*
 function updateBackupTimestamp(value) {
   if (!value) {
-    backupTimestamp.textContent = "未実衁E;
+    backupTimestamp.textContent = "未実行";
     return;
   }
   backupTimestamp.textContent = new Intl.DateTimeFormat("ja-JP", {
@@ -2351,28 +1858,6 @@ function formatDateYmd(value) {
   return `${year}/${month}/${day}`;
 }
 
-const WEEKDAY_LABELS_JA = ["日", "月", "火", "水", "木", "金", "土"];
-
-function getWeekdayLabelJa(dateString) {
-  if (!dateString) return "";
-  const date = new Date(`${dateString}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return "";
-  return WEEKDAY_LABELS_JA[date.getDay()] || "";
-}
-
-function formatDateWithWeekdayJa(dateString) {
-  const ymd = formatDateYmd(dateString);
-  if (!ymd) return "";
-  const weekday = getWeekdayLabelJa(dateString);
-  return weekday ? `${ymd}（${weekday}）` : ymd;
-}
-
-function formatHoursQuarter(value) {
-  const numeric = Number(value || 0);
-  if (!Number.isFinite(numeric)) return "0時間";
-  return `${numeric.toFixed(2).replace(/\.?0+$/, "")}時間`;
-}
-
 function getComparisonPeriodLabel(mode) {
   if (mode === "month") return "今月";
   if (mode === "fiscal") return "決算年度";
@@ -2445,11 +1930,11 @@ function formatWeatherInfoSummary(weatherInfo, includeCurrent = false) {
 function formatFieldObservationSummary(observation) {
   const normalized = normalizeFieldObservation(observation);
   const parts = [];
-  if (normalized.diseaseObserved) parts.push("病害あり");
+  if (normalized.diseaseObserved) parts.push("病気あり");
   if (normalized.pestObserved) parts.push("害虫あり");
-  if (normalized.sprayApplied) parts.push("散币E��施");
-  if (normalized.damageLevel) parts.push(`痁E��/食害: ${normalized.damageLevel}`);
-  if (normalized.wetness) parts.push(`濡めE ${normalized.wetness}`);
+  if (normalized.sprayApplied) parts.push("散布実施");
+  if (normalized.damageLevel) parts.push(`病斑/食害: ${normalized.damageLevel}`);
+  if (normalized.wetness) parts.push(`濡れ: ${normalized.wetness}`);
   if (normalized.muddy) parts.push(`ぬかるみ: ${normalized.muddy}`);
   if (normalized.workDifficulty) parts.push(`作業性: ${normalized.workDifficulty}`);
   if (normalized.memo) parts.push(`現場メモ: ${normalized.memo}`);
@@ -2515,21 +2000,13 @@ function calculateWorkHoursByRange(startTime, endTime, breakMinutes = 0, timeUni
   return Number((roundedMinutes / 60).toFixed(2));
 }
 
-function calculateBoundHoursByRange(startTime, endTime) {
-  const start = parseTimeToMinutes(startTime);
-  const end = parseTimeToMinutes(endTime);
-  if (start === null || end === null || end <= start) return null;
-  return Number(((end - start) / 60).toFixed(2));
-}
-
 function getDefaultWorkHours(settings = companySettings) {
   const normalized = normalizeCompanySettings(settings);
-  const effectiveTimeUnitMinutes = normalized.payrollTimeUnitMinutes === 30 ? 15 : normalized.payrollTimeUnitMinutes;
   const hours = calculateWorkHoursByRange(
     normalized.workdayStartTime,
     normalized.workdayEndTime,
     normalized.workdayBreakMinutes,
-    effectiveTimeUnitMinutes
+    normalized.payrollTimeUnitMinutes
   );
   return Number.isFinite(hours) ? hours : 8;
 }
@@ -2538,8 +2015,7 @@ function normalizeHoursByTimeUnit(hours, settings = companySettings) {
   const numericHours = Number(hours);
   if (!Number.isFinite(numericHours) || numericHours <= 0) return 0;
   const normalized = normalizeCompanySettings(settings);
-  const effectiveTimeUnitMinutes = normalized.payrollTimeUnitMinutes === 30 ? 15 : normalized.payrollTimeUnitMinutes;
-  const roundedMinutes = roundMinutesByTimeUnit(numericHours * 60, effectiveTimeUnitMinutes);
+  const roundedMinutes = roundMinutesByTimeUnit(numericHours * 60, normalized.payrollTimeUnitMinutes);
   return Number((Math.max(0, roundedMinutes) / 60).toFixed(2));
 }
 
@@ -2563,12 +2039,11 @@ function calculateHoursFromRange(startTime, endTime, settings = companySettings,
     breakMinutesOverride,
     normalized.workdayBreakMinutes
   );
-  const effectiveTimeUnitMinutes = normalized.payrollTimeUnitMinutes === 30 ? 15 : normalized.payrollTimeUnitMinutes;
   return calculateWorkHoursByRange(
     startTime,
     endTime,
     breakMinutes,
-    effectiveTimeUnitMinutes
+    normalized.payrollTimeUnitMinutes
   );
 }
 
@@ -2588,99 +2063,11 @@ function getRecordEndTime(record) {
   return normalizeTimeText(record?.timeEnd || record?.endTime, "");
 }
 
-function getShiftPreset(shiftType, settings = companySettings) {
-  const normalizedSettings = normalizeCompanySettings(settings);
-  const normalizedShiftType = normalizeShiftType(shiftType, WORK_SHIFT_TYPE.FULL_DAY);
-  if (normalizedShiftType === WORK_SHIFT_TYPE.MORNING) {
-    return {
-      shiftType: WORK_SHIFT_TYPE.MORNING,
-      startTime: normalizedSettings.workdayStartTime,
-      endTime: MORNING_WORK_END_TIME,
-      breakMinutes: HALF_DAY_BREAK_MINUTES
-    };
-  }
-  if (normalizedShiftType === WORK_SHIFT_TYPE.AFTERNOON) {
-    return {
-      shiftType: WORK_SHIFT_TYPE.AFTERNOON,
-      startTime: AFTERNOON_WORK_START_TIME,
-      endTime: normalizedSettings.workdayEndTime,
-      breakMinutes: HALF_DAY_BREAK_MINUTES
-    };
-  }
-  if (normalizedShiftType === WORK_SHIFT_TYPE.CUSTOM) {
-    return {
-      shiftType: WORK_SHIFT_TYPE.CUSTOM,
-      startTime: "",
-      endTime: "",
-      breakMinutes: 0
-    };
-  }
-  if (normalizedShiftType === WORK_SHIFT_TYPE.MANUAL) {
-    return {
-      shiftType: WORK_SHIFT_TYPE.MANUAL,
-      startTime: "",
-      endTime: "",
-      breakMinutes: 0
-    };
-  }
-  return {
-    shiftType: WORK_SHIFT_TYPE.FULL_DAY,
-    startTime: normalizedSettings.workdayStartTime,
-    endTime: normalizedSettings.workdayEndTime,
-    breakMinutes: normalizedSettings.workdayBreakMinutes
-  };
-}
-
-function inferShiftTypeFromTimes(startTime, endTime, settings = companySettings) {
-  if (!startTime || !endTime) return WORK_SHIFT_TYPE.CUSTOM;
-  const normalizedSettings = normalizeCompanySettings(settings);
-  if (
-    startTime === normalizedSettings.workdayStartTime
-    && endTime === normalizedSettings.workdayEndTime
-  ) {
-    return WORK_SHIFT_TYPE.FULL_DAY;
-  }
-  if (
-    startTime === normalizedSettings.workdayStartTime
-    && endTime === MORNING_WORK_END_TIME
-  ) {
-    return WORK_SHIFT_TYPE.MORNING;
-  }
-  if (
-    startTime === AFTERNOON_WORK_START_TIME
-    && endTime === normalizedSettings.workdayEndTime
-  ) {
-    return WORK_SHIFT_TYPE.AFTERNOON;
-  }
-  return WORK_SHIFT_TYPE.CUSTOM;
-}
-
-function inferRecordShiftType(record, settings = companySettings) {
-  const explicit = normalizeShiftType(
-    record?.shiftType ?? record?.workShiftType ?? record?.workSession ?? record?.workPeriod ?? "",
-    ""
-  );
-  if (explicit) return explicit;
-  const startTime = getRecordStartTime(record);
-  const endTime = getRecordEndTime(record);
-  return inferShiftTypeFromTimes(startTime, endTime, settings);
-}
-
-function getDefaultBreakMinutesForShiftType(shiftType, settings = companySettings) {
-  return getShiftPreset(shiftType, settings).breakMinutes;
-}
-
 function getRecordBreakMinutes(record, settings = companySettings) {
   const normalized = normalizeCompanySettings(settings);
-  const rawBreakMinutes = record?.breakMinutes ?? record?.timeBreakMinutes ?? record?.nonCountedMinutes ?? record?.nonWorkingMinutes;
-  if (rawBreakMinutes !== undefined && rawBreakMinutes !== null && normalizeText(rawBreakMinutes) !== "") {
-    return normalizeBreakMinutes(rawBreakMinutes, normalized.workdayBreakMinutes);
-  }
-  const inferredShiftType = inferRecordShiftType(record, normalized);
-  const inferredBreak = getDefaultBreakMinutesForShiftType(inferredShiftType, normalized);
   return normalizeBreakMinutes(
-    inferredBreak,
-    inferredBreak
+    record?.breakMinutes ?? record?.timeBreakMinutes ?? record?.nonCountedMinutes,
+    normalized.workdayBreakMinutes
   );
 }
 
@@ -2688,15 +2075,6 @@ function getRecordResolvedWorkHours(record, settings = companySettings) {
   const normalizedSettings = normalizeCompanySettings(settings);
   const manualHours = normalizeManualHours(record?.manualWorkHours, normalizedSettings);
   if (manualHours !== null) return manualHours;
-
-  const startTime = getRecordStartTime(record);
-  const endTime = getRecordEndTime(record);
-  const breakMinutes = getRecordBreakMinutes(record, normalizedSettings);
-  const calculatedFromTimes = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
-  if (Number.isFinite(calculatedFromTimes)) return calculatedFromTimes;
-
-  const payrollHours = normalizeManualHours(record?.payrollHours, normalizedSettings);
-  if (payrollHours !== null) return payrollHours;
 
   const explicitHours = normalizeManualHours(record?.workHours, normalizedSettings);
   if (explicitHours !== null) return explicitHours;
@@ -2710,24 +2088,11 @@ function getRecordResolvedWorkHours(record, settings = companySettings) {
   );
   if (legacyDurationHours !== null) return legacyDurationHours;
 
-  const rawWorkerTimeDetails = record?.workerTimeDetails && typeof record.workerTimeDetails === "object"
-    ? Object.values(record.workerTimeDetails)
-    : [];
-  if (rawWorkerTimeDetails.length) {
-    const detailHours = rawWorkerTimeDetails
-      .map((entry) => {
-        const manual = normalizeManualHours(entry?.manualHours ?? entry?.manualWorkHours, normalizedSettings);
-        if (manual !== null) return manual;
-        return normalizeManualHours(
-          entry?.payrollHours ?? entry?.workHours ?? entry?.resolvedHours ?? entry?.calculatedHours,
-          normalizedSettings
-        );
-      })
-      .filter((value) => Number.isFinite(value) && value > 0);
-    if (detailHours.length) {
-      return Number(Math.max(...detailHours).toFixed(2));
-    }
-  }
+  const startTime = getRecordStartTime(record);
+  const endTime = getRecordEndTime(record);
+  const breakMinutes = getRecordBreakMinutes(record, normalizedSettings);
+  const calculatedHours = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
+  if (Number.isFinite(calculatedHours)) return calculatedHours;
 
   return getDefaultWorkHours(normalizedSettings);
 }
@@ -2735,54 +2100,31 @@ function getRecordResolvedWorkHours(record, settings = companySettings) {
 function normalizeWorkerTimeDetailEntry(rawDetail, fallbackDetail, settings = companySettings) {
   const normalizedSettings = normalizeCompanySettings(settings);
   const fallback = fallbackDetail || {};
-  const workType = normalizeShiftType(
-    rawDetail?.workType ?? rawDetail?.shiftType ?? fallback.workType ?? fallback.shiftType ?? "",
-    WORK_SHIFT_TYPE.CUSTOM
-  );
-  const preset = getShiftPreset(workType, normalizedSettings);
-
-  const startTime = normalizeTimeText(
-    rawDetail?.startTime || rawDetail?.timeStart,
-    fallback.startTime || preset.startTime || ""
-  );
-  const endTime = normalizeTimeText(
-    rawDetail?.endTime || rawDetail?.timeEnd,
-    fallback.endTime || preset.endTime || ""
-  );
+  const startTime = normalizeTimeText(rawDetail?.startTime || rawDetail?.timeStart, fallback.startTime || "");
+  const endTime = normalizeTimeText(rawDetail?.endTime || rawDetail?.timeEnd, fallback.endTime || "");
   const breakMinutes = normalizeBreakMinutes(
     rawDetail?.breakMinutes ?? rawDetail?.timeBreakMinutes,
-    fallback.breakMinutes ?? preset.breakMinutes ?? normalizedSettings.workdayBreakMinutes
+    fallback.breakMinutes ?? normalizedSettings.workdayBreakMinutes
   );
-  const calculatedHoursRaw = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
-  const calculatedHours = Number.isFinite(calculatedHoursRaw)
-    ? calculatedHoursRaw
-    : (workType === WORK_SHIFT_TYPE.MANUAL ? null : null);
+  const calculatedHours = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
   const manualHours = normalizeManualHours(
     rawDetail?.manualHours ?? rawDetail?.manualWorkHours,
     normalizedSettings
   );
-  const explicitPayrollHours = normalizeManualHours(rawDetail?.payrollHours, normalizedSettings);
-  const fallbackResolvedHours = normalizeManualHours(
-    fallback.payrollHours ?? fallback.workHours ?? fallback.resolvedHours,
-    normalizedSettings
-  );
-  const payrollHours = manualHours !== null
+  const fallbackResolvedHours = normalizeManualHours(fallback.workHours ?? fallback.resolvedHours, normalizedSettings);
+  const resolvedHours = manualHours !== null
     ? manualHours
-    : (Number.isFinite(calculatedHours) ? calculatedHours : (explicitPayrollHours ?? fallbackResolvedHours ?? null));
-  const resolvedHours = payrollHours;
+    : (Number.isFinite(calculatedHours) ? calculatedHours : (fallbackResolvedHours ?? null));
 
   return {
-    workType,
-    shiftType: workType,
     startTime,
     endTime,
     breakMinutes,
     calculatedHours: Number.isFinite(calculatedHours) ? calculatedHours : null,
     manualHours,
     manualWorkHours: manualHours,
-    payrollHours,
     workHours: resolvedHours,
-    resolvedHours: payrollHours
+    resolvedHours
   };
 }
 
@@ -2794,12 +2136,9 @@ function getRecordWorkerTimeDetails(record, settings = companySettings) {
     ? record.workerTimeDetails
     : {};
   const commonFallback = {
-    workType: inferRecordShiftType(record, normalizedSettings),
-    shiftType: inferRecordShiftType(record, normalizedSettings),
     startTime: getRecordStartTime(record),
     endTime: getRecordEndTime(record),
     breakMinutes: getRecordBreakMinutes(record, normalizedSettings),
-    payrollHours: getRecordResolvedWorkHours(record, normalizedSettings),
     workHours: getRecordResolvedWorkHours(record, normalizedSettings)
   };
 
@@ -2814,55 +2153,23 @@ function getWorkerHoursForRecord(record, workerId, settings = companySettings) {
   if (!workerId) return getRecordResolvedWorkHours(record, settings);
   const detail = getRecordWorkerTimeDetails(record, settings)?.[workerId];
   if (!detail) return getRecordResolvedWorkHours(record, settings);
-  if (Number.isFinite(detail.payrollHours)) return detail.payrollHours;
   if (Number.isFinite(detail.manualHours)) return detail.manualHours;
   if (Number.isFinite(detail.calculatedHours)) return detail.calculatedHours;
   if (Number.isFinite(detail.resolvedHours)) return detail.resolvedHours;
   return getRecordResolvedWorkHours(record, settings);
 }
 
-function applyDefaultWorkScheduleToForm(force = false, options = {}) {
+function applyDefaultWorkScheduleToForm(force = false) {
   const normalized = normalizeCompanySettings(companySettings);
-  const requestedShiftType = normalizeShiftType(
-    options.shiftType ?? workShiftTypeInput?.value,
-    WORK_SHIFT_TYPE.FULL_DAY
-  );
-  const preset = getShiftPreset(requestedShiftType, normalized);
-
-  if (workShiftTypeInput && (force || !normalizeText(workShiftTypeInput.value))) {
-    workShiftTypeInput.value = requestedShiftType;
-  }
-
-  if (requestedShiftType === WORK_SHIFT_TYPE.CUSTOM || requestedShiftType === WORK_SHIFT_TYPE.MANUAL) {
-    if (startTimeInput && force) {
-      startTimeInput.value = "";
-    }
-    if (endTimeInput && force) {
-      endTimeInput.value = "";
-    }
-    if (breakMinutesInput && (force || !normalizeText(breakMinutesInput.value))) {
-      breakMinutesInput.value = "0";
-    }
-    return;
-  }
-
   if (startTimeInput && (force || !startTimeInput.value)) {
-    startTimeInput.value = preset.startTime;
+    startTimeInput.value = normalized.workdayStartTime;
   }
   if (endTimeInput && (force || !endTimeInput.value)) {
-    endTimeInput.value = preset.endTime;
+    endTimeInput.value = normalized.workdayEndTime;
   }
   if (breakMinutesInput && (force || !normalizeText(breakMinutesInput.value))) {
-    breakMinutesInput.value = String(preset.breakMinutes);
+    breakMinutesInput.value = String(normalized.workdayBreakMinutes);
   }
-}
-
-function applyShiftPresetToForm(shiftType, force = true) {
-  const normalizedShiftType = normalizeShiftType(shiftType, WORK_SHIFT_TYPE.FULL_DAY);
-  if (workShiftTypeInput) {
-    workShiftTypeInput.value = normalizedShiftType;
-  }
-  applyDefaultWorkScheduleToForm(force, { shiftType: normalizedShiftType });
 }
 
 function buildEmptyState(message) {
@@ -3030,7 +2337,7 @@ async function handleFetchWeatherClick() {
     applyFetchedWeatherToForm(merged);
     const summary = formatWeatherInfoSummary(merged, true);
     const locationLabel = merged?.locationName || weatherTarget.locationName;
-    setWeatherFetchStatus(summary ? `${locationLabel} 取得完亁E ${summary}` : `${locationLabel}の天気情報を取得しました。`, "success");
+    setWeatherFetchStatus(summary ? `${locationLabel} 取得完了: ${summary}` : `${locationLabel}の天気情報を取得しました。`, "success");
   } catch (error) {
     console.error(error);
     setWeatherFetchStatus(`${weatherTarget.locationName}の天気取得に失敗しました。手入力で続けてください。`, "error");
@@ -3304,7 +2611,7 @@ function renderHistoryCalendar() {
   const month = Number(monthText);
   if (!Number.isFinite(year) || !Number.isFinite(month)) return;
 
-  historyCalendarMonthLabel.textContent = `${year}年${month}朁E;
+  historyCalendarMonthLabel.textContent = `${year}年${month}月`;
   historyCalendarGrid.innerHTML = "";
   if (historySelectedDateLabel) {
     historySelectedDateLabel.textContent = getSelectedHistoryDateLabel();
@@ -3336,7 +2643,7 @@ function renderHistoryCalendar() {
     const hasRecord = recordDateSet.has(dateKey);
     if (hasRecord) {
       dayButton.classList.add("has-record");
-      dayButton.setAttribute("aria-label", `${day}日�E�記録あり�E�`);
+      dayButton.setAttribute("aria-label", `${day}日（記録あり）`);
     } else {
       dayButton.setAttribute("aria-label", `${day}日`);
     }
@@ -3360,46 +2667,67 @@ function renderHistoryCalendar() {
 
 function getComparisonPeriodConfig() {
   const mode = comparisonPeriodInput.value || "all";
-  const label = getComparisonPeriodLabel(mode);
+  {
+    if (mode === "all") {
+      return { mode, label: getComparisonPeriodLabel(mode), from: "", to: "", rangeText: "全データ", isValid: true };
+    }
+    if (mode === "month") {
+      const range = getCurrentMonthRange(today);
+      return {
+        mode,
+        label: getComparisonPeriodLabel(mode),
+        ...range,
+        rangeText: `${formatDateYmd(range.from)}〜${formatDateYmd(range.to)}`,
+        isValid: true
+      };
+    }
+    if (mode === "fiscal") {
+      const range = getFiscalYearRange(today);
+      return {
+        mode,
+        label: getComparisonPeriodLabel(mode),
+        ...range,
+        rangeText: `${formatDateYmd(range.from)}〜${formatDateYmd(range.to)}`,
+        isValid: true
+      };
+    }
+    const customFrom = comparisonFromDateInput.value;
+    const customTo = comparisonToDateInput.value;
+    if (!customFrom || !customTo) {
+      return { mode, label: getComparisonPeriodLabel(mode), from: customFrom, to: customTo, isValid: false, error: "任意期間では開始日と終了日を入力してください。" };
+    }
+    if (customFrom > customTo) {
+      return { mode, label: getComparisonPeriodLabel(mode), from: customFrom, to: customTo, isValid: false, error: "任意期間の終了日は開始日以降を指定してください。" };
+    }
+    return {
+      mode,
+      label: getComparisonPeriodLabel(mode),
+      from: customFrom,
+      to: customTo,
+      rangeText: `${formatDateYmd(customFrom)}〜${formatDateYmd(customTo)}`,
+      isValid: true
+    };
+  }
   if (mode === "all") {
-    return { mode, label, from: "", to: "", rangeText: "全期間", isValid: true };
+    return { mode, label: "全期間", from: "", to: "", isValid: true };
   }
   if (mode === "month") {
     const range = getCurrentMonthRange(today);
-    return {
-      mode,
-      label,
-      ...range,
-      rangeText: `${formatDateYmd(range.from)}〜${formatDateYmd(range.to)}`,
-      isValid: true
-    };
+    return { mode, label: "今月", ...range, isValid: true };
   }
   if (mode === "fiscal") {
     const range = getFiscalYearRange(today);
-    return {
-      mode,
-      label,
-      ...range,
-      rangeText: `${formatDateYmd(range.from)}〜${formatDateYmd(range.to)}`,
-      isValid: true
-    };
+    return { mode, label: `${range.from.slice(0, 4)}年度`, ...range, isValid: true };
   }
   const from = comparisonFromDateInput.value;
   const to = comparisonToDateInput.value;
   if (!from || !to) {
-    return { mode, label, from, to, isValid: false, error: "任意期間では開始日と終了日を入力してください。" };
+    return { mode, label: "任意期間", from, to, isValid: false, error: "任意期間では開始日と終了日を入力してください。" };
   }
   if (from > to) {
-    return { mode, label, from, to, isValid: false, error: "任意期間の終了日は開始日以降にしてください。" };
+    return { mode, label: "任意期間", from, to, isValid: false, error: "任意期間の終了日は開始日以降を指定してください。" };
   }
-  return {
-    mode,
-    label,
-    from,
-    to,
-    rangeText: `${formatDateYmd(from)}〜${formatDateYmd(to)}`,
-    isValid: true
-  };
+  return { mode, label: `${formatDate(from)} ～ ${formatDate(to)}`, from, to, isValid: true };
 }
 
 function filterRecordsByPeriod(config) {
@@ -3458,7 +2786,7 @@ function getPayrollPeriodConfig() {
         to,
         rangeText: "",
         isValid: false,
-        error: "任意期間の終了日は開始日以降にしてください。"
+        error: "任意期間の終了日は開始日以降の日付を指定してください。"
       };
     }
     return {
@@ -3554,13 +2882,6 @@ function buildPayrollRows(periodConfig) {
 
   filteredRecords.forEach((record) => {
     const assignedWorkers = getAssignedWorkers(record);
-    if (!assignedWorkers.length) return;
-    const workerTimeDetails = getRecordWorkerTimeDetails(record, companySettings);
-    const fallbackStartTime = getRecordStartTime(record);
-    const fallbackEndTime = getRecordEndTime(record);
-    const fallbackBreakMinutes = getRecordBreakMinutes(record, companySettings);
-    const workTypes = getRecordWorkTypes(record, { includeUnset: true });
-
     assignedWorkers.forEach((worker) => {
       if (!worker) return;
       if (periodConfig.workerScope === "part" && !isPartTimeWorker(worker)) return;
@@ -3569,52 +2890,10 @@ function buildPayrollRows(periodConfig) {
       const current = dayMap.get(dayKey) || {
         worker,
         workDate: record.workDate,
-        totalHours: 0,
-        totalBreakMinutes: 0,
-        workTypeSet: new Set(),
-        earliestStartMinutes: null,
-        latestEndMinutes: null,
-        timeRangeSet: new Set(),
-        timeRanges: [],
-        startTime: "",
-        endTime: ""
+        totalHours: 0
       };
       const workerHours = Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0);
       if (!Number.isFinite(workerHours) || workerHours <= 0) return;
-
-      const detail = workerTimeDetails?.[worker.id] || {};
-      const startTime = normalizeTimeText(detail.startTime || fallbackStartTime, "");
-      const endTime = normalizeTimeText(detail.endTime || fallbackEndTime, "");
-      const breakMinutes = normalizeBreakMinutes(
-        detail.breakMinutes,
-        fallbackBreakMinutes
-      );
-
-      const startMinutes = parseTimeToMinutes(startTime);
-      if (startMinutes !== null && (current.earliestStartMinutes === null || startMinutes < current.earliestStartMinutes)) {
-        current.earliestStartMinutes = startMinutes;
-        current.startTime = startTime;
-      }
-
-      const endMinutes = parseTimeToMinutes(endTime);
-      if (endMinutes !== null && (current.latestEndMinutes === null || endMinutes > current.latestEndMinutes)) {
-        current.latestEndMinutes = endMinutes;
-        current.endTime = endTime;
-      }
-      if (startTime && endTime) {
-        const timeRangeText = `${startTime}〜${endTime}`;
-        if (!current.timeRangeSet.has(timeRangeText)) {
-          current.timeRangeSet.add(timeRangeText);
-          current.timeRanges.push({
-            text: timeRangeText,
-            startMinutes: startMinutes === null ? 9999 : startMinutes,
-            endMinutes: endMinutes === null ? 9999 : endMinutes
-          });
-        }
-      }
-
-      workTypes.forEach((workType) => current.workTypeSet.add(workType));
-      current.totalBreakMinutes += breakMinutes;
       current.totalHours += workerHours;
       dayMap.set(dayKey, current);
     });
@@ -3624,47 +2903,23 @@ function buildPayrollRows(periodConfig) {
   Array.from(dayMap.values()).forEach((dayEntry) => {
     const resolvedDayHours = normalizeHoursByTimeUnit(dayEntry.totalHours, companySettings);
     if (!Number.isFinite(resolvedDayHours) || resolvedDayHours <= 0) return;
-    const hourlyRate = Number(dayEntry.worker.hourlyRate || 0);
-    const dayPay = Math.round(resolvedDayHours * hourlyRate);
 
     const current = workerMap.get(dayEntry.worker.id) || {
       worker: dayEntry.worker,
       attendanceDates: new Set(),
-      totalHours: 0,
-      totalBreakMinutes: 0,
-      dailyDetails: []
+      totalHours: 0
     };
     current.attendanceDates.add(dayEntry.workDate);
     current.totalHours += resolvedDayHours;
-    current.totalBreakMinutes += Math.max(0, Math.round(dayEntry.totalBreakMinutes || 0));
-    current.dailyDetails.push({
-      workDate: dayEntry.workDate,
-      weekdayLabel: getWeekdayLabelJa(dayEntry.workDate),
-      workTypes: Array.from(dayEntry.workTypeSet),
-      workTypeText: Array.from(dayEntry.workTypeSet).join("、"),
-      timeRangeText: dayEntry.timeRanges
-        .slice()
-        .sort((a, b) => a.startMinutes - b.startMinutes || a.endMinutes - b.endMinutes)
-        .map((item) => item.text)
-        .join(" / "),
-      startTime: dayEntry.startTime || "",
-      endTime: dayEntry.endTime || "",
-      breakMinutes: Math.max(0, Math.round(dayEntry.totalBreakMinutes || 0)),
-      workHours: resolvedDayHours,
-      hourlyRate,
-      dayPay
-    });
     workerMap.set(dayEntry.worker.id, current);
   });
 
   const rows = Array.from(workerMap.values()).map((item) => {
-    const sortedDailyDetails = [...item.dailyDetails].sort((a, b) => a.workDate.localeCompare(b.workDate, "ja"));
     const adjustment = getPayrollAdjustment(item.worker.id, periodConfig);
     const hourlyRate = Number(item.worker.hourlyRate || 0);
-    const totalHours = Number(sortedDailyDetails.reduce((sum, entry) => sum + Number(entry.workHours || 0), 0).toFixed(2));
-    const totalBreakMinutes = sortedDailyDetails.reduce((sum, entry) => sum + Number(entry.breakMinutes || 0), 0);
+    const totalHours = Number(item.totalHours.toFixed(2));
     const attendanceDays = item.attendanceDates.size;
-    const basicPay = sortedDailyDetails.reduce((sum, entry) => sum + Math.round(Number(entry.dayPay || 0)), 0);
+    const basicPay = totalHours * hourlyRate;
     const allowance = Number(adjustment?.allowance || 0);
     const deduction = Number(adjustment?.deduction || 0);
     const netPay = basicPay + allowance - deduction;
@@ -3675,13 +2930,11 @@ function buildPayrollRows(periodConfig) {
       category: item.worker.category || "",
       attendanceDays,
       totalHours,
-      totalBreakMinutes,
       hourlyRate,
       basicPay,
       allowance,
       deduction,
-      netPay,
-      dailyDetails: sortedDailyDetails
+      netPay
     };
   }).sort((a, b) => a.displayName.localeCompare(b.displayName, "ja"));
 
@@ -3689,7 +2942,6 @@ function buildPayrollRows(periodConfig) {
     acc.workerCount += 1;
     acc.attendanceDays += row.attendanceDays;
     acc.totalHours += row.totalHours;
-    acc.totalBreakMinutes += row.totalBreakMinutes;
     acc.basicPay += row.basicPay;
     acc.allowance += row.allowance;
     acc.deduction += row.deduction;
@@ -3699,7 +2951,6 @@ function buildPayrollRows(periodConfig) {
     workerCount: 0,
     attendanceDays: 0,
     totalHours: 0,
-    totalBreakMinutes: 0,
     basicPay: 0,
     allowance: 0,
     deduction: 0,
@@ -3724,7 +2975,6 @@ function getPayrollData(periodConfig = getPayrollPeriodConfig()) {
         workerCount: 0,
         attendanceDays: 0,
         totalHours: 0,
-        totalBreakMinutes: 0,
         basicPay: 0,
         allowance: 0,
         deduction: 0,
@@ -3746,7 +2996,7 @@ function normalizeWorktimePeriodMode(value) {
 function getWorktimePeriodLabel(mode) {
   if (mode === "month") return "今月";
   if (mode === "year") return "今年";
-  if (mode === "custom") return "任意期閁E;
+  if (mode === "custom") return "任意期間";
   return "今週";
 }
 
@@ -3764,7 +3014,7 @@ function getWorktimePeriodConfig() {
         to: "",
         rangeText: "",
         isValid: false,
-        error: "任意期間を雁E��するには開始日と終亁E��を�E力してください、E
+        error: "任意期間を集計するには開始日と終了日を入力してください。"
       };
     }
     if (from > to) {
@@ -3773,9 +3023,9 @@ function getWorktimePeriodConfig() {
         label,
         from,
         to,
-        rangeText: `${formatDateYmd(from)}、E{formatDateYmd(to)}`,
+        rangeText: `${formatDateYmd(from)}〜${formatDateYmd(to)}`,
         isValid: false,
-        error: "任意期間�E終亁E��は開始日以降にしてください、E
+        error: "任意期間の終了日は開始日以降にしてください。"
       };
     }
     return {
@@ -3783,7 +3033,7 @@ function getWorktimePeriodConfig() {
       label,
       from,
       to,
-      rangeText: `${formatDateYmd(from)}、E{formatDateYmd(to)}`,
+      rangeText: `${formatDateYmd(from)}〜${formatDateYmd(to)}`,
       isValid: true
     };
   }
@@ -3798,7 +3048,7 @@ function getWorktimePeriodConfig() {
     label: getWorktimePeriodLabel(mode),
     from: range.from,
     to: range.to,
-    rangeText: `${formatDateYmd(range.from)}、E{formatDateYmd(range.to)}`,
+    rangeText: `${formatDateYmd(range.from)}〜${formatDateYmd(range.to)}`,
     isValid: true
   };
 }
@@ -3835,7 +3085,7 @@ function renderWorktimeWorkerOptions() {
   if (!workers.length) {
     const option = document.createElement("option");
     option.value = "";
-    option.textContent = "作業老E��未登録でぁE;
+    option.textContent = "作業者が未登録です";
     worktimeWorkerSelect.appendChild(option);
     worktimeWorkerSelect.disabled = true;
     activeWorktimeWorkerId = "";
@@ -3939,7 +3189,7 @@ function getWorktimeComparisonRows(allEntries, tab, workerId) {
     return {
       key: period.key,
       label: period.label,
-      rangeText: `${formatDateYmd(period.range.from)}、E{formatDateYmd(period.range.to)}`,
+      rangeText: `${formatDateYmd(period.range.from)}〜${formatDateYmd(period.range.to)}`,
       stats
     };
   });
@@ -3951,7 +3201,7 @@ function buildWorktimeBreakdownRows(periodEntries, tab, workerId, periodConfig) 
     : periodEntries.slice();
   if (!filteredEntries.length) {
     return {
-      title: "期間冁E�E冁E��",
+      title: "期間内の内訳",
       rows: []
     };
   }
@@ -3974,7 +3224,7 @@ function buildWorktimeBreakdownRows(periodEntries, tab, workerId, periodConfig) 
     } else if (granularity === "week") {
       const weekRange = getWeekRangeFromDateString(entry.workDate);
       key = weekRange.from;
-      label = `${formatDateYmd(weekRange.from)}、E{formatDateYmd(weekRange.to)}`;
+      label = `${formatDateYmd(weekRange.from)}〜${formatDateYmd(weekRange.to)}`;
     } else {
       key = entry.workDate;
       label = formatDateYmd(entry.workDate);
@@ -4009,10 +3259,10 @@ function buildWorktimeBreakdownRows(periodEntries, tab, workerId, periodConfig) 
     });
 
   const title = granularity === "month"
-    ? "期間冁E�E月別冁E��"
+    ? "期間内の月別内訳"
     : granularity === "week"
-      ? "期間冁E�E週別冁E��"
-      : "期間冁E�E日別冁E��";
+      ? "期間内の週別内訳"
+      : "期間内の日別内訳";
   return { title, rows };
 }
 
@@ -4031,7 +3281,7 @@ function buildWorktimeAnalysisSnapshot(tab = activeWorktimeTab) {
       isValid: false,
       tab: normalizedTab,
       periodConfig,
-      error: periodConfig.error || "期間条件を確認してください、E
+      error: periodConfig.error || "期間条件を確認してください。"
     };
   }
 
@@ -4046,8 +3296,8 @@ function buildWorktimeAnalysisSnapshot(tab = activeWorktimeTab) {
     : "";
   const selectedWorker = normalizedTab === "personal" ? getWorkerById(workerId) : null;
   const targetName = normalizedTab === "personal"
-    ? (selectedWorker?.displayName || "未選抁E)
-    : "全佁E;
+    ? (selectedWorker?.displayName || "未選択")
+    : "全体";
   const allEntries = buildWorktimeWorkerDayEntries(records);
   const periodEntries = filterWorktimeEntriesByRange(allEntries, periodConfig.from, periodConfig.to);
   const selectedStats = normalizedTab === "personal"
@@ -4080,22 +3330,22 @@ function renderWorktimeSummaryCards(data) {
 
   const cards = tab === "personal"
     ? [
-        { label: "対象作業老E, value: selectedWorker?.displayName || "未選抁E },
+        { label: "対象作業者", value: selectedWorker?.displayName || "未選択" },
         { label: `${periodLabel}の労働時間`, value: formatHours(selectedStats.totalHours) },
         { label: `${periodLabel}の出勤日数`, value: formatDays(selectedStats.attendanceDays) },
-        { label: "平坁E��働時閁E, value: formatHours(selectedStats.averageHours) },
-        { label: "今週の労働時閁E, value: formatHours(weekStats?.totalHours || 0) },
-        { label: "今月の労働時閁E, value: formatHours(monthStats?.totalHours || 0) },
-        { label: "今年の労働時閁E, value: formatHours(yearStats?.totalHours || 0) }
+        { label: "平均労働時間", value: formatHours(selectedStats.averageHours) },
+        { label: "今週の労働時間", value: formatHours(weekStats?.totalHours || 0) },
+        { label: "今月の労働時間", value: formatHours(monthStats?.totalHours || 0) },
+        { label: "今年の労働時間", value: formatHours(yearStats?.totalHours || 0) }
       ]
     : [
-        { label: "対象作業老E��", value: formatPeople(selectedStats.workerCount || 0) },
+        { label: "対象作業者数", value: formatPeople(selectedStats.workerCount || 0) },
         { label: `${periodLabel}の全体労働時間`, value: formatHours(selectedStats.totalHours) },
-        { label: `${periodLabel}の全体�E勤日数`, value: formatDays(selectedStats.attendanceDays) },
-        { label: "1人あたり平坁E��働時閁E, value: formatHours(selectedStats.averageHoursPerWorker) },
-        { label: "全体�E今週労働時閁E, value: formatHours(weekStats?.totalHours || 0) },
-        { label: "全体�E今月労働時閁E, value: formatHours(monthStats?.totalHours || 0) },
-        { label: "全体�E今年労働時閁E, value: formatHours(yearStats?.totalHours || 0) }
+        { label: `${periodLabel}の全体出勤日数`, value: formatDays(selectedStats.attendanceDays) },
+        { label: "1人あたり平均労働時間", value: formatHours(selectedStats.averageHoursPerWorker) },
+        { label: "全体の今週労働時間", value: formatHours(weekStats?.totalHours || 0) },
+        { label: "全体の今月労働時間", value: formatHours(monthStats?.totalHours || 0) },
+        { label: "全体の今年労働時間", value: formatHours(yearStats?.totalHours || 0) }
       ];
 
   worktimeSummaryCards.innerHTML = "";
@@ -4116,15 +3366,15 @@ function renderWorktimeComparisonRows(data) {
   if (!worktimeComparisonList) return;
   const entries = data.comparisonRows.map((item) => {
     const value = data.tab === "personal"
-      ? `${formatHours(item.stats.totalHours)} / ${formatDays(item.stats.attendanceDays)} / 平坁E${formatHours(item.stats.averageHours)}`
-      : `${formatHours(item.stats.totalHours)} / ${formatDays(item.stats.attendanceDays)} / 1人平坁E${formatHours(item.stats.averageHoursPerWorker)}`;
-    return [`${item.label}�E�E{item.rangeText}�E�`, value];
+      ? `${formatHours(item.stats.totalHours)} / ${formatDays(item.stats.attendanceDays)} / 平均 ${formatHours(item.stats.averageHours)}`
+      : `${formatHours(item.stats.totalHours)} / ${formatDays(item.stats.attendanceDays)} / 1人平均 ${formatHours(item.stats.averageHoursPerWorker)}`;
+    return [`${item.label}（${item.rangeText}）`, value];
   });
   buildSummaryRows(
     worktimeComparisonList,
     entries,
     (value) => String(value),
-    "比輁E��きる労働時間データがありません、E
+    "比較できる労働時間データがありません。"
   );
 }
 
@@ -4135,15 +3385,15 @@ function renderWorktimeBreakdownRows(data) {
   }
   const entries = data.breakdown.rows.map((row) => {
     const value = data.tab === "personal"
-      ? `${formatHours(row.totalHours)} / ${formatDays(row.attendanceDays)} / 平坁E${formatHours(row.averageHours)}`
-      : `${formatHours(row.totalHours)} / ${formatDays(row.attendanceDays)} / 1人平坁E${formatHours(row.averagePerWorker)}`;
+      ? `${formatHours(row.totalHours)} / ${formatDays(row.attendanceDays)} / 平均 ${formatHours(row.averageHours)}`
+      : `${formatHours(row.totalHours)} / ${formatDays(row.attendanceDays)} / 1人平均 ${formatHours(row.averagePerWorker)}`;
     return [row.label, value];
   });
   buildSummaryRows(
     worktimeBreakdownList,
     entries,
     (value) => String(value),
-    "期間冁E�E冁E��チE�Eタがありません、E
+    "期間内の内訳データがありません。"
   );
 }
 
@@ -4154,13 +3404,13 @@ function renderWorktimeAnalysis() {
 
   const snapshot = buildWorktimeAnalysisSnapshot(activeWorktimeTab);
   if (!snapshot.isValid) {
-    worktimePeriodInfo.textContent = snapshot.error || "期間条件を確認してください、E;
+    worktimePeriodInfo.textContent = snapshot.error || "期間条件を確認してください。";
     worktimeSummaryCards.innerHTML = "";
     worktimeComparisonList.innerHTML = "";
     worktimeBreakdownList.innerHTML = "";
-    worktimeSummaryCards.appendChild(buildEmptyState("雁E��条件を指定すると労働時間サマリーを表示できます、E));
-    worktimeComparisonList.appendChild(buildEmptyState("比輁E��ータを表示できません、E));
-    worktimeBreakdownList.appendChild(buildEmptyState("冁E��チE�Eタを表示できません、E));
+    worktimeSummaryCards.appendChild(buildEmptyState("集計条件を指定すると労働時間サマリーを表示できます。"));
+    worktimeComparisonList.appendChild(buildEmptyState("比較データを表示できません。"));
+    worktimeBreakdownList.appendChild(buildEmptyState("内訳データを表示できません。"));
     return;
   }
 
@@ -4186,6 +3436,473 @@ function renderWorktimeAnalysis() {
   renderWorktimeBreakdownRows({
     tab: snapshot.tab,
     breakdown: snapshot.breakdown
+  });
+}
+
+function renderPayrollSummaryCards(data) {
+  if (!payrollSummaryCards) return;
+  const summary = data.summary;
+  const cards = [
+    { label: "対象者数", value: formatPeople(summary.workerCount) },
+    { label: "総労働時間", value: formatHours(summary.totalHours) },
+    { label: "基本支給額合計", value: formatCurrency(summary.basicPay) },
+    { label: "差引支給額合計", value: formatCurrency(summary.netPay) }
+  ];
+  payrollSummaryCards.innerHTML = "";
+  cards.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "summary-card payroll-summary-card";
+    const label = document.createElement("span");
+    label.className = "summary-card__label";
+    label.textContent = item.label;
+    const value = document.createElement("strong");
+    value.textContent = item.value;
+    card.append(label, value);
+    payrollSummaryCards.appendChild(card);
+  });
+}
+
+function renderPayrollList(data) {
+  if (!payrollList) return;
+  payrollList.innerHTML = "";
+  if (!data.rows.length) {
+    payrollList.appendChild(buildEmptyState("対象期間の給与集計データがありません。"));
+    return;
+  }
+
+  data.rows.forEach((row) => {
+    const card = document.createElement("article");
+    card.className = "payroll-row";
+    if (row.workerId === activePayrollWorkerId) {
+      card.classList.add("is-active");
+    }
+    card.addEventListener("click", () => {
+      activePayrollWorkerId = row.workerId;
+      renderPayrollSection();
+    });
+
+    const header = document.createElement("div");
+    header.className = "payroll-row__header";
+    const heading = document.createElement("h4");
+    heading.textContent = `${row.fullName}${row.category ? `（${row.category}）` : ""}`;
+    const actions = document.createElement("div");
+    actions.className = "payroll-row__actions";
+    const detailButton = document.createElement("button");
+    detailButton.type = "button";
+    detailButton.className = "button button--view button--small";
+    detailButton.textContent = "個別明細を開く";
+    detailButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      activePayrollWorkerId = row.workerId;
+      renderPayrollSection();
+    });
+    const printButton = document.createElement("button");
+    printButton.type = "button";
+    printButton.className = "button button--save button--small";
+    printButton.textContent = "この人を印刷";
+    printButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openPayrollIndividualReportWindow(row, data.periodConfig);
+    });
+    actions.append(detailButton, printButton);
+    header.append(heading, actions);
+
+    const metrics = document.createElement("div");
+    metrics.className = "payroll-row__metrics";
+    metrics.innerHTML = `
+      <span>出勤日数: <strong>${formatDays(row.attendanceDays)}</strong></span>
+      <span>総労働時間: <strong>${formatHours(row.totalHours)}</strong></span>
+      <span>基本支給額: <strong>${formatCurrency(row.basicPay)}</strong></span>
+      <span>差引支給額: <strong>${formatCurrency(row.netPay)}</strong></span>
+    `;
+
+    card.append(header, metrics);
+    payrollList.appendChild(card);
+  });
+}
+
+function renderPayrollDetail(data) {
+  if (!payrollDetail) return;
+  if (!data.rows.length) {
+    payrollDetail.innerHTML = "";
+    payrollDetail.appendChild(buildEmptyState("個別明細を表示できるデータがありません。"));
+    return;
+  }
+
+  if (!data.rows.some((row) => row.workerId === activePayrollWorkerId)) {
+    activePayrollWorkerId = data.rows[0].workerId;
+  }
+  const selectedRow = data.rows.find((row) => row.workerId === activePayrollWorkerId) || data.rows[0];
+  const periodText = data.periodConfig.rangeText || `${formatDateYmd(data.periodConfig.from)}〜${formatDateYmd(data.periodConfig.to)}`;
+
+  payrollDetail.innerHTML = `
+    <article class="payroll-detail-card">
+      <div class="payroll-detail-card__header">
+        <h4>${escapeHtml(selectedRow.fullName)}</h4>
+        <span class="chip chip--soft">${escapeHtml(selectedRow.category || "区分未設定")}</span>
+      </div>
+
+      <div class="payroll-detail-grid">
+        <div><span>対象期間</span><strong>${escapeHtml(periodText)}</strong></div>
+        <div><span>締め区分</span><strong>${escapeHtml(data.periodConfig.closeLabel)}</strong></div>
+        <div><span>出勤日数</span><strong>${escapeHtml(formatDays(selectedRow.attendanceDays))}</strong></div>
+        <div><span>総労働時間</span><strong>${escapeHtml(formatHours(selectedRow.totalHours))}</strong></div>
+        <div><span>時給</span><strong>${escapeHtml(formatCurrency(selectedRow.hourlyRate))}</strong></div>
+        <div><span>基本支給額</span><strong>${escapeHtml(formatCurrency(selectedRow.basicPay))}</strong></div>
+      </div>
+
+      <div class="payroll-adjustment-row">
+        <label>
+          手当（円）
+          <input type="number" id="payrollAllowanceInput" min="0" step="1" value="${selectedRow.allowance}">
+        </label>
+        <label>
+          控除（円）
+          <input type="number" id="payrollDeductionInput" min="0" step="1" value="${selectedRow.deduction}">
+        </label>
+      </div>
+
+      <p class="payroll-netpay">差引支給額: <strong>${escapeHtml(formatCurrency(selectedRow.netPay))}</strong></p>
+      <p class="form-hint">差引支給額 = 基本支給額 + 手当 - 控除（税金・社会保険の自動計算はしません）</p>
+      <div class="payroll-detail-actions">
+        <button type="button" class="button button--save" id="payrollAdjustmentSaveButton">手当・控除を保存</button>
+        <button type="button" class="button button--view" id="payrollIndividualPrintButton">この人の明細を印刷</button>
+      </div>
+    </article>
+  `;
+
+  const allowanceInput = document.getElementById("payrollAllowanceInput");
+  const deductionInput = document.getElementById("payrollDeductionInput");
+  const saveButton = document.getElementById("payrollAdjustmentSaveButton");
+  const printButton = document.getElementById("payrollIndividualPrintButton");
+  if (!allowanceInput || !deductionInput || !saveButton || !printButton) return;
+
+  saveButton.addEventListener("click", () => {
+    const allowance = Number(allowanceInput.value || 0);
+    const deduction = Number(deductionInput.value || 0);
+    upsertPayrollAdjustment(selectedRow.workerId, data.periodConfig, allowance, deduction);
+    renderPayrollSection();
+  });
+  printButton.addEventListener("click", () => {
+    openPayrollIndividualReportWindow(selectedRow, data.periodConfig);
+  });
+}
+
+function renderPayrollSection() {
+  if (!payrollPeriodInfo || !payrollList || !payrollDetail) return;
+  const periodConfig = getPayrollPeriodConfig();
+  if (payrollCustomRange) {
+    payrollCustomRange.hidden = periodConfig.closeType !== "custom";
+  }
+
+  if (!periodConfig.isValid) {
+    payrollPeriodInfo.textContent = periodConfig.error || "給与集計の条件を設定してください。";
+    if (payrollSummaryCards) payrollSummaryCards.innerHTML = "";
+    payrollList.innerHTML = "";
+    payrollList.appendChild(buildEmptyState("条件を設定すると給与一覧が表示されます。"));
+    payrollDetail.innerHTML = "";
+    payrollDetail.appendChild(buildEmptyState("個別明細を表示する対象がありません。"));
+    return;
+  }
+
+  const data = getPayrollData(periodConfig);
+  const scopeLabel = getPayrollWorkerScopeLabel(periodConfig.workerScope);
+  const settings = normalizeCompanySettings(companySettings);
+  const breakText = `${Math.floor(settings.workdayBreakMinutes / 60)}時間${String(settings.workdayBreakMinutes % 60).padStart(2, "0")}分`;
+  const defaultHours = getDefaultWorkHours(settings);
+  payrollPeriodInfo.textContent = `${periodConfig.closeLabel} / ${periodConfig.rangeText} / 対象: ${scopeLabel} / 集計記録: ${formatCount(data.filteredRecords.length)} / 標準勤務: ${settings.workdayStartTime}〜${settings.workdayEndTime}（休憩 ${breakText}）= ${defaultHours}時間`;
+
+  renderPayrollSummaryCards(data);
+  renderPayrollList(data);
+  renderPayrollDetail(data);
+}
+
+function exportPayrollCsv() {
+  const data = getPayrollData(getPayrollPeriodConfig());
+  if (!data.periodConfig.isValid) {
+    window.alert(data.periodConfig.error || "給与集計の条件を確認してください。");
+    return;
+  }
+  if (!data.rows.length) {
+    window.alert("CSV出力できる給与データがありません。");
+    return;
+  }
+
+  const periodText = data.periodConfig.rangeText || `${formatDateYmd(data.periodConfig.from)}〜${formatDateYmd(data.periodConfig.to)}`;
+  const rows = [
+    ["氏名", "対象期間", "締め区分", "出勤日数", "総労働時間", "時給", "基本支給額", "手当", "控除", "差引支給額"]
+  ];
+  data.rows.forEach((row) => {
+    rows.push([
+      row.fullName,
+      periodText,
+      data.periodConfig.closeLabel,
+      row.attendanceDays,
+      row.totalHours,
+      row.hourlyRate,
+      row.basicPay,
+      row.allowance,
+      row.deduction,
+      row.netPay
+    ]);
+  });
+
+  rows.push([
+    "合計",
+    periodText,
+    data.periodConfig.closeLabel,
+    data.summary.attendanceDays,
+    Number(data.summary.totalHours.toFixed(2)),
+    "",
+    Math.round(data.summary.basicPay),
+    Math.round(data.summary.allowance),
+    Math.round(data.summary.deduction),
+    Math.round(data.summary.netPay)
+  ]);
+
+  const csv = rows.map((row) => row.map(escapeCsvValue).join(",")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `taiseien-simple-payroll-${data.periodConfig.from}_${data.periodConfig.to}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function buildPayrollReportHtml(data) {
+  const periodText = data.periodConfig.rangeText || `${formatDateYmd(data.periodConfig.from)}〜${formatDateYmd(data.periodConfig.to)}`;
+  const scopeLabel = getPayrollWorkerScopeLabel(data.periodConfig.workerScope);
+  const rowsHtml = data.rows.length
+    ? data.rows.map((row) => `
+      <tr>
+        <td>${escapeHtml(row.fullName)}</td>
+        <td>${escapeHtml(formatDays(row.attendanceDays))}</td>
+        <td>${escapeHtml(formatHours(row.totalHours))}</td>
+        <td>${escapeHtml(formatCurrency(row.hourlyRate))}</td>
+        <td>${escapeHtml(formatCurrency(row.basicPay))}</td>
+        <td>${escapeHtml(formatCurrency(row.allowance))}</td>
+        <td>${escapeHtml(formatCurrency(row.deduction))}</td>
+        <td>${escapeHtml(formatCurrency(row.netPay))}</td>
+      </tr>
+    `).join("")
+    : `<tr><td colspan="8">対象データがありません。</td></tr>`;
+
+  return `
+    <html lang="ja">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>(株)大成園 作業記録アプリ 簡易給与明細</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm; }
+          * { box-sizing: border-box; }
+          body { margin: 0; background: #f6f3ec; color: #2f2921; font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif; }
+          .toolbar { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid #d8d2c8; background: #ffffffee; backdrop-filter: blur(6px); }
+          .toolbar h1 { margin: 0; font-size: 16px; }
+          .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+          .button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
+          .button--print { background: #3f6f3f; color: #fff; }
+          .button--close { background: #ece8de; color: #3c352f; }
+          .body { width: min(210mm, 100%); margin: 0 auto; padding: 7mm 0 12mm; }
+          .header { padding: 5mm; border-radius: 4mm; background: #fff; border: 1px solid #dfd8cd; }
+          .app { margin: 0; font-size: 20px; line-height: 1.3; }
+          .title { margin: 2mm 0 1mm; font-size: 18px; }
+          .meta { margin: 0.8mm 0; color: #5f564b; font-size: 13px; }
+          .summary { margin-top: 3mm; display: grid; gap: 2mm; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .summary div { border: 1px solid #dfd8cd; border-radius: 3mm; background: #fff; padding: 2.5mm 3mm; display: grid; gap: 1mm; }
+          .summary span { color: #61574b; font-size: 11px; }
+          .summary strong { font-size: 15px; }
+          .table-wrap { margin-top: 4mm; overflow-x: auto; border: 1px solid #dfd8cd; border-radius: 3mm; background: #fff; }
+          table { width: 100%; border-collapse: collapse; min-width: 760px; }
+          th, td { border: 1px solid #ddd3c3; padding: 6px 8px; text-align: right; font-size: 12px; white-space: nowrap; }
+          th:first-child, td:first-child { text-align: left; white-space: normal; }
+          thead th { background: #f3eee3; font-size: 11px; }
+          tfoot td { background: #faf6ee; font-weight: 700; }
+          @media (max-width: 720px) {
+            .toolbar { position: static; padding: 10px 12px; }
+            .actions { width: 100%; }
+            .button { flex: 1; }
+            .body { width: 100%; padding: 12px; }
+            .summary { grid-template-columns: 1fr; }
+          }
+          @media print {
+            body { background: #fff; }
+            .toolbar { display: none; }
+            .body { width: auto; margin: 0; padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <header class="toolbar">
+          <h1>簡易給与明細</h1>
+          <div class="actions">
+            <button class="button button--print" type="button" onclick="window.print()">この画面を印刷</button>
+            <button class="button button--close" type="button" onclick="window.close()">閉じる</button>
+          </div>
+        </header>
+        <main class="body">
+          <section class="header">
+            <p class="app">(株)大成園　作業記録アプリ</p>
+            <h2 class="title">簡易給与明細（一覧）</h2>
+            <p class="meta">対象期間: ${escapeHtml(periodText)}</p>
+            <p class="meta">締め区分: ${escapeHtml(data.periodConfig.closeLabel)} / 対象: ${escapeHtml(scopeLabel)}</p>
+            <div class="summary">
+              <div><span>対象者数</span><strong>${escapeHtml(formatPeople(data.summary.workerCount))}</strong></div>
+              <div><span>総労働時間</span><strong>${escapeHtml(formatHours(data.summary.totalHours))}</strong></div>
+              <div><span>基本支給額合計</span><strong>${escapeHtml(formatCurrency(data.summary.basicPay))}</strong></div>
+              <div><span>差引支給額合計</span><strong>${escapeHtml(formatCurrency(data.summary.netPay))}</strong></div>
+            </div>
+          </section>
+
+          <section class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>氏名</th>
+                  <th>出勤日数</th>
+                  <th>総労働時間</th>
+                  <th>時給</th>
+                  <th>基本支給額</th>
+                  <th>手当</th>
+                  <th>控除</th>
+                  <th>差引支給額</th>
+                </tr>
+              </thead>
+              <tbody>${rowsHtml}</tbody>
+              <tfoot>
+                <tr>
+                  <td>合計</td>
+                  <td>${escapeHtml(formatDays(data.summary.attendanceDays))}</td>
+                  <td>${escapeHtml(formatHours(data.summary.totalHours))}</td>
+                  <td>-</td>
+                  <td>${escapeHtml(formatCurrency(data.summary.basicPay))}</td>
+                  <td>${escapeHtml(formatCurrency(data.summary.allowance))}</td>
+                  <td>${escapeHtml(formatCurrency(data.summary.deduction))}</td>
+                  <td>${escapeHtml(formatCurrency(data.summary.netPay))}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </section>
+        </main>
+      </body>
+    </html>
+  `;
+}
+
+function openPayrollReportWindow() {
+  const data = getPayrollData(getPayrollPeriodConfig());
+  if (!data.periodConfig.isValid) {
+    window.alert(data.periodConfig.error || "給与集計の条件を確認してください。");
+    return;
+  }
+  if (!data.rows.length) {
+    window.alert("表示・印刷できる給与データがありません。");
+    return;
+  }
+  openGeneratedDocumentWindow(buildPayrollReportHtml(data), {
+    width: 1280,
+    height: 920,
+    popupBlockedMessage: "簡易給与明細の表示画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
+  });
+}
+
+function buildPayrollIndividualReportHtml(row, periodConfig) {
+  const periodText = periodConfig.rangeText || `${formatDateYmd(periodConfig.from)}〜${formatDateYmd(periodConfig.to)}`;
+  const attendanceLabel = formatDays(row.attendanceDays);
+  const hoursLabel = formatHours(row.totalHours);
+  const hourlyRateLabel = formatCurrency(row.hourlyRate);
+  const basicPayLabel = formatCurrency(row.basicPay);
+  const allowanceLabel = formatCurrency(row.allowance);
+  const deductionLabel = formatCurrency(row.deduction);
+  const netPayLabel = formatCurrency(row.netPay);
+  return `
+    <html lang="ja">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>(株)大成園 作業記録アプリ 個人別簡易給与明細</title>
+        <style>
+          @page { size: A4 portrait; margin: 14mm; }
+          * { box-sizing: border-box; }
+          body { margin: 0; background: #f6f3ec; color: #2f2921; font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif; }
+          .toolbar { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #d8d2c8; background: #ffffffee; backdrop-filter: blur(6px); }
+          .toolbar h1 { margin: 0; font-size: 16px; }
+          .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+          .button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
+          .button--print { background: #3f6f3f; color: #fff; }
+          .button--close { background: #ece8de; color: #3c352f; }
+          .sheet { width: min(210mm, 100%); margin: 0 auto; padding: 8mm 0 12mm; }
+          .card { background: #fff; border: 1px solid #dfd8cd; border-radius: 4mm; padding: 6mm; }
+          .app-name { margin: 0; font-size: 18px; line-height: 1.35; }
+          .title { margin: 2mm 0 0; font-size: 20px; }
+          .meta { margin: 1.2mm 0; color: #5f564b; font-size: 13px; }
+          .name { margin-top: 3mm; font-size: 19px; font-weight: 700; }
+          .grid { margin-top: 4mm; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.2mm; }
+          .item { border: 1px solid #dfd8cd; border-radius: 3mm; background: #fff; padding: 2.8mm 3.2mm; display: grid; gap: 1.2mm; }
+          .item span { color: #61574b; font-size: 12px; }
+          .item strong { font-size: 16px; }
+          .net { margin-top: 4mm; padding: 3.2mm 3.6mm; border-radius: 3mm; border: 1px solid #dcb49b; background: #fff5ef; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+          .net span { color: #7a4a34; font-size: 13px; font-weight: 700; }
+          .net strong { color: #8f351e; font-size: 22px; }
+          .note { margin-top: 3mm; font-size: 11px; color: #6b5f52; }
+          @media (max-width: 720px) {
+            .toolbar { position: static; padding: 10px 12px; }
+            .actions { width: 100%; }
+            .button { flex: 1; }
+            .sheet { width: 100%; padding: 12px; }
+            .grid { grid-template-columns: 1fr; }
+          }
+          @media print {
+            body { background: #fff; }
+            .toolbar { display: none; }
+            .sheet { width: auto; margin: 0; padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <header class="toolbar">
+          <h1>個人別 簡易給与明細</h1>
+          <div class="actions">
+            <button class="button button--print" type="button" onclick="window.print()">この明細を印刷</button>
+            <button class="button button--close" type="button" onclick="window.close()">閉じる</button>
+          </div>
+        </header>
+        <main class="sheet">
+          <section class="card">
+            <p class="app-name">(株)大成園　作業記録アプリ</p>
+            <h2 class="title">個人別 簡易給与明細</h2>
+            <p class="meta">対象期間: ${escapeHtml(periodText)}</p>
+            <p class="meta">締め区分: ${escapeHtml(periodConfig.closeLabel)}</p>
+            <p class="name">${escapeHtml(row.fullName)}${row.category ? `（${escapeHtml(row.category)}）` : ""}</p>
+
+            <div class="grid">
+              <div class="item"><span>出勤日数</span><strong>${escapeHtml(attendanceLabel)}</strong></div>
+              <div class="item"><span>総労働時間</span><strong>${escapeHtml(hoursLabel)}</strong></div>
+              <div class="item"><span>時給</span><strong>${escapeHtml(hourlyRateLabel)}</strong></div>
+              <div class="item"><span>基本支給額</span><strong>${escapeHtml(basicPayLabel)}</strong></div>
+              <div class="item"><span>手当</span><strong>${escapeHtml(allowanceLabel)}</strong></div>
+              <div class="item"><span>控除</span><strong>${escapeHtml(deductionLabel)}</strong></div>
+            </div>
+
+            <div class="net">
+              <span>差引支給額</span>
+              <strong>${escapeHtml(netPayLabel)}</strong>
+            </div>
+            <p class="note">※ 簡易明細のため、税金・社会保険の計算は含みません。</p>
+          </section>
+        </main>
+      </body>
+    </html>
+  `;
+}
+
+function openPayrollIndividualReportWindow(row, periodConfig) {
+  if (!row || !periodConfig) return;
+  openGeneratedDocumentWindow(buildPayrollIndividualReportHtml(row, periodConfig), {
+    width: 1040,
+    height: 900,
+    popupBlockedMessage: "個人別明細の表示画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
   });
 }
 
@@ -4247,7 +3964,7 @@ function renderCumulativeComparisonRows(container, entries, emptyMessage) {
     metrics.innerHTML = `
       <span>件数: <strong>${formatCount(entry.count)}</strong></span>
       <span>時間: <strong>${formatHours(entry.hours)}</strong></span>
-      <span>延べ人晁E <strong>${formatPersonHours(entry.personHours)}</strong></span>
+      <span>延べ人時: <strong>${formatPersonHours(entry.personHours)}</strong></span>
       <span>概算人件費: <strong>${formatCurrency(entry.laborCost)}</strong></span>
     `;
     row.append(title, metrics);
@@ -4271,33 +3988,33 @@ function renderCumulativeComparison() {
   comparisonRangeRow.hidden = config.mode !== "custom";
   if (!config.isValid) {
     comparisonInfo.textContent = config.error;
-    renderCumulativeComparisonRows(orchardCumulativeList, [], "条件を満たす園地別比輁E�Eありません、E);
-    renderCumulativeComparisonRows(plotCumulativeList, [], "条件を満たす区画別比輁E�Eありません、E);
+    renderCumulativeComparisonRows(orchardCumulativeList, [], "条件を満たす園地別比較はありません。");
+    renderCumulativeComparisonRows(plotCumulativeList, [], "条件を満たす区画別比較はありません。");
     return;
   }
   const comparisonData = getCumulativeComparisonData();
   const metricLabelMap = {
-    count: "件数基溁E,
-    hours: "総作業時間基溁E,
-    personHours: "延べ人時基溁E,
-    laborCost: "概算人件費基溁E
+    count: "件数基準",
+    hours: "総作業時間基準",
+    personHours: "延べ人時基準",
+    laborCost: "概算人件費基準"
   };
-  const metricLabel = metricLabelMap[comparisonSortMetricInput.value] || "総作業時間基溁E;
-  const sortLabel = comparisonSortOrderInput.value === "asc" ? "少なぁE��E : "多い頁E;
-  const periodRangeText = comparisonData.periodConfig.rangeText ? ` / 期間篁E��: ${comparisonData.periodConfig.rangeText}` : "";
-  comparisonInfo.textContent = `比輁E��閁E ${comparisonData.periodConfig.label}${periodRangeText} / 並び替え基溁E ${metricLabel} / 並び頁E ${sortLabel} / 対象記録: ${comparisonData.filteredRecords.length}件`;
-  renderCumulativeComparisonRows(orchardCumulativeList, comparisonData.orchardEntries, "条件を満たす園地別比輁E�Eありません、E);
-  renderCumulativeComparisonRows(plotCumulativeList, comparisonData.plotEntries, "条件を満たす区画別比輁E�Eありません、E);
+  const metricLabel = metricLabelMap[comparisonSortMetricInput.value] || "総作業時間基準";
+  const sortLabel = comparisonSortOrderInput.value === "asc" ? "少ない順" : "多い順";
+  const periodRangeText = comparisonData.periodConfig.rangeText ? ` / 期間範囲: ${comparisonData.periodConfig.rangeText}` : "";
+  comparisonInfo.textContent = `比較期間: ${comparisonData.periodConfig.label}${periodRangeText} / 並び替え基準: ${metricLabel} / 並び順: ${sortLabel} / 対象記録: ${comparisonData.filteredRecords.length}件`;
+  renderCumulativeComparisonRows(orchardCumulativeList, comparisonData.orchardEntries, "条件を満たす園地別比較はありません。");
+  renderCumulativeComparisonRows(plotCumulativeList, comparisonData.plotEntries, "条件を満たす区画別比較はありません。");
 }
 
 function getSortMetricLabel(metric) {
   const metricLabelMap = {
-    count: "件数基溁E,
-    hours: "総作業時間基溁E,
-    personHours: "延べ人時基溁E,
-    laborCost: "概算人件費基溁E
+    count: "件数基準",
+    hours: "総作業時間基準",
+    personHours: "延べ人時基準",
+    laborCost: "概算人件費基準"
   };
-  return metricLabelMap[metric] || "総作業時間基溁E;
+  return metricLabelMap[metric] || "総作業時間基準";
 }
 
 function getTaskReportPeriodConfig() {
@@ -4308,7 +4025,7 @@ function getTaskReportPeriodConfig() {
       mode,
       label: getComparisonPeriodLabel(mode),
       ...range,
-      rangeText: `${formatDateYmd(range.from)}、E{formatDateYmd(range.to)}`,
+      rangeText: `${formatDateYmd(range.from)}〜${formatDateYmd(range.to)}`,
       isValid: true
     };
   }
@@ -4318,24 +4035,24 @@ function getTaskReportPeriodConfig() {
       mode,
       label: getComparisonPeriodLabel(mode),
       ...range,
-      rangeText: `${formatDateYmd(range.from)}、E{formatDateYmd(range.to)}`,
+      rangeText: `${formatDateYmd(range.from)}〜${formatDateYmd(range.to)}`,
       isValid: true
     };
   }
   const from = taskReportFromDateInput?.value || "";
   const to = taskReportToDateInput?.value || "";
   if (!from || !to) {
-    return { mode, label: getComparisonPeriodLabel(mode), from, to, isValid: false, error: "任意期間では開始日と終亁E��を�E力してください、E };
+    return { mode, label: getComparisonPeriodLabel(mode), from, to, isValid: false, error: "任意期間では開始日と終了日を入力してください。" };
   }
   if (from > to) {
-    return { mode, label: getComparisonPeriodLabel(mode), from, to, isValid: false, error: "任意期間�E終亁E��は開始日以降を持E��してください、E };
+    return { mode, label: getComparisonPeriodLabel(mode), from, to, isValid: false, error: "任意期間の終了日は開始日以降を指定してください。" };
   }
   return {
     mode,
     label: getComparisonPeriodLabel(mode),
     from,
     to,
-    rangeText: `${formatDateYmd(from)}、E{formatDateYmd(to)}`,
+    rangeText: `${formatDateYmd(from)}〜${formatDateYmd(to)}`,
     isValid: true
   };
 }
@@ -4378,7 +4095,7 @@ function buildTaskTypeReportData() {
       taskEntry.laborCost += metrics.laborCost;
 
       const orchardKey = record.orchardId || names.orchardName;
-      const orchardLabel = names.orchardName || "園地未設宁E;
+      const orchardLabel = names.orchardName || "園地未設定";
       const orchardEntry = getMetricBucket(taskEntry.orchardMap, orchardKey, orchardLabel);
       orchardEntry.count += 1;
       orchardEntry.hours += metrics.hours;
@@ -4386,7 +4103,7 @@ function buildTaskTypeReportData() {
       orchardEntry.laborCost += metrics.laborCost;
 
       const plotKey = record.plotId || `${names.orchardName}/${names.plotName}`;
-      const plotLabel = `${names.orchardName || "園地未設宁E} / ${names.plotName || "区画未設宁E}`;
+      const plotLabel = `${names.orchardName || "園地未設定"} / ${names.plotName || "区画未設定"}`;
       const plotEntry = getMetricBucket(taskEntry.plotMap, plotKey, plotLabel);
       plotEntry.count += 1;
       plotEntry.hours += metrics.hours;
@@ -4394,7 +4111,7 @@ function buildTaskTypeReportData() {
       plotEntry.laborCost += metrics.laborCost;
 
       const groupKey = record.dailyGroupId || names.dailyGroupName;
-      const groupLabel = names.dailyGroupName || "未設宁E;
+      const groupLabel = names.dailyGroupName || "未設定";
       const groupEntry = getMetricBucket(taskEntry.groupMap, groupKey, groupLabel);
       groupEntry.count += 1;
       groupEntry.hours += metrics.hours;
@@ -4403,7 +4120,7 @@ function buildTaskTypeReportData() {
 
       getAssignedWorkers(record).forEach((worker) => {
         const workerKey = worker.id || worker.displayName;
-        const workerLabel = worker.displayName || "未設宁E;
+        const workerLabel = worker.displayName || "未設定";
         const workerEntry = taskEntry.workerHourMap.get(workerKey) || { label: workerLabel, hours: 0 };
         workerEntry.hours += metrics.hours;
         taskEntry.workerHourMap.set(workerKey, workerEntry);
@@ -4472,21 +4189,21 @@ function renderTaskTypeReport() {
   const periodConfig = getTaskReportPeriodConfig();
   taskReportRangeRow.hidden = periodConfig.mode !== "custom";
   if (!periodConfig.isValid) {
-    taskReportInfo.textContent = periodConfig.error || "条件を確認してください、E;
+    taskReportInfo.textContent = periodConfig.error || "条件を確認してください。";
     taskTypeReportList.innerHTML = "";
-    taskTypeReportList.appendChild(buildEmptyState("条件を満たす作業区刁E��レポ�Eト�Eありません、E));
+    taskTypeReportList.appendChild(buildEmptyState("条件を満たす作業区分別レポートはありません。"));
     return;
   }
 
   const reportData = buildTaskTypeReportData();
   const metricLabel = getSortMetricLabel(reportData.metric);
-  const sortLabel = reportData.sortOrder === "asc" ? "少なぁE��E : "多い頁E;
-  const rangeText = reportData.periodConfig.rangeText ? ` / 期間篁E��: ${reportData.periodConfig.rangeText}` : "";
-  taskReportInfo.textContent = `対象期間: ${reportData.periodConfig.label}${rangeText} / 並び替え基溁E ${metricLabel} / 並び頁E ${sortLabel} / 対象記録: ${reportData.filteredRecords.length}件 / 作業区刁E��: ${reportData.taskEntries.length}件`;
+  const sortLabel = reportData.sortOrder === "asc" ? "少ない順" : "多い順";
+  const rangeText = reportData.periodConfig.rangeText ? ` / 期間範囲: ${reportData.periodConfig.rangeText}` : "";
+  taskReportInfo.textContent = `対象期間: ${reportData.periodConfig.label}${rangeText} / 並び替え基準: ${metricLabel} / 並び順: ${sortLabel} / 対象記録: ${reportData.filteredRecords.length}件 / 作業区分数: ${reportData.taskEntries.length}件`;
 
   taskTypeReportList.innerHTML = "";
   if (!reportData.taskEntries.length) {
-    taskTypeReportList.appendChild(buildEmptyState("条件を満たす作業区刁E��レポ�Eト�Eありません、E));
+    taskTypeReportList.appendChild(buildEmptyState("条件を満たす作業区分別レポートはありません。"));
     return;
   }
 
@@ -4500,52 +4217,52 @@ function renderTaskTypeReport() {
         <div class="task-report-card__summary">
           <span>件数: <strong>${escapeHtml(formatCount(taskEntry.count))}</strong></span>
           <span>総作業時間: <strong>${escapeHtml(formatHours(taskEntry.hours))}</strong></span>
-          <span>延べ人晁E <strong>${escapeHtml(formatPersonHours(taskEntry.personHours))}</strong></span>
+          <span>延べ人時: <strong>${escapeHtml(formatPersonHours(taskEntry.personHours))}</strong></span>
           <span>概算人件費: <strong>${escapeHtml(formatCurrency(taskEntry.laborCost))}</strong></span>
         </div>
       </summary>
       <div class="task-report-card__body">
         <section class="task-report-breakdown">
-          <h5>園地別冁E��</h5>
+          <h5>園地別内訳</h5>
           <div class="task-report-table-wrap">
             <table class="task-report-table">
               <thead>
-                <tr><th>園地</th><th>件数</th><th>総作業時間</th><th>延べ人晁E/th><th>概算人件費</th></tr>
+                <tr><th>園地</th><th>件数</th><th>総作業時間</th><th>延べ人時</th><th>概算人件費</th></tr>
               </thead>
-              <tbody>${buildTaskTypeMetricRowsHtml(taskEntry.orchardEntries, "園地別チE�Eタはありません、E)}</tbody>
+              <tbody>${buildTaskTypeMetricRowsHtml(taskEntry.orchardEntries, "園地別データはありません。")}</tbody>
             </table>
           </div>
         </section>
         <section class="task-report-breakdown">
-          <h5>区画別冁E��</h5>
+          <h5>区画別内訳</h5>
           <div class="task-report-table-wrap">
             <table class="task-report-table">
               <thead>
-                <tr><th>区画</th><th>件数</th><th>総作業時間</th><th>延べ人晁E/th><th>概算人件費</th></tr>
+                <tr><th>区画</th><th>件数</th><th>総作業時間</th><th>延べ人時</th><th>概算人件費</th></tr>
               </thead>
-              <tbody>${buildTaskTypeMetricRowsHtml(taskEntry.plotEntries, "区画別チE�Eタはありません、E)}</tbody>
+              <tbody>${buildTaskTypeMetricRowsHtml(taskEntry.plotEntries, "区画別データはありません。")}</tbody>
             </table>
           </div>
         </section>
         <section class="task-report-breakdown">
-          <h5>作業グループ別雁E��E/h5>
+          <h5>作業グループ別集計</h5>
           <div class="task-report-table-wrap">
             <table class="task-report-table">
               <thead>
-                <tr><th>作業グルーチE/th><th>件数</th><th>総作業時間</th><th>延べ人晁E/th><th>概算人件費</th></tr>
+                <tr><th>作業グループ</th><th>件数</th><th>総作業時間</th><th>延べ人時</th><th>概算人件費</th></tr>
               </thead>
-              <tbody>${buildTaskTypeMetricRowsHtml(taskEntry.groupEntries, "作業グループ別チE�Eタはありません、E)}</tbody>
+              <tbody>${buildTaskTypeMetricRowsHtml(taskEntry.groupEntries, "作業グループ別データはありません。")}</tbody>
             </table>
           </div>
         </section>
         <section class="task-report-breakdown">
-          <h5>作業老E��総作業時間</h5>
+          <h5>作業者別総作業時間</h5>
           <div class="task-report-table-wrap">
             <table class="task-report-table">
               <thead>
-                <tr><th>作業老E/th><th>総作業時間</th></tr>
+                <tr><th>作業者</th><th>総作業時間</th></tr>
               </thead>
-              <tbody>${buildTaskTypeWorkerRowsHtml(taskEntry.workerEntries, "作業老E��チE�Eタはありません、E)}</tbody>
+              <tbody>${buildTaskTypeWorkerRowsHtml(taskEntry.workerEntries, "作業者別データはありません。")}</tbody>
             </table>
           </div>
         </section>
@@ -4563,7 +4280,7 @@ function getVarietyReportPeriodConfig() {
       mode,
       label: getComparisonPeriodLabel(mode),
       ...range,
-      rangeText: `${formatDateYmd(range.from)}、E{formatDateYmd(range.to)}`,
+      rangeText: `${formatDateYmd(range.from)}〜${formatDateYmd(range.to)}`,
       isValid: true
     };
   }
@@ -4573,24 +4290,24 @@ function getVarietyReportPeriodConfig() {
       mode,
       label: getComparisonPeriodLabel(mode),
       ...range,
-      rangeText: `${formatDateYmd(range.from)}、E{formatDateYmd(range.to)}`,
+      rangeText: `${formatDateYmd(range.from)}〜${formatDateYmd(range.to)}`,
       isValid: true
     };
   }
   const from = varietyReportFromDateInput?.value || "";
   const to = varietyReportToDateInput?.value || "";
   if (!from || !to) {
-    return { mode, label: getComparisonPeriodLabel(mode), from, to, isValid: false, error: "任意期間では開始日と終亁E��を�E力してください、E };
+    return { mode, label: getComparisonPeriodLabel(mode), from, to, isValid: false, error: "任意期間では開始日と終了日を入力してください。" };
   }
   if (from > to) {
-    return { mode, label: getComparisonPeriodLabel(mode), from, to, isValid: false, error: "任意期間�E終亁E��は開始日以降を持E��してください、E };
+    return { mode, label: getComparisonPeriodLabel(mode), from, to, isValid: false, error: "任意期間の終了日は開始日以降を指定してください。" };
   }
   return {
     mode,
     label: getComparisonPeriodLabel(mode),
     from,
     to,
-    rangeText: `${formatDateYmd(from)}、E{formatDateYmd(to)}`,
+    rangeText: `${formatDateYmd(from)}〜${formatDateYmd(to)}`,
     isValid: true
   };
 }
@@ -4612,7 +4329,7 @@ function buildVarietyTypeReportData() {
     const names = getRecordDisplay(record);
     const metrics = getRecordMetrics(record);
     const varietyKey = record.varietyId || names.varietyName;
-    const varietyLabel = names.varietyName || "品種未設宁E;
+    const varietyLabel = names.varietyName || "品種未設定";
     const varietyEntry = varietyMap.get(varietyKey) || {
       label: varietyLabel,
       count: 0,
@@ -4632,7 +4349,7 @@ function buildVarietyTypeReportData() {
     varietyEntry.laborCost += metrics.laborCost;
 
     const orchardKey = record.orchardId || names.orchardName;
-    const orchardLabel = names.orchardName || "園地未設宁E;
+    const orchardLabel = names.orchardName || "園地未設定";
     const orchardEntry = getMetricBucket(varietyEntry.orchardMap, orchardKey, orchardLabel);
     orchardEntry.count += 1;
     orchardEntry.hours += metrics.hours;
@@ -4640,7 +4357,7 @@ function buildVarietyTypeReportData() {
     orchardEntry.laborCost += metrics.laborCost;
 
     const plotKey = record.plotId || `${names.orchardName}/${names.plotName}`;
-    const plotLabel = `${names.orchardName || "園地未設宁E} / ${names.plotName || "区画未設宁E}`;
+    const plotLabel = `${names.orchardName || "園地未設定"} / ${names.plotName || "区画未設定"}`;
     const plotEntry = getMetricBucket(varietyEntry.plotMap, plotKey, plotLabel);
     plotEntry.count += 1;
     plotEntry.hours += metrics.hours;
@@ -4656,7 +4373,7 @@ function buildVarietyTypeReportData() {
     });
 
     const groupKey = record.dailyGroupId || names.dailyGroupName;
-    const groupLabel = names.dailyGroupName || "未設宁E;
+    const groupLabel = names.dailyGroupName || "未設定";
     const groupEntry = getMetricBucket(varietyEntry.groupMap, groupKey, groupLabel);
     groupEntry.count += 1;
     groupEntry.hours += metrics.hours;
@@ -4665,7 +4382,7 @@ function buildVarietyTypeReportData() {
 
     getAssignedWorkers(record).forEach((worker) => {
       const workerKey = worker.id || worker.displayName;
-      const workerLabel = worker.displayName || "未設宁E;
+      const workerLabel = worker.displayName || "未設定";
       const workerEntry = varietyEntry.workerHourMap.get(workerKey) || { label: workerLabel, hours: 0 };
       workerEntry.hours += metrics.hours;
       varietyEntry.workerHourMap.set(workerKey, workerEntry);
@@ -4707,21 +4424,21 @@ function renderVarietyTypeReport() {
   const periodConfig = getVarietyReportPeriodConfig();
   varietyReportRangeRow.hidden = periodConfig.mode !== "custom";
   if (!periodConfig.isValid) {
-    varietyReportInfo.textContent = periodConfig.error || "条件を確認してください、E;
+    varietyReportInfo.textContent = periodConfig.error || "条件を確認してください。";
     varietyTypeReportList.innerHTML = "";
-    varietyTypeReportList.appendChild(buildEmptyState("条件を満たす品種別レポ�Eト�Eありません、E));
+    varietyTypeReportList.appendChild(buildEmptyState("条件を満たす品種別レポートはありません。"));
     return;
   }
 
   const reportData = buildVarietyTypeReportData();
   const metricLabel = getSortMetricLabel(reportData.metric);
-  const sortLabel = reportData.sortOrder === "asc" ? "少なぁE��E : "多い頁E;
-  const rangeText = reportData.periodConfig.rangeText ? ` / 期間篁E��: ${reportData.periodConfig.rangeText}` : "";
-  varietyReportInfo.textContent = `対象期間: ${reportData.periodConfig.label}${rangeText} / 並び替え基溁E ${metricLabel} / 並び頁E ${sortLabel} / 対象記録: ${reportData.filteredRecords.length}件 / 品種数: ${reportData.varietyEntries.length}件`;
+  const sortLabel = reportData.sortOrder === "asc" ? "少ない順" : "多い順";
+  const rangeText = reportData.periodConfig.rangeText ? ` / 期間範囲: ${reportData.periodConfig.rangeText}` : "";
+  varietyReportInfo.textContent = `対象期間: ${reportData.periodConfig.label}${rangeText} / 並び替え基準: ${metricLabel} / 並び順: ${sortLabel} / 対象記録: ${reportData.filteredRecords.length}件 / 品種数: ${reportData.varietyEntries.length}件`;
 
   varietyTypeReportList.innerHTML = "";
   if (!reportData.varietyEntries.length) {
-    varietyTypeReportList.appendChild(buildEmptyState("条件を満たす品種別レポ�Eト�Eありません、E));
+    varietyTypeReportList.appendChild(buildEmptyState("条件を満たす品種別レポートはありません。"));
     return;
   }
 
@@ -4735,63 +4452,63 @@ function renderVarietyTypeReport() {
         <div class="task-report-card__summary">
           <span>件数: <strong>${escapeHtml(formatCount(varietyEntry.count))}</strong></span>
           <span>総作業時間: <strong>${escapeHtml(formatHours(varietyEntry.hours))}</strong></span>
-          <span>延べ人晁E <strong>${escapeHtml(formatPersonHours(varietyEntry.personHours))}</strong></span>
+          <span>延べ人時: <strong>${escapeHtml(formatPersonHours(varietyEntry.personHours))}</strong></span>
           <span>概算人件費: <strong>${escapeHtml(formatCurrency(varietyEntry.laborCost))}</strong></span>
         </div>
       </summary>
       <div class="task-report-card__body">
         <section class="task-report-breakdown">
-          <h5>園地別冁E��</h5>
+          <h5>園地別内訳</h5>
           <div class="task-report-table-wrap">
             <table class="task-report-table">
               <thead>
-                <tr><th>園地</th><th>件数</th><th>総作業時間</th><th>延べ人晁E/th><th>概算人件費</th></tr>
+                <tr><th>園地</th><th>件数</th><th>総作業時間</th><th>延べ人時</th><th>概算人件費</th></tr>
               </thead>
-              <tbody>${buildTaskTypeMetricRowsHtml(varietyEntry.orchardEntries, "園地別チE�Eタはありません、E)}</tbody>
+              <tbody>${buildTaskTypeMetricRowsHtml(varietyEntry.orchardEntries, "園地別データはありません。")}</tbody>
             </table>
           </div>
         </section>
         <section class="task-report-breakdown">
-          <h5>区画別冁E��</h5>
+          <h5>区画別内訳</h5>
           <div class="task-report-table-wrap">
             <table class="task-report-table">
               <thead>
-                <tr><th>区画</th><th>件数</th><th>総作業時間</th><th>延べ人晁E/th><th>概算人件費</th></tr>
+                <tr><th>区画</th><th>件数</th><th>総作業時間</th><th>延べ人時</th><th>概算人件費</th></tr>
               </thead>
-              <tbody>${buildTaskTypeMetricRowsHtml(varietyEntry.plotEntries, "区画別チE�Eタはありません、E)}</tbody>
+              <tbody>${buildTaskTypeMetricRowsHtml(varietyEntry.plotEntries, "区画別データはありません。")}</tbody>
             </table>
           </div>
         </section>
         <section class="task-report-breakdown">
-          <h5>作業区刁E��冁E��</h5>
+          <h5>作業区分別内訳</h5>
           <div class="task-report-table-wrap">
             <table class="task-report-table">
               <thead>
-                <tr><th>作業区刁E/th><th>件数</th><th>総作業時間</th><th>延べ人晁E/th><th>概算人件費</th></tr>
+                <tr><th>作業区分</th><th>件数</th><th>総作業時間</th><th>延べ人時</th><th>概算人件費</th></tr>
               </thead>
-              <tbody>${buildTaskTypeMetricRowsHtml(varietyEntry.taskEntries, "作業区刁E��チE�Eタはありません、E)}</tbody>
+              <tbody>${buildTaskTypeMetricRowsHtml(varietyEntry.taskEntries, "作業区分別データはありません。")}</tbody>
             </table>
           </div>
         </section>
         <section class="task-report-breakdown">
-          <h5>作業グループ別雁E��E/h5>
+          <h5>作業グループ別集計</h5>
           <div class="task-report-table-wrap">
             <table class="task-report-table">
               <thead>
-                <tr><th>作業グルーチE/th><th>件数</th><th>総作業時間</th><th>延べ人晁E/th><th>概算人件費</th></tr>
+                <tr><th>作業グループ</th><th>件数</th><th>総作業時間</th><th>延べ人時</th><th>概算人件費</th></tr>
               </thead>
-              <tbody>${buildTaskTypeMetricRowsHtml(varietyEntry.groupEntries, "作業グループ別チE�Eタはありません、E)}</tbody>
+              <tbody>${buildTaskTypeMetricRowsHtml(varietyEntry.groupEntries, "作業グループ別データはありません。")}</tbody>
             </table>
           </div>
         </section>
         <section class="task-report-breakdown">
-          <h5>作業老E��総作業時間</h5>
+          <h5>作業者別総作業時間</h5>
           <div class="task-report-table-wrap">
             <table class="task-report-table">
               <thead>
-                <tr><th>作業老E/th><th>総作業時間</th></tr>
+                <tr><th>作業者</th><th>総作業時間</th></tr>
               </thead>
-              <tbody>${buildTaskTypeWorkerRowsHtml(varietyEntry.workerEntries, "作業老E��チE�Eタはありません、E)}</tbody>
+              <tbody>${buildTaskTypeWorkerRowsHtml(varietyEntry.workerEntries, "作業者別データはありません。")}</tbody>
             </table>
           </div>
         </section>
@@ -4816,7 +4533,7 @@ function getAnnualReportData() {
     const map = new Map();
     recordsWithMetrics.forEach((item) => {
       const key = getKey(item) || "unset";
-      const label = getLabel(item) || "未設宁E;
+      const label = getLabel(item) || "未設定";
       const current = map.get(key) || { label, count: 0, hours: 0, personHours: 0, laborCost: 0 };
       current.count += 1;
       current.hours += item.metrics.hours;
@@ -4829,11 +4546,11 @@ function getAnnualReportData() {
 
   const orchardEntries = buildMetricEntries(
     (item) => item.record.orchardId || item.names.orchardName,
-    (item) => item.names.orchardName || "園地未設宁E
+    (item) => item.names.orchardName || "園地未設定"
   );
   const plotEntries = buildMetricEntries(
     (item) => item.record.plotId || `${item.names.orchardName}/${item.names.plotName}`,
-    (item) => `${item.names.orchardName || "園地未設宁E} / ${item.names.plotName || "区画未設宁E}`
+    (item) => `${item.names.orchardName || "園地未設定"} / ${item.names.plotName || "区画未設定"}`
   );
   const taskEntries = (() => {
     const map = new Map();
@@ -4851,11 +4568,11 @@ function getAnnualReportData() {
   })();
   const varietyEntries = buildMetricEntries(
     (item) => item.record.varietyId || item.names.varietyName,
-    (item) => item.names.varietyName || "品種未設宁E
+    (item) => item.names.varietyName || "品種未設定"
   );
   const groupEntries = buildMetricEntries(
     (item) => item.record.dailyGroupId || item.names.dailyGroupName,
-    (item) => item.names.dailyGroupName || "未設宁E
+    (item) => item.names.dailyGroupName || "未設定"
   );
 
   const workerSortDirection = sortOrder === "asc" ? 1 : -1;
@@ -4865,7 +4582,7 @@ function getAnnualReportData() {
         const hours = Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0);
         if (!Number.isFinite(hours) || hours <= 0) return;
         const key = worker.id || worker.displayName;
-        const current = map.get(key) || { label: worker.displayName || "未設宁E, hours: 0 };
+        const current = map.get(key) || { label: worker.displayName || "未設定", hours: 0 };
         current.hours += hours;
         map.set(key, current);
       });
@@ -4879,7 +4596,7 @@ function getAnnualReportData() {
 
   return {
     fiscalRange,
-    periodLabel: `${formatDateYmd(fiscalRange.from)}、E{formatDateYmd(fiscalRange.to)}`,
+    periodLabel: `${formatDateYmd(fiscalRange.from)}〜${formatDateYmd(fiscalRange.to)}`,
     metric,
     sortOrder,
     filteredRecords,
@@ -4897,14 +4614,14 @@ function renderAnnualReport() {
   if (!annualReportInfo || !annualReportSummary || !annualReportList) return;
   const data = getAnnualReportData();
   const metricLabel = getSortMetricLabel(data.metric);
-  const sortLabel = data.sortOrder === "asc" ? "少なぁE��E : "多い頁E;
-  annualReportInfo.textContent = `対象決算年度: ${data.periodLabel} / 並び替え基溁E ${metricLabel} / 並び頁E ${sortLabel} / 対象記録: ${data.filteredRecords.length}件`;
+  const sortLabel = data.sortOrder === "asc" ? "少ない順" : "多い順";
+  annualReportInfo.textContent = `対象決算年度: ${data.periodLabel} / 並び替え基準: ${metricLabel} / 並び順: ${sortLabel} / 対象記録: ${data.filteredRecords.length}件`;
 
   annualReportSummary.innerHTML = `
     <div class="annual-report-summary__item"><span>対象決算年度</span><strong>${escapeHtml(data.periodLabel)}</strong></div>
     <div class="annual-report-summary__item"><span>総作業件数</span><strong>${escapeHtml(formatCount(data.summary.count))}</strong></div>
     <div class="annual-report-summary__item"><span>総作業時間</span><strong>${escapeHtml(formatHours(data.summary.hours))}</strong></div>
-    <div class="annual-report-summary__item"><span>総延べ人晁E/span><strong>${escapeHtml(formatPersonHours(data.summary.personHours))}</strong></div>
+    <div class="annual-report-summary__item"><span>総延べ人時</span><strong>${escapeHtml(formatPersonHours(data.summary.personHours))}</strong></div>
     <div class="annual-report-summary__item"><span>総概算人件費</span><strong>${escapeHtml(formatCurrency(data.summary.laborCost))}</strong></div>
   `;
 
@@ -4914,7 +4631,7 @@ function renderAnnualReport() {
       <div class="task-report-table-wrap">
         <table class="task-report-table">
           <thead>
-            <tr><th>${escapeHtml(labelColumn)}</th><th>件数</th><th>総作業時間</th><th>延べ人晁E/th><th>概算人件費</th></tr>
+            <tr><th>${escapeHtml(labelColumn)}</th><th>件数</th><th>総作業時間</th><th>延べ人時</th><th>概算人件費</th></tr>
           </thead>
           <tbody>${buildTaskTypeMetricRowsHtml(entries, emptyMessage)}</tbody>
         </table>
@@ -4923,13 +4640,13 @@ function renderAnnualReport() {
   `;
   const workerSection = `
     <section class="task-report-breakdown">
-      <h5>作業老E��年間総作業時間</h5>
+      <h5>作業者別年間総作業時間</h5>
       <div class="task-report-table-wrap">
         <table class="task-report-table">
           <thead>
-            <tr><th>作業老E/th><th>総作業時間</th></tr>
+            <tr><th>作業者</th><th>総作業時間</th></tr>
           </thead>
-          <tbody>${buildTaskTypeWorkerRowsHtml(data.workerHoursEntries, "作業老E��チE�Eタはありません、E)}</tbody>
+          <tbody>${buildTaskTypeWorkerRowsHtml(data.workerHoursEntries, "作業者別データはありません。")}</tbody>
         </table>
       </div>
     </section>
@@ -4938,11 +4655,11 @@ function renderAnnualReport() {
   annualReportList.innerHTML = `
     <article class="task-report-card">
       <div class="task-report-card__body">
-        ${metricSection("園地別年間集訁E, "園地", data.orchardEntries, "園地チE�Eタはありません、E)}
-        ${metricSection("区画別年間集訁E, "区画", data.plotEntries, "区画チE�Eタはありません、E)}
-        ${metricSection("作業区刁E��年間集訁E, "作業区刁E, data.taskEntries, "作業区刁E��ータはありません、E)}
-        ${metricSection("品種別年間集訁E, "品種", data.varietyEntries, "品種チE�Eタはありません、E)}
-        ${metricSection("グループ別年間集訁E, "作業グルーチE, data.groupEntries, "グループデータはありません、E)}
+        ${metricSection("園地別年間集計", "園地", data.orchardEntries, "園地データはありません。")}
+        ${metricSection("区画別年間集計", "区画", data.plotEntries, "区画データはありません。")}
+        ${metricSection("作業区分別年間集計", "作業区分", data.taskEntries, "作業区分データはありません。")}
+        ${metricSection("品種別年間集計", "品種", data.varietyEntries, "品種データはありません。")}
+        ${metricSection("グループ別年間集計", "作業グループ", data.groupEntries, "グループデータはありません。")}
         ${workerSection}
       </div>
     </article>
@@ -4960,7 +4677,7 @@ function getWorkerNameList(record) {
 function getWorkerDisplay(worker) {
   if (!worker) return "未登録";
   const primaryGroup = getWorkerPrimaryGroup(worker);
-  return `${worker.displayName} (${worker.category}${primaryGroup ? ` / 主所屁E${primaryGroup.name}` : ""})`;
+  return `${worker.displayName} (${worker.category}${primaryGroup ? ` / 主所属:${primaryGroup.name}` : ""})`;
 }
 
 function getRecordDisplay(record) {
@@ -4972,17 +4689,17 @@ function getRecordDisplay(record) {
   const primaryWorker = getPrimaryWorker(record);
   const primaryGroup = getWorkerPrimaryGroup(primaryWorker);
   return {
-    orchardName: orchard?.name || record.orchardName || "園地未設宁E,
-    plotName: plot?.name || record.plotName || "区画未設宁E,
-    varietyName: variety?.name || record.varietyName || "品種未設宁E,
-    dailyGroupName: dailyGroup?.name || record.dailyGroupName || "未設宁E,
+    orchardName: orchard?.name || record.orchardName || "園地未設定",
+    plotName: plot?.name || record.plotName || "区画未設定",
+    varietyName: variety?.name || record.varietyName || "品種未設定",
+    dailyGroupName: dailyGroup?.name || record.dailyGroupName || "未設定",
     fixedTeamSetName: fixedTeamSet?.name || record.fixedTeamSetName || "未使用",
     workerName: primaryWorker?.displayName || record.workerDisplayName || record.workerName || "未登録",
-    workerListText: getWorkerNameList(record).join("、E) || "未登録",
+    workerListText: getWorkerNameList(record).join("、") || "未登録",
     workerFullName: primaryWorker?.fullName || record.workerName || "未登録",
-    workerCategory: primaryWorker?.category || record.workerCategory || "未設宁E,
+    workerCategory: primaryWorker?.category || record.workerCategory || "未設定",
     workerHourlyRate: Number(primaryWorker?.hourlyRate ?? record.workerHourlyRate ?? 0),
-    primaryGroupName: primaryGroup?.name || "未設宁E
+    primaryGroupName: primaryGroup?.name || "未設定"
   };
 }
 
@@ -5021,19 +4738,11 @@ function getSelectableWorkers(selectedIds = [], dailyGroupId = "") {
   return merged;
 }
 
-function getSelectedFormShiftType() {
-  return normalizeShiftType(workShiftTypeInput?.value, WORK_SHIFT_TYPE.FULL_DAY);
-}
-
 function getFormBreakMinutes(settings = companySettings) {
   const normalized = normalizeCompanySettings(settings);
-  const selectedShiftType = getSelectedFormShiftType();
-  const fallbackBreakMinutes = selectedShiftType === WORK_SHIFT_TYPE.MANUAL
-    ? 0
-    : getDefaultBreakMinutesForShiftType(selectedShiftType, normalized);
   return normalizeBreakMinutes(
     breakMinutesInput?.value,
-    fallbackBreakMinutes
+    normalized.workdayBreakMinutes
   );
 }
 
@@ -5053,10 +4762,8 @@ function getFormCalculatedWorkHours(settings = companySettings) {
 
 function getResolvedWorkHoursFromForm(settings = companySettings) {
   const normalizedSettings = normalizeCompanySettings(settings);
-  const shiftType = getSelectedFormShiftType();
   const manualHours = getFormManualWorkHours(settings);
   if (manualHours !== null) return manualHours;
-  if (shiftType === WORK_SHIFT_TYPE.MANUAL) return 0;
   const calculatedHours = getFormCalculatedWorkHours(settings);
   if (Number.isFinite(calculatedHours)) return calculatedHours;
   const standardByInputBreak = calculateHoursFromRange(
@@ -5080,14 +4787,12 @@ function pruneWorkerTimeDetailsDraft() {
 
 function applyCommonTimeToSelectedWorkers() {
   if (!selectedWorkerIds.length) return;
-  const commonManualHours = getFormManualWorkHours(companySettings);
   const commonDetail = {
-    workType: getSelectedFormShiftType(),
     startTime: normalizeTimeText(startTimeInput?.value, ""),
     endTime: normalizeTimeText(endTimeInput?.value, ""),
     breakMinutes: getFormBreakMinutes(companySettings),
-    manualHours: commonManualHours,
-    manualWorkHours: commonManualHours
+    manualHours: null,
+    manualWorkHours: null
   };
   selectedWorkerIds.forEach((workerId) => {
     workerTimeDetailsDraft[workerId] = { ...commonDetail };
@@ -5104,11 +4809,9 @@ function renderWorkerTimeDetailList() {
   }
   const normalizedSettings = normalizeCompanySettings(companySettings);
   const commonDetail = {
-    workType: getSelectedFormShiftType(),
     startTime: normalizeTimeText(startTimeInput?.value, ""),
     endTime: normalizeTimeText(endTimeInput?.value, ""),
     breakMinutes: getFormBreakMinutes(normalizedSettings),
-    payrollHours: getResolvedWorkHoursFromForm(normalizedSettings),
     workHours: getResolvedWorkHoursFromForm(normalizedSettings)
   };
 
@@ -5121,14 +4824,11 @@ function renderWorkerTimeDetailList() {
       normalizedSettings
     );
     workerTimeDetailsDraft[workerId] = {
-      workType: normalizedDetail.workType,
-      shiftType: normalizedDetail.workType,
       startTime: normalizedDetail.startTime,
       endTime: normalizedDetail.endTime,
       breakMinutes: normalizedDetail.breakMinutes,
       manualHours: normalizedDetail.manualHours,
-      manualWorkHours: normalizedDetail.manualWorkHours,
-      payrollHours: normalizedDetail.payrollHours
+      manualWorkHours: normalizedDetail.manualWorkHours
     };
 
     const card = document.createElement("article");
@@ -5145,53 +4845,11 @@ function renderWorkerTimeDetailList() {
     const row = document.createElement("div");
     row.className = "form-row form-row--triple";
 
-    const shiftLabel = document.createElement("label");
-    shiftLabel.textContent = "勤務区分";
-    const shiftInput = document.createElement("select");
-    [
-      { value: WORK_SHIFT_TYPE.FULL_DAY, label: "標準1日" },
-      { value: WORK_SHIFT_TYPE.MORNING, label: "午前のみ" },
-      { value: WORK_SHIFT_TYPE.AFTERNOON, label: "午後のみ" },
-      { value: WORK_SHIFT_TYPE.CUSTOM, label: "時間指定" },
-      { value: WORK_SHIFT_TYPE.MANUAL, label: "手入力" }
-    ].forEach((optionItem) => {
-      const option = document.createElement("option");
-      option.value = optionItem.value;
-      option.textContent = optionItem.label;
-      shiftInput.appendChild(option);
-    });
-    shiftInput.value = normalizeShiftType(normalizedDetail.workType, WORK_SHIFT_TYPE.CUSTOM);
-    shiftInput.addEventListener("change", () => {
-      const nextWorkType = normalizeShiftType(shiftInput.value, WORK_SHIFT_TYPE.CUSTOM);
-      const preset = getShiftPreset(nextWorkType, normalizedSettings);
-      const previous = workerTimeDetailsDraft[workerId] || {};
-      const nextDraft = {
-        ...previous,
-        workType: nextWorkType,
-        shiftType: nextWorkType
-      };
-      if (nextWorkType === WORK_SHIFT_TYPE.MANUAL) {
-        nextDraft.startTime = "";
-        nextDraft.endTime = "";
-        nextDraft.breakMinutes = 0;
-      } else if (nextWorkType === WORK_SHIFT_TYPE.CUSTOM) {
-        nextDraft.breakMinutes = normalizeBreakMinutes(previous.breakMinutes, 0);
-      } else {
-        nextDraft.startTime = preset.startTime;
-        nextDraft.endTime = preset.endTime;
-        nextDraft.breakMinutes = preset.breakMinutes;
-      }
-      workerTimeDetailsDraft[workerId] = nextDraft;
-      renderWorkerTimeDetailList();
-    });
-    shiftLabel.appendChild(shiftInput);
-
     const startLabel = document.createElement("label");
     startLabel.textContent = "開始";
     const startInput = document.createElement("input");
     startInput.type = "time";
     startInput.value = normalizedDetail.startTime;
-    startInput.disabled = normalizedDetail.workType === WORK_SHIFT_TYPE.MANUAL;
     startInput.addEventListener("change", () => {
       workerTimeDetailsDraft[workerId] = {
         ...workerTimeDetailsDraft[workerId],
@@ -5206,7 +4864,6 @@ function renderWorkerTimeDetailList() {
     const endInput = document.createElement("input");
     endInput.type = "time";
     endInput.value = normalizedDetail.endTime;
-    endInput.disabled = normalizedDetail.workType === WORK_SHIFT_TYPE.MANUAL;
     endInput.addEventListener("change", () => {
       workerTimeDetailsDraft[workerId] = {
         ...workerTimeDetailsDraft[workerId],
@@ -5217,7 +4874,7 @@ function renderWorkerTimeDetailList() {
     endLabel.appendChild(endInput);
 
     const breakLabel = document.createElement("label");
-    breakLabel.textContent = "控除時間（分）";
+    breakLabel.textContent = "控除分（分）";
     const breakInput = document.createElement("input");
     breakInput.type = "number";
     breakInput.min = "0";
@@ -5225,7 +4882,6 @@ function renderWorkerTimeDetailList() {
     breakInput.step = "15";
     breakInput.inputMode = "numeric";
     breakInput.value = String(normalizedDetail.breakMinutes);
-    breakInput.disabled = normalizedDetail.workType === WORK_SHIFT_TYPE.MANUAL;
     breakInput.addEventListener("change", () => {
       workerTimeDetailsDraft[workerId] = {
         ...workerTimeDetailsDraft[workerId],
@@ -5236,7 +4892,7 @@ function renderWorkerTimeDetailList() {
     breakLabel.appendChild(breakInput);
 
     const manualLabel = document.createElement("label");
-    manualLabel.textContent = "実労働時間（手入力）";
+    manualLabel.textContent = "手入力上書き（時間）";
     const manualInput = document.createElement("input");
     manualInput.type = "number";
     manualInput.min = "0";
@@ -5255,21 +4911,18 @@ function renderWorkerTimeDetailList() {
     });
     manualLabel.appendChild(manualInput);
 
-    row.append(shiftLabel, startLabel, endLabel);
-    const row2 = document.createElement("div");
-    row2.className = "form-row form-row--triple";
-    row2.append(breakLabel, manualLabel);
-    card.append(header, row, row2);
+    row.append(startLabel, endLabel, breakLabel);
+    card.append(header, row, manualLabel);
 
     const calcText = Number.isFinite(normalizedDetail.calculatedHours)
-      ? `${normalizedDetail.calculatedHours.toFixed(2).replace(/\.?0+$/, "")}時間`
-      : "-";
-    const resolvedText = Number.isFinite(normalizedDetail.payrollHours)
-      ? `${normalizedDetail.payrollHours.toFixed(2).replace(/\.?0+$/, "")}時間`
-      : "-";
+      ? `${normalizedDetail.calculatedHours.toFixed(1)}時間`
+      : "未計算";
+    const resolvedText = Number.isFinite(normalizedDetail.resolvedHours)
+      ? `${normalizedDetail.resolvedHours.toFixed(1)}時間`
+      : "未計算";
     const summary = document.createElement("p");
     summary.className = "worker-time-detail-card__calc";
-    summary.textContent = `勤務区分: ${getShiftTypeLabel(normalizedDetail.workType)} / 自動計算: ${calcText} / 給与計算に使う時間: ${resolvedText}`;
+    summary.textContent = `自動計算: ${calcText} / 採用時間: ${resolvedText}`;
     card.append(summary);
 
     workerTimeDetailList.appendChild(card);
@@ -5301,9 +4954,9 @@ function renderWorkerSelectionList() {
     syncWorkerCountFromSelection();
     recordAppliedTeamSetId = "";
     recordAppliedTeamSetName = "";
-    selectedWorkerCount.textContent = "0人選抁E;
-    workerPickerHint.textContent = "先に当日グループを選択してください、E;
-    workerSelectionList.appendChild(buildEmptyState("グループを選ぶと、そのグループに所属可能な作業老E��け表示されます、E));
+    selectedWorkerCount.textContent = "0人選択";
+    workerPickerHint.textContent = "先に当日グループを選択してください。";
+    workerSelectionList.appendChild(buildEmptyState("グループを選ぶと、そのグループに所属可能な作業者だけ表示されます。"));
     renderWorkerTimeDetailList();
     return;
   }
@@ -5312,9 +4965,9 @@ function renderWorkerSelectionList() {
     selectedWorkerIds = [];
     workerTimeDetailsDraft = {};
     syncWorkerCountFromSelection();
-    selectedWorkerCount.textContent = "0人選抁E;
-    workerPickerHint.textContent = "こ�Eグループに所属可能な有効作業老E��ぁE��せん、E;
-    workerSelectionList.appendChild(buildEmptyState("作業老E��属グループ設定で所属状況を確認してください、E));
+    selectedWorkerCount.textContent = "0人選択";
+    workerPickerHint.textContent = "このグループに所属可能な有効作業者がいません。";
+    workerSelectionList.appendChild(buildEmptyState("作業者所属グループ設定で所属状況を確認してください。"));
     renderWorkerTimeDetailList();
     return;
   }
@@ -5323,7 +4976,7 @@ function renderWorkerSelectionList() {
   pruneWorkerTimeDetailsDraft();
   syncWorkerCountFromSelection();
   selectedWorkerCount.textContent = `${selectedWorkerIds.length}人選択`;
-  workerPickerHint.textContent = "褁E��選択できます。選択人数は作業人数へ自動反映されますが、手入力で修正もできます、E;
+  workerPickerHint.textContent = "複数選択できます。選択人数は作業人数へ自動反映されますが、手入力で修正もできます。";
 
   selectableWorkers.forEach((worker) => {
     const label = document.createElement("label");
@@ -5348,7 +5001,7 @@ function renderWorkerSelectionList() {
     title.textContent = worker.displayName;
     const primaryGroup = getWorkerPrimaryGroup(worker);
     const meta = document.createElement("span");
-    meta.textContent = `${worker.fullName} ・ ${worker.category} ・ 主所屁E${primaryGroup?.name || "未設宁E} ・ ${formatCurrency(worker.hourlyRate)}`;
+    meta.textContent = `${worker.fullName} ・ ${worker.category} ・ 主所属:${primaryGroup?.name || "未設定"} ・ ${formatCurrency(worker.hourlyRate)}`;
     body.append(title, meta);
     label.append(checkbox, body);
     workerSelectionList.appendChild(label);
@@ -5366,10 +5019,10 @@ function renderTeamPlanWorkerList() {
       allowBlank: true,
       value: ""
     });
-    teamSetHint.textContent = "固定チームセチE��を呼び出すと、参加老E��一括で反映できます、E;
-    teamPlanSelectedCount.textContent = "0人選抁E;
-    teamPlanHint.textContent = "日付と作業グループを選択してください、E;
-    teamPlanWorkerList.appendChild(buildEmptyState("所属老E��基本に、応援老E��含めてそ�E日の参加老E��決められます、E));
+    teamSetHint.textContent = "固定チームセットを呼び出すと、参加者を一括で反映できます。";
+    teamPlanSelectedCount.textContent = "0人選択";
+    teamPlanHint.textContent = "日付と作業グループを選択してください。";
+    teamPlanWorkerList.appendChild(buildEmptyState("所属者を基本に、応援者も含めてその日の参加者を決められます。"));
     renderTodayMemberStatusBoard();
     return;
   }
@@ -5378,15 +5031,15 @@ function renderTeamPlanWorkerList() {
   const existingPlan = getTeamPlan(workDate, groupId);
   const preferredTeamSetId = existingPlan?.fixedTeamSetId || teamSetSelectInput.value;
   renderSelectOptions(teamSetSelectInput, availableTeamSets, {
-    placeholder: availableTeamSets.length ? "固定チームセチE��を選択してください" : "こ�Eグループ�E固定セチE��はありません",
+    placeholder: availableTeamSets.length ? "固定チームセットを選択してください" : "このグループの固定セットはありません",
     allowBlank: true,
     value: preferredTeamSetId,
     labelBuilder: (teamSet) => teamSet.name
   });
   const selectedTeamSet = getTeamSetById(teamSetSelectInput.value);
   teamSetHint.textContent = selectedTeamSet
-    ? `現在選択中: ${selectedTeamSet.name}�E�忁E��に応じて欠勤老E��外し、応援老E��追加できます）`
-    : "固定チームセチE��を呼び出すと、参加老E��一括で反映できます、E;
+    ? `現在選択中: ${selectedTeamSet.name}（必要に応じて欠勤者を外し、応援者を追加できます）`
+    : "固定チームセットを呼び出すと、参加者を一括で反映できます。";
 
   const memberships = getMembershipsByGroupId(groupId);
   const defaultMemberIds = memberships.map((membership) => membership.workerId);
@@ -5397,7 +5050,7 @@ function renderTeamPlanWorkerList() {
 
   const workers = getActiveWorkers();
   teamPlanSelectedCount.textContent = `${selectedTeamPlanWorkerIds.length}人選択`;
-  teamPlanHint.textContent = "欠勤老E�E外し、他グループ所属�E応援老E��追加できます、E;
+  teamPlanHint.textContent = "欠勤者は外し、他グループ所属の応援者も追加できます。";
 
   workers.forEach((worker) => {
     const label = document.createElement("label");
@@ -5415,7 +5068,7 @@ function renderTeamPlanWorkerList() {
     const body = document.createElement("span");
     body.className = "worker-selection-item__body";
     const title = document.createElement("strong");
-    const supportFlag = defaultMemberIds.includes(worker.id) ? "" : " / 応援候裁E;
+    const supportFlag = defaultMemberIds.includes(worker.id) ? "" : " / 応援候補";
     title.textContent = `${worker.displayName}${supportFlag}`;
     const meta = document.createElement("span");
     meta.textContent = `${renderWorkerMembershipSummary(worker)} ・ ${worker.category}`;
@@ -5431,20 +5084,20 @@ function renderTeamSetWorkerList() {
   const groupId = teamSetGroupIdInput.value;
   const workers = getActiveWorkers();
   if (!groupId) {
-    teamSetSelectedCount.textContent = "0人選抁E;
-    teamSetWorkerHint.textContent = "先に作業グループを選択してください、E;
-    teamSetWorkerList.appendChild(buildEmptyState("作業グループを選択すると、セチE��作業老E��選べます、E));
+    teamSetSelectedCount.textContent = "0人選択";
+    teamSetWorkerHint.textContent = "先に作業グループを選択してください。";
+    teamSetWorkerList.appendChild(buildEmptyState("作業グループを選択すると、セット作業者を選べます。"));
     return;
   }
   if (!workers.length) {
-    teamSetSelectedCount.textContent = "0人選抁E;
-    teamSetWorkerHint.textContent = "有効作業老E��ぁE��せん、E;
-    teamSetWorkerList.appendChild(buildEmptyState("作業老E�Eスターで有効な作業老E��登録してください、E));
+    teamSetSelectedCount.textContent = "0人選択";
+    teamSetWorkerHint.textContent = "有効作業者がいません。";
+    teamSetWorkerList.appendChild(buildEmptyState("作業者マスターで有効な作業者を登録してください。"));
     return;
   }
 
   teamSetSelectedCount.textContent = `${selectedTeamSetWorkerIds.length}人選択`;
-  teamSetWorkerHint.textContent = "セチE��に登録した後も、日別編成で欠勤老E��外�E応援老E��加ができます、E;
+  teamSetWorkerHint.textContent = "セットに登録した後も、日別編成で欠勤者除外・応援者追加ができます。";
   workers.forEach((worker) => {
     const label = document.createElement("label");
     label.className = "worker-selection-item";
@@ -5494,9 +5147,9 @@ function renderMembershipGroupList() {
   membershipGroupList.innerHTML = "";
   const workerId = membershipWorkerIdInput.value;
   if (!workerId) {
-    membershipSelectedCount.textContent = "0件選抁E;
-    membershipHint.textContent = "先に作業老E��選択してください、E;
-    membershipGroupList.appendChild(buildEmptyState("作業老E��選ぶと所属グループ設定が表示されます、E));
+    membershipSelectedCount.textContent = "0件選択";
+    membershipHint.textContent = "先に作業者を選択してください。";
+    membershipGroupList.appendChild(buildEmptyState("作業者を選ぶと所属グループ設定が表示されます。"));
     syncMembershipPrimaryOptions();
     return;
   }
@@ -5510,7 +5163,7 @@ function renderMembershipGroupList() {
   }
 
   membershipSelectedCount.textContent = `${selectedMembershipGroupIds.length}件選択`;
-  membershipHint.textContent = "褁E��所属できます。主所属グループ�E1つだけ設定してください、E;
+  membershipHint.textContent = "複数所属できます。主所属グループは1つだけ設定してください。";
 
   groups.forEach((group) => {
     const label = document.createElement("label");
@@ -5535,7 +5188,7 @@ function renderMembershipGroupList() {
     const title = document.createElement("strong");
     title.textContent = `${group.sortOrder}. ${group.name}`;
     const meta = document.createElement("span");
-    meta.textContent = `${group.description || "説明なぁE}${group.isActive ? "" : " ・ 無効"}`;
+    meta.textContent = `${group.description || "説明なし"}${group.isActive ? "" : " ・ 無効"}`;
     body.append(title, meta);
     label.append(checkbox, body);
     membershipGroupList.appendChild(label);
@@ -5593,17 +5246,17 @@ function renderGroupMemberList() {
 
   if (!workers.length) {
     selectedGroupMemberWorkerIds = [];
-    groupMemberSelectedCount.textContent = "0人選抁E;
-    groupMemberHint.textContent = "先に作業老E��登録してください、E;
-    groupMemberList.appendChild(buildEmptyState("登録済み作業老E��ありません、E));
+    groupMemberSelectedCount.textContent = "0人選択";
+    groupMemberHint.textContent = "先に作業者を登録してください。";
+    groupMemberList.appendChild(buildEmptyState("登録済み作業者がありません。"));
     return;
   }
 
   selectedGroupMemberWorkerIds = selectedGroupMemberWorkerIds.filter((workerId) => workers.some((worker) => worker.id === workerId));
   groupMemberSelectedCount.textContent = `${selectedGroupMemberWorkerIds.length}人選択`;
   groupMemberHint.textContent = currentGroupId
-    ? "チェチE��した作業老E��こ�Eグループに所属させます、E
-    : "新しいグループを保存すると、チェチE��した作業老E��所属させます、E;
+    ? "チェックした作業者をこのグループに所属させます。"
+    : "新しいグループを保存すると、チェックした作業者を所属させます。";
 
   workers.forEach((worker) => {
     const label = document.createElement("label");
@@ -5624,9 +5277,9 @@ function renderGroupMemberList() {
     body.className = "worker-selection-item__body";
     const title = document.createElement("strong");
     title.textContent = worker.displayName;
-    const primaryGroupName = getGroupById(worker.primaryGroupId)?.name || "未設宁E;
+    const primaryGroupName = getGroupById(worker.primaryGroupId)?.name || "未設定";
     const meta = document.createElement("span");
-    meta.textContent = `${worker.fullName} ・ ${worker.category} ・ 主所屁E${primaryGroupName} ・ ${worker.isActive ? "出勤対象" : "対象夁E}`;
+    meta.textContent = `${worker.fullName} ・ ${worker.category} ・ 主所属:${primaryGroupName} ・ ${worker.isActive ? "出勤対象" : "対象外"}`;
     body.append(title, meta);
 
     label.append(checkbox, body);
@@ -5691,14 +5344,14 @@ function renderMasterSelects() {
     labelBuilder: (group) => `${group.sortOrder}. ${group.name}`
   });
   renderSelectOptions(workerFilterInput, masters.workers, {
-    placeholder: "すべての作業老E,
+    placeholder: "すべての作業者",
     allowBlank: true,
     value: selectedWorkerFilter,
     labelBuilder: (worker) => `${worker.displayName}${worker.isActive ? "" : " (無効)"}`
   });
   if (workerGroupFilterInput) {
     renderSelectOptions(workerGroupFilterInput, sortedGroups, {
-      placeholder: "すべてのグルーチE,
+      placeholder: "すべてのグループ",
       allowBlank: true,
       value: selectedWorkerGroupFilter,
       labelBuilder: (group) => `${group.sortOrder}. ${group.name}${group.isActive ? "" : " (無効)"}`
@@ -5706,14 +5359,14 @@ function renderMasterSelects() {
   }
   if (todayMemberGroupFilterInput) {
     renderSelectOptions(todayMemberGroupFilterInput, sortedGroups, {
-      placeholder: "すべてのグルーチE,
+      placeholder: "すべてのグループ",
       allowBlank: true,
       value: selectedTodayMemberGroupFilter,
       labelBuilder: (group) => `${group.sortOrder}. ${group.name}${group.isActive ? "" : " (無効)"}`
     });
   }
   renderSelectOptions(membershipWorkerIdInput, masters.workers, {
-    placeholder: masters.workers.length ? "作業老E��選択してください" : "先に作業老E��登録してください",
+    placeholder: masters.workers.length ? "作業者を選択してください" : "先に作業者を登録してください",
     value: selectedMembershipWorkerId,
     labelBuilder: (worker) => `${worker.displayName} / ${worker.fullName}`
   });
@@ -5730,7 +5383,7 @@ function renderMasterSelects() {
 function renderPlotOptions(orchardId, selectedPlotId = "") {
   const plotItems = masters.plots.filter((plot) => plot.orchardId === orchardId);
   renderSelectOptions(plotSelect, plotItems, {
-    placeholder: orchardId ? (plotItems.length ? "区画を選択してください" : "こ�E園地には区画がありません") : "先に園地を選択してください",
+    placeholder: orchardId ? (plotItems.length ? "区画を選択してください" : "この園地には区画がありません") : "先に園地を選択してください",
     value: selectedPlotId
   });
 }
@@ -5744,7 +5397,6 @@ function getFormData() {
   const assignedWorkers = selectedWorkerIds.map((workerId) => getWorkerById(workerId)).filter(Boolean);
   const primaryWorker = assignedWorkers[0] || null;
   const normalizedSettings = normalizeCompanySettings(companySettings);
-  const shiftType = getSelectedFormShiftType();
   const commonStartTime = normalizeTimeText(startTimeInput?.value, "");
   const commonEndTime = normalizeTimeText(endTimeInput?.value, "");
   const commonBreakMinutes = getFormBreakMinutes(normalizedSettings);
@@ -5755,23 +5407,13 @@ function getFormData() {
     commonBreakMinutes
   );
   const manualHours = getFormManualWorkHours(normalizedSettings);
-  let resolvedWorkHours;
-  if (manualHours !== null) {
-    resolvedWorkHours = manualHours;
-  } else if (shiftType === WORK_SHIFT_TYPE.MANUAL) {
-    resolvedWorkHours = 0;
-  } else if (Number.isFinite(autoHours)) {
-    resolvedWorkHours = autoHours;
-  } else {
-    resolvedWorkHours = getDefaultWorkHours(normalizedSettings);
-  }
+  const resolvedWorkHours = manualHours !== null
+    ? manualHours
+    : (Number.isFinite(autoHours) ? autoHours : getDefaultWorkHours(normalizedSettings));
   const workerTimeFallback = {
-    workType: shiftType,
-    shiftType,
     startTime: commonStartTime,
     endTime: commonEndTime,
     breakMinutes: commonBreakMinutes,
-    payrollHours: resolvedWorkHours,
     workHours: resolvedWorkHours
   };
   const workerTimeDetails = assignedWorkers.reduce((acc, worker) => {
@@ -5825,16 +5467,9 @@ function getFormData() {
     taskType: workTypes[0] || "",
     workTypes,
     workHours: resolvedWorkHours,
-    payrollHours: resolvedWorkHours,
     manualWorkHours: manualHours,
-    manualHours,
     calculatedWorkHours: Number.isFinite(autoHours) ? autoHours : null,
     breakMinutes: commonBreakMinutes,
-    timeBreakMinutes: commonBreakMinutes,
-    nonCountedMinutes: commonBreakMinutes,
-    nonWorkingMinutes: commonBreakMinutes,
-    shiftType,
-    workShiftType: shiftType,
     dailyGroupId: dailyGroup?.id || "",
     dailyGroupName: dailyGroup?.name || "",
     fixedTeamSetId: appliedTeamSetId || "",
@@ -5903,32 +5538,32 @@ function getAppViewForPanelId(panelId) {
 
 const settingsSectionMeta = {
   top: {
-    title: "設宁E,
-    lead: "設定トチE�Eから忁E��な頁E��だけ開ぁE��ください、E
+    title: "設定",
+    lead: "設定トップから必要な項目だけ開いてください。"
   },
   company: {
-    title: "会社設宁E,
-    lead: "決算締月�E決算締日を設定します、E
+    title: "会社設定",
+    lead: "決算締月・決算締日を設定します。"
   },
   orchard: {
-    title: "園地設宁E,
-    lead: "園地、区画、品種を管琁E��ます、E
+    title: "園地設定",
+    lead: "園地、区画、品種を管理します。"
   },
   worker: {
-    title: "作業老E��宁E,
-    lead: "作業老E��録、グループ�Eけ、当日の状態確認ができます、E
+    title: "作業者設定",
+    lead: "作業者登録、グループ分け、当日の状態確認ができます。"
   },
   backup: {
-    title: "バックアチE�E",
-    lead: "件数を確認してJSONバックアチE�Eを保存できます、E
+    title: "バックアップ",
+    lead: "件数を確認してJSONバックアップを保存できます。"
   },
   advanced: {
-    title: "くわしい設宁E,
-    lead: "CSV、復允E���E期化など管琁E��E��け操作です、E
+    title: "くわしい設定",
+    lead: "CSV、復元、初期化など管理者向け操作です。"
   },
   qr: {
-    title: "QRコーチE,
-    lead: "QR一覧・印刷を管琁E��ます、E
+    title: "QRコード",
+    lead: "QR一覧・印刷を管理します。"
   }
 };
 
@@ -6041,31 +5676,31 @@ function setSettingsSection(sectionKey, options = {}) {
 const summarySectionMeta = {
   top: {
     title: "まとめを見る",
-    lead: "見たぁE��とめを選んでください、E
+    lead: "見たいまとめを選んでください。"
   },
   daily: {
     title: "日報",
-    lead: "持E��日の作業日報を確認�E印刷できます、E
+    lead: "指定日の作業日報を確認・印刷できます。"
   },
   monthly: {
     title: "月報",
-    lead: "持E��した月の結果を確認�E保存できます、E
+    lead: "指定した月の結果を確認・保存できます。"
   },
   annual: {
-    title: "年度レポ�EチE,
-    lead: "決算年度ベ�Eスの総合レポ�Eトを確認できます、E
+    title: "年度レポート",
+    lead: "決算年度ベースの総合レポートを確認できます。"
   },
   comparison: {
-    title: "比輁E��",
-    lead: "累積比輁E��刁E��結果を確認できます、E
+    title: "比較表",
+    lead: "累積比較や分析結果を確認できます。"
   },
   payroll: {
-    title: "簡易給与�E細",
-    lead: "作業記録から、月締め�E半月締め�E任意期間�E簡易�E細を作�Eできます、E
+    title: "簡易給与明細",
+    lead: "作業記録から、月締め・半月締め・任意期間の簡易明細を作成できます。"
   },
   worktime: {
-    title: "労働時間�E极E,
-    lead: "個人別・全体�E労働時間を週・月�E年で見える化できます、E
+    title: "労働時間分析",
+    lead: "個人別・全体の労働時間を週・月・年で見える化できます。"
   }
 };
 
@@ -6159,40 +5794,18 @@ function setSummarySection(sectionKey, options = {}) {
   focusElementLater(resolvedFocus);
 }
 
-function normalizeAppViewKey(viewKey) {
-  const normalized = normalizeText(viewKey);
-  if (normalized === "history") return "records";
-  if (normalized === "analytics") return "summary";
-  return normalized;
-}
-
 function setAppView(viewKey, options = {}) {
-  const normalizedViewKey = normalizeAppViewKey(viewKey);
-  if (!normalizedViewKey || !appViewPanelMap[normalizedViewKey] || !appViewPanels.length) return;
+  if (!viewKey || !appViewPanelMap[viewKey] || !appViewPanels.length) return;
   const { scrollIntoView = true, focusElement = null } = options;
-  activeAppViewKey = normalizedViewKey;
+  activeAppViewKey = viewKey;
 
   appViewPanels.forEach((panel) => {
-    if (!panel) return;
-    panel.hidden = true;
-    panel.classList.add("is-hidden");
-  });
-
-  const targetPanelIds = appViewPanelMap[normalizedViewKey] || [];
-  targetPanelIds.forEach((panelId) => {
-    const panel = document.getElementById(panelId);
-    if (!panel) {
-      console.warn("setAppView: パネルが見つかりません:", panelId);
-      return;
-    }
-    panel.hidden = false;
-    panel.classList.remove("is-hidden");
+    panel.hidden = !appViewPanelMap[viewKey].includes(panel.id);
   });
 
   if (bottomNavButtons.length) {
     bottomNavButtons.forEach((button) => {
-      const buttonView = normalizeAppViewKey(button.dataset.viewTarget || button.dataset.appView || "");
-      const isActive = buttonView === normalizedViewKey;
+      const isActive = button.dataset.appView === viewKey;
       button.classList.toggle("is-active", isActive);
       if (isActive) {
         button.setAttribute("aria-current", "page");
@@ -6202,15 +5815,15 @@ function setAppView(viewKey, options = {}) {
     });
   }
   if (document?.body) {
-    document.body.dataset.currentView = normalizedViewKey;
+    document.body.dataset.currentView = viewKey;
   }
 
-  if (normalizedViewKey === "settings") {
+  if (viewKey === "settings") {
     applySettingsSectionState();
     if (document?.body) {
       delete document.body.dataset.summarySection;
     }
-  } else if (normalizedViewKey === "summary") {
+  } else if (viewKey === "summary") {
     applySummarySectionState();
     if (document?.body) {
       delete document.body.dataset.settingsSection;
@@ -6222,13 +5835,13 @@ function setAppView(viewKey, options = {}) {
 
   if (scrollIntoView) {
     let activePanel = null;
-    if (normalizedViewKey === "settings") {
+    if (viewKey === "settings") {
       activePanel = activeSettingsSection === "qr" ? qrPanel : masterPanel;
-    } else if (normalizedViewKey === "summary") {
+    } else if (viewKey === "summary") {
       activePanel = analyticsPanel;
     }
     if (!activePanel) {
-      const firstPanelId = targetPanelIds[0];
+      const firstPanelId = appViewPanelMap[viewKey][0];
       activePanel = document.getElementById(firstPanelId);
     }
     if (activePanel) {
@@ -6238,73 +5851,6 @@ function setAppView(viewKey, options = {}) {
 
   focusElementLater(focusElement);
 }
-
-function bindEvent(element, eventName, handler, options) {
-  if (!element || typeof element.addEventListener !== "function") {
-    console.warn("要素が見つかりません:", element);
-    return null;
-  }
-  element.addEventListener(eventName, handler, options);
-  return element;
-}
-
-function bindClick(id, handler) {
-  const el = document.getElementById(id);
-  if (!el) {
-    console.warn("要素が見つかりません:", id);
-    return null;
-  }
-  el.addEventListener("click", handler);
-  return el;
-}
-
-function getDefaultFocusForView(viewKey) {
-  const normalizedViewKey = normalizeAppViewKey(viewKey);
-  if (normalizedViewKey === "record") return workDateInput;
-  if (normalizedViewKey === "team") return teamPlanDateInput;
-  if (normalizedViewKey === "records") return dailyReportDateInput || orchardFilterInput;
-  if (normalizedViewKey === "summary") return summaryMenuDailyButton;
-  if (normalizedViewKey === "settings") return settingsMenuCompanyButton;
-  return shortcutRecordFormButton;
-}
-
-function handleViewTargetNavigation(rawViewKey, options = {}) {
-  const normalizedViewKey = normalizeAppViewKey(rawViewKey);
-  if (!normalizedViewKey || !appViewPanelMap[normalizedViewKey]) {
-    console.warn("不明な画面キーです:", rawViewKey);
-    return;
-  }
-
-  if (normalizedViewKey === "records" && dailyReportDateInput && !dailyReportDateInput.value) {
-    dailyReportDateInput.value = getTodayString();
-  }
-  if (normalizedViewKey === "settings") {
-    setSettingsSection("top", { scrollIntoView: false, focusElement: settingsMenuCompanyButton });
-  } else if (normalizedViewKey === "summary") {
-    setSummarySection("top", { scrollIntoView: false, focusElement: summaryMenuDailyButton });
-  }
-
-  const focusElement = options.focusElement || getDefaultFocusForView(normalizedViewKey);
-  setAppView(normalizedViewKey, {
-    scrollIntoView: options.scrollIntoView !== false,
-    focusElement
-  });
-}
-
-function bindViewTargetDelegation() {
-  if (hasBoundViewTargetDelegation) return;
-  hasBoundViewTargetDelegation = true;
-  bindEvent(document, "click", (event) => {
-    const trigger = event.target?.closest?.("[data-view-target],[data-app-view]");
-    if (!trigger) return;
-    const rawViewKey = trigger.dataset.viewTarget || trigger.dataset.appView || "";
-    if (!rawViewKey) return;
-    handleViewTargetNavigation(rawViewKey, {
-      scrollIntoView: true
-    });
-  });
-}
-bindViewTargetDelegation();
 
 function moveToShortcut(targetPanel, focusElement) {
   const targetViewKey = getAppViewForPanelId(targetPanel?.id);
@@ -6343,7 +5889,6 @@ function fillRecordForm(record) {
   const normalizedSettings = normalizeCompanySettings(companySettings);
   const recordStartTime = getRecordStartTime(record);
   const recordEndTime = getRecordEndTime(record);
-  const recordShiftType = inferRecordShiftType(record, normalizedSettings);
   const recordBreakMinutes = getRecordBreakMinutes(record, normalizedSettings);
   const recordCalculatedHours = Number.isFinite(Number(record.calculatedWorkHours))
     ? Number(record.calculatedWorkHours)
@@ -6369,9 +5914,6 @@ function fillRecordForm(record) {
   setSelectedTaskTypes(getRecordWorkTypes(record));
   renderTaskTypeChecklist();
   setTaskTypeValidationState(false);
-  if (workShiftTypeInput) {
-    workShiftTypeInput.value = recordShiftType;
-  }
   workHoursInput.value = displayManualHours ?? "";
   groupSelect.value = record.dailyGroupId || "";
   recordAppliedTeamSetId = record.fixedTeamSetId || "";
@@ -6390,12 +5932,9 @@ function fillRecordForm(record) {
     ? record.workerTimeDetails
     : {};
   const fallbackDetail = {
-    workType: recordShiftType,
-    shiftType: recordShiftType,
     startTime: recordStartTime,
     endTime: recordEndTime,
     breakMinutes: recordBreakMinutes,
-    payrollHours: getRecordResolvedWorkHours(record, normalizedSettings),
     workHours: getRecordResolvedWorkHours(record, normalizedSettings)
   };
   workerTimeDetailsDraft = selectedWorkerIds.reduce((acc, workerId) => {
@@ -6405,14 +5944,11 @@ function fillRecordForm(record) {
       normalizedSettings
     );
     acc[workerId] = {
-      workType: detail.workType,
-      shiftType: detail.shiftType,
       startTime: detail.startTime,
       endTime: detail.endTime,
       breakMinutes: detail.breakMinutes,
       manualHours: detail.manualHours,
-      manualWorkHours: detail.manualWorkHours,
-      payrollHours: detail.payrollHours
+      manualWorkHours: detail.manualWorkHours
     };
     return acc;
   }, {});
@@ -6431,7 +5967,7 @@ function fillRecordForm(record) {
   setWeatherFetchLoading(false);
   if (recordWeatherInfo) {
     const summary = formatWeatherInfoSummary(recordWeatherInfo, true);
-    setWeatherFetchStatus(summary ? `保存済み: ${summary}` : "保存済みの天気情報があります。忁E��に応じて再取得してください、E, "success");
+    setWeatherFetchStatus(summary ? `保存済み: ${summary}` : "保存済みの天気情報があります。必要に応じて再取得してください。", "success");
   } else {
     setWeatherFetchStatus(WEATHER_FETCH_HINT_TEXT);
   }
@@ -6445,11 +5981,11 @@ function fillRecordForm(record) {
   if (observationMuddyInput) observationMuddyInput.value = observation.muddy;
   if (observationWorkDifficultyInput) observationWorkDifficultyInput.value = observation.workDifficulty;
   if (observationMemoInput) observationMemoInput.value = observation.memo;
-  formMode.textContent = "編雁E��";
+  formMode.textContent = "編集中";
   renderWorkerSelectionList();
   updateTimeHint();
   if (displayManualHours !== null) {
-    timeHint.textContent = `手�E力上書ぁE${displayManualHours} 時間を使用してぁE��す。`;
+    timeHint.textContent = `手入力上書き ${displayManualHours} 時間を使用しています。`;
   }
   moveToShortcut(recordFormPanel, workDateInput);
 }
@@ -6459,10 +5995,7 @@ function resetRecordForm() {
   recordIdInput.value = "";
   formMode.textContent = "新規登録";
   workDateInput.value = today;
-  if (workShiftTypeInput) {
-    workShiftTypeInput.value = WORK_SHIFT_TYPE.FULL_DAY;
-  }
-  applyDefaultWorkScheduleToForm(true, { shiftType: WORK_SHIFT_TYPE.FULL_DAY });
+  applyDefaultWorkScheduleToForm(true);
   orchardSelect.value = "";
   varietySelect.value = "";
   if (taskTypeSearchInput) {
@@ -6481,7 +6014,7 @@ function resetRecordForm() {
     workHoursInput.value = "";
   }
   if (breakMinutesInput) {
-    breakMinutesInput.value = String(getDefaultBreakMinutesForShiftType(WORK_SHIFT_TYPE.FULL_DAY, companySettings));
+    breakMinutesInput.value = String(normalizeCompanySettings(companySettings).workdayBreakMinutes);
   }
   if (calculatedWorkHoursInput) {
     calculatedWorkHoursInput.value = "";
@@ -6509,7 +6042,7 @@ function resetRecordForm() {
 }
 
 function deleteRecord(id) {
-  if (!window.confirm("こ�E作業記録を削除しますか�E�E)) return;
+  if (!window.confirm("この作業記録を削除しますか？")) return;
   records = records.filter((record) => record.id !== id);
   saveState();
   render();
@@ -6522,11 +6055,11 @@ function renderRecords() {
   renderHistoryCalendar();
   const filteredRecords = getFilteredRecords({ workDate: historySelectedDate });
   if (!filteredRecords.length) {
-    recordList.appendChild(buildEmptyState("こ�E日の記録はありません、E));
+    recordList.appendChild(buildEmptyState("この日の記録はありません。"));
     return;
   }
   if (!filteredRecords.length && records.length < 0) {
-    recordList.appendChild(buildEmptyState(records.length ? "条件に合う作業記録がありません。絞り込み条件を見直してください、E : "サンプルを参老E��、最初�E作業記録を登録してください、E));
+    recordList.appendChild(buildEmptyState(records.length ? "条件に合う作業記録がありません。絞り込み条件を見直してください。" : "サンプルを参考に、最初の作業記録を登録してください。"));
     return;
   }
 
@@ -6537,12 +6070,12 @@ function renderRecords() {
     const fragment = cardTemplate.content.cloneNode(true);
     const card = fragment.querySelector(".record-card");
     fragment.querySelector(".record-card__date").textContent = formatDate(record.workDate);
-    fragment.querySelector(".record-card__task").textContent = getRecordTaskTypeText(record, "作業冁E��未設宁E);
+    fragment.querySelector(".record-card__task").textContent = getRecordTaskTypeText(record, "作業内容未設定");
     fragment.querySelector(".record-card__orchard").textContent = names.orchardName;
     fragment.querySelector(".record-card__plot").textContent = names.plotName;
     fragment.querySelector(".record-card__variety").textContent = names.varietyName;
-    fragment.querySelector(".record-card__hours").textContent = metrics.hours ? formatHours(metrics.hours) : "未入劁E;
-    fragment.querySelector(".record-card__workers").textContent = record.workerCount ? `${record.workerCount}人` : "未入劁E;
+    fragment.querySelector(".record-card__hours").textContent = metrics.hours ? formatHours(metrics.hours) : "未入力";
+    fragment.querySelector(".record-card__workers").textContent = record.workerCount ? `${record.workerCount}人` : "未入力";
     fragment.querySelector(".record-card__person-hours").textContent = formatPersonHours(metrics.personHours);
     fragment.querySelector(".record-card__labor-cost").textContent = formatCurrency(metrics.laborCost);
     fragment.querySelector(".record-card__worker-name").textContent = names.workerName;
@@ -6553,32 +6086,18 @@ function renderRecords() {
     fragment.querySelector(".record-card__worker-rate").textContent = formatCurrency(names.workerHourlyRate);
     const startTime = getRecordStartTime(record);
     const endTime = getRecordEndTime(record);
-    /*
-    fragment.querySelector(".record-card__time-range").textContent = startTime && endTime ? `${startTime} - ${endTime}` : "未入劁E;
-    */
-    const boundHours = calculateBoundHoursByRange(startTime, endTime);
-    const deductionMinutes = getRecordBreakMinutes(record, companySettings);
-    const actualHoursText = formatHours(metrics.hours);
-    /*
-    const boundHoursText = Number.isFinite(boundHours) ? `${boundHours}時間` : " E;
-    */
-    const boundHoursText = Number.isFinite(boundHours) ? `${boundHours}h` : "-";
-    if (startTime && endTime) {
-      fragment.querySelector(".record-card__time-range").textContent = `${startTime} - ${endTime} / 拘束 ${boundHoursText} / 控除 ${deductionMinutes}刁E/ 実労僁E${actualHoursText}`;
-    } else {
-      fragment.querySelector(".record-card__time-range").textContent = `時刻未入劁E/ 控除 ${deductionMinutes}刁E/ 実労僁E${actualHoursText}`;
-    }
+    fragment.querySelector(".record-card__time-range").textContent = startTime && endTime ? `${startTime} - ${endTime}` : "未入力";
     fragment.querySelector(".record-card__temperature").textContent = formatTemperature(environment.temperatureC);
-    const weatherBaseLabel = environment.weather || environment.weatherInfo?.weatherText || "未入劁E;
+    const weatherBaseLabel = environment.weather || environment.weatherInfo?.weatherText || "未入力";
     const weatherDetail = formatWeatherInfoSummary(environment.weatherInfo);
     fragment.querySelector(".record-card__weather").textContent = weatherDetail ? `${weatherBaseLabel} / ${weatherDetail}` : weatherBaseLabel;
     const observationSummary = formatFieldObservationSummary(record.fieldObservation);
     const observationNode = fragment.querySelector(".record-card__observation");
     if (observationNode) {
-      observationNode.textContent = observationSummary || "未入劁E;
+      observationNode.textContent = observationSummary || "未入力";
     }
-    fragment.querySelector(".record-card__materials").textContent = record.materials || "未入劁E;
-    fragment.querySelector(".record-card__notes").textContent = record.notes || "メモはありません、E;
+    fragment.querySelector(".record-card__materials").textContent = record.materials || "未入力";
+    fragment.querySelector(".record-card__notes").textContent = record.notes || "メモはありません。";
     fragment.querySelector(".record-edit").addEventListener("click", () => fillRecordForm(record));
     fragment.querySelector(".record-delete").addEventListener("click", () => deleteRecord(record.id));
     recordList.appendChild(card);
@@ -6610,7 +6129,7 @@ function createMasterRow(item, metaText, noteText, onEdit, onDelete) {
   const editButton = document.createElement("button");
   editButton.type = "button";
   editButton.className = "button button--small button--ghost";
-  editButton.textContent = "編雁E;
+  editButton.textContent = "編集";
   editButton.addEventListener("click", onEdit);
   const deleteButton = document.createElement("button");
   deleteButton.type = "button";
@@ -6658,23 +6177,23 @@ function resetTeamPlanForm() {
   teamPlanDateInput.value = today;
   teamPlanGroupInput.value = "";
   teamSetSelectInput.value = "";
-  teamSetHint.textContent = "固定チームセチE��を呼び出すと、参加老E��一括で反映できます、E;
+  teamSetHint.textContent = "固定チームセットを呼び出すと、参加者を一括で反映できます。";
   selectedTeamPlanWorkerIds = [];
 }
 
 function renderWorkerMembershipSummary(worker) {
   const memberships = getMembershipsByWorkerId(worker.id);
-  if (!memberships.length) return "所属グループ未設宁E;
+  if (!memberships.length) return "所属グループ未設定";
   return memberships.map((membership) => {
     const group = getGroupById(membership.groupId);
-    return `${group?.name || "未設宁E}${membership.isPrimary ? " (主所屁E" : ""}`;
-  }).join("、E);
+    return `${group?.name || "未設定"}${membership.isPrimary ? " (主所属)" : ""}`;
+  }).join("、");
 }
 
 const DAILY_WORKER_STATUS_META = {
   "出勤済み": { className: "status-badge--checked-in", priority: 1 },
   "未記録": { className: "status-badge--missing", priority: 2 },
-  "出勤予宁E: { className: "status-badge--scheduled", priority: 3 },
+  "出勤予定": { className: "status-badge--scheduled", priority: 3 },
   "応援": { className: "status-badge--support", priority: 4 },
   "早退": { className: "status-badge--early-leave", priority: 5 },
   "休み": { className: "status-badge--off", priority: 6 },
@@ -6694,7 +6213,7 @@ function toReadableGroupNames(groupIds = []) {
   const names = [...new Set(groupIds)]
     .map((groupId) => getGroupById(groupId)?.name || "")
     .filter(Boolean);
-  return names.length ? names.join("・") : "未設宁E;
+  return names.length ? names.join("・") : "未設定";
 }
 
 function buildDailyWorkerActivityContext(targetDate = today) {
@@ -6758,7 +6277,7 @@ function resolveWorkerDailyStatus(worker, context) {
   if (!worker.isActive) {
     return {
       statusLabel: "休み",
-      detail: "出勤対象夁E,
+      detail: "出勤対象外",
       plannedGroupIds,
       recordedGroupIds,
       involvedGroupIds,
@@ -6788,7 +6307,7 @@ function resolveWorkerDailyStatus(worker, context) {
   if (hasSupport && hasRecord) {
     return {
       statusLabel: "応援",
-      detail: `応援允E ${toReadableGroupNames(supportGroupIds)}`,
+      detail: `応援先: ${toReadableGroupNames(supportGroupIds)}`,
       plannedGroupIds,
       recordedGroupIds,
       involvedGroupIds,
@@ -6834,7 +6353,7 @@ function resolveWorkerDailyStatus(worker, context) {
   if (hasSupport) {
     return {
       statusLabel: "応援",
-      detail: `応援予宁E ${toReadableGroupNames(supportGroupIds)}`,
+      detail: `応援予定: ${toReadableGroupNames(supportGroupIds)}`,
       plannedGroupIds,
       recordedGroupIds,
       involvedGroupIds,
@@ -6849,8 +6368,8 @@ function resolveWorkerDailyStatus(worker, context) {
   if (hasPlan) {
     const hasProgressInPlannedGroups = plannedGroupIds.some((groupId) => context.recordedGroupIds.has(groupId));
     return {
-      statusLabel: hasProgressInPlannedGroups ? "未記録" : "出勤予宁E,
-      detail: hasProgressInPlannedGroups ? "編成あり�E記録未入劁E : "本日編成済み",
+      statusLabel: hasProgressInPlannedGroups ? "未記録" : "出勤予定",
+      detail: hasProgressInPlannedGroups ? "編成あり・記録未入力" : "本日編成済み",
       plannedGroupIds,
       recordedGroupIds,
       involvedGroupIds,
@@ -6864,7 +6383,7 @@ function resolveWorkerDailyStatus(worker, context) {
 
   return {
     statusLabel: "休み",
-    detail: "本日編成なぁE,
+    detail: "本日編成なし",
     plannedGroupIds,
     recordedGroupIds,
     involvedGroupIds,
@@ -6957,18 +6476,18 @@ function createWorkerManagementCard(worker, statusInfo) {
   badges.appendChild(createStatusBadge(statusInfo.statusLabel));
   const activeBadge = document.createElement("span");
   activeBadge.className = `status-badge ${worker.isActive ? "status-badge--target" : "status-badge--off"}`;
-  activeBadge.textContent = worker.isActive ? "出勤対象" : "対象夁E;
+  activeBadge.textContent = worker.isActive ? "出勤対象" : "対象外";
   badges.appendChild(activeBadge);
   heading.append(title, badges);
 
   const metaGrid = document.createElement("dl");
   metaGrid.className = "worker-management-card__meta";
   const rows = [
-    ["グルーチE, renderWorkerMembershipSummary(worker)],
+    ["グループ", renderWorkerMembershipSummary(worker)],
     ["時給", formatCurrency(worker.hourlyRate)],
-    ["所属区刁E, worker.category || "未設宁E],
-    ["出勤対象", worker.isActive ? "対象" : "対象夁E],
-    ["状慁E, `${statusInfo.statusLabel} / ${statusInfo.detail || "-"}`]
+    ["所属区分", worker.category || "未設定"],
+    ["出勤対象", worker.isActive ? "対象" : "対象外"],
+    ["状態", `${statusInfo.statusLabel} / ${statusInfo.detail || "-"}`]
   ];
   rows.forEach(([label, value]) => {
     const row = document.createElement("div");
@@ -6985,7 +6504,7 @@ function createWorkerManagementCard(worker, statusInfo) {
   const editButton = document.createElement("button");
   editButton.type = "button";
   editButton.className = "button button--small button--view";
-  editButton.textContent = "編雁E;
+  editButton.textContent = "編集";
   editButton.addEventListener("click", () => openWorkerEditor(worker));
   const membershipButton = document.createElement("button");
   membershipButton.type = "button";
@@ -7040,7 +6559,7 @@ function renderTodayMemberStatusBoard() {
   }, {});
 
   todayMemberStatusSummary.innerHTML = "";
-  const summaryStatuses = ["出勤済み", "未記録", "出勤予宁E, "応援", "早退", "休み", "保留"];
+  const summaryStatuses = ["出勤済み", "未記録", "出勤予定", "応援", "早退", "休み", "保留"];
   summaryStatuses.forEach((statusLabel) => {
     if (!summaryCounts[statusLabel]) return;
     const card = document.createElement("article");
@@ -7054,7 +6573,7 @@ function renderTodayMemberStatusBoard() {
 
   todayMemberStatusList.innerHTML = "";
   if (!filteredWorkers.length) {
-    todayMemberStatusList.appendChild(buildEmptyState("該当する作業老E�EぁE��せん。グループ条件を見直してください、E));
+    todayMemberStatusList.appendChild(buildEmptyState("該当する作業者はいません。グループ条件を見直してください。"));
     return;
   }
 
@@ -7063,7 +6582,7 @@ function renderTodayMemberStatusBoard() {
     const statusInfo = statusByWorkerId.get(worker.id);
     const groupId = groupFilterId || getWorkerDisplayGroupId(worker, statusInfo);
     const group = getGroupById(groupId);
-    const groupLabel = group?.name || "未所屁E;
+    const groupLabel = group?.name || "未所属";
     const key = groupId || "__none__";
     const current = groupedMap.get(key) || { label: groupLabel, workers: [] };
     current.workers.push({ worker, statusInfo });
@@ -7081,7 +6600,7 @@ function renderTodayMemberStatusBoard() {
     const section = document.createElement("section");
     section.className = "today-worker-group";
     const heading = document.createElement("h4");
-    heading.textContent = `${groupData.label}�E�E{groupData.workers.length}人�E�`;
+    heading.textContent = `${groupData.label}（${groupData.workers.length}人）`;
     section.appendChild(heading);
 
     groupData.workers.forEach(({ worker, statusInfo }) => {
@@ -7098,8 +6617,8 @@ function renderTodayMemberStatusBoard() {
 
       const meta = document.createElement("p");
       meta.className = "today-worker-item__meta";
-      const primaryGroup = getGroupById(worker.primaryGroupId)?.name || "未設宁E;
-      meta.textContent = `${worker.fullName} ・ 主所屁E${primaryGroup} ・ ${statusInfo.detail || "状態確誁E}`;
+      const primaryGroup = getGroupById(worker.primaryGroupId)?.name || "未設定";
+      meta.textContent = `${worker.fullName} ・ 主所属:${primaryGroup} ・ ${statusInfo.detail || "状態確認"}`;
 
       row.append(top, meta);
       section.appendChild(row);
@@ -7128,15 +6647,15 @@ function renderMasterLists() {
   membershipCount.textContent = `${masters.workerGroupMemberships.length}件`;
 
   if (!masters.orchards.length) {
-    orchardList.appendChild(buildEmptyState("園地がありません。最初�E園地を登録してください、E));
+    orchardList.appendChild(buildEmptyState("園地がありません。最初の園地を登録してください。"));
   } else {
     masters.orchards.forEach((orchard) => {
       const plotTotal = masters.plots.filter((plot) => plot.orchardId === orchard.id).length;
-      const codeLabel = orchard.managementCode ? orchard.managementCode : "未設定（要設定！E;
+      const codeLabel = orchard.managementCode ? orchard.managementCode : "未設定（要設定）";
       const coordinateLabel = Number.isFinite(orchard.latitude) && Number.isFinite(orchard.longitude)
         ? `${formatCoordinate(orchard.latitude)}, ${formatCoordinate(orchard.longitude)}`
-        : "未設宁E;
-      orchardList.appendChild(createMasterRow(orchard, `管琁E��ーチE ${codeLabel} / 位置: ${coordinateLabel} / 登録区画数: ${plotTotal}件`, orchard.note, () => {
+        : "未設定";
+      orchardList.appendChild(createMasterRow(orchard, `管理コード: ${codeLabel} / 位置: ${coordinateLabel} / 登録区画数: ${plotTotal}件`, orchard.note, () => {
         orchardIdInput.value = orchard.id;
         orchardNameInput.value = orchard.name;
         orchardCodeInput.value = orchard.managementCode || "";
@@ -7149,12 +6668,12 @@ function renderMasterLists() {
   }
 
   if (!masters.plots.length) {
-    plotList.appendChild(buildEmptyState("区画がありません。園地を選んで区画を登録してください、E));
+    plotList.appendChild(buildEmptyState("区画がありません。園地を選んで区画を登録してください。"));
   } else {
     masters.plots.forEach((plot) => {
       const orchard = getOrchardById(plot.orchardId);
-      const codeLabel = plot.managementCode ? plot.managementCode : "未設定（要設定！E;
-      plotList.appendChild(createMasterRow(plot, `所属園地: ${orchard?.name || "未設宁E} / 管琁E��ーチE ${codeLabel}`, plot.note, () => {
+      const codeLabel = plot.managementCode ? plot.managementCode : "未設定（要設定）";
+      plotList.appendChild(createMasterRow(plot, `所属園地: ${orchard?.name || "未設定"} / 管理コード: ${codeLabel}`, plot.note, () => {
         plotIdInput.value = plot.id;
         plotOrchardInput.value = plot.orchardId;
         plotNameInput.value = plot.name;
@@ -7166,7 +6685,7 @@ function renderMasterLists() {
   }
 
   if (!masters.varieties.length) {
-    varietyList.appendChild(buildEmptyState("品種がありません。最初�E品種を登録してください、E));
+    varietyList.appendChild(buildEmptyState("品種がありません。最初の品種を登録してください。"));
   } else {
     masters.varieties.forEach((variety) => {
       varietyList.appendChild(createMasterRow(variety, "作業記録で選択可能", variety.note, () => {
@@ -7179,12 +6698,12 @@ function renderMasterLists() {
   }
 
   if (!masters.groups.length) {
-    groupList.appendChild(buildEmptyState("グループがありません。最初�Eグループを登録してください、E));
+    groupList.appendChild(buildEmptyState("グループがありません。最初のグループを登録してください。"));
   } else {
     sortGroups(masters.groups).forEach((group) => {
       const memberCount = getMembershipsByGroupId(group.id).length;
       const status = group.isActive ? "有効" : "無効";
-      groupList.appendChild(createMasterRow({ title: `${group.sortOrder}. ${group.name}` }, `所属可能作業老E ${memberCount}人 ・ ${status}`, group.description, () => {
+      groupList.appendChild(createMasterRow({ title: `${group.sortOrder}. ${group.name}` }, `所属可能作業者: ${memberCount}人 ・ ${status}`, group.description, () => {
         groupIdInput.value = group.id;
         groupNameInput.value = group.name;
         groupSortOrderInput.value = String(group.sortOrder);
@@ -7199,11 +6718,11 @@ function renderMasterLists() {
 
   const workerStatusTargetDate = normalizeDateString(teamPlanDateInput?.value || today, today);
   if (workerStatusDateLabel) {
-    workerStatusDateLabel.textContent = `${formatDate(workerStatusTargetDate)}の状態を表示してぁE��す。`;
+    workerStatusDateLabel.textContent = `${formatDate(workerStatusTargetDate)}の状態を表示しています。`;
   }
 
   if (!masters.workers.length) {
-    workerList.appendChild(buildEmptyState("作業老E��ありません。最初�E作業老E��登録してください、E));
+    workerList.appendChild(buildEmptyState("作業者がありません。最初の作業者を登録してください。"));
   } else {
     const context = buildDailyWorkerActivityContext(workerStatusTargetDate);
     const groupFilterId = normalizeText(workerGroupFilterInput?.value);
@@ -7231,7 +6750,7 @@ function renderMasterLists() {
       });
 
     if (!filteredWorkers.length) {
-      workerList.appendChild(buildEmptyState("条件に合う作業老E��ぁE��せん。検索条件めE��ループ条件を見直してください、E));
+      workerList.appendChild(buildEmptyState("条件に合う作業者がいません。検索条件やグループ条件を見直してください。"));
     } else {
       filteredWorkers.forEach((worker) => {
         workerList.appendChild(createWorkerManagementCard(worker, statusByWorkerId.get(worker.id)));
@@ -7240,13 +6759,13 @@ function renderMasterLists() {
   }
 
   if (!masters.workers.length) {
-    membershipList.appendChild(buildEmptyState("作業老E��登録すると所属グループ設定ができます、E));
+    membershipList.appendChild(buildEmptyState("作業者を登録すると所属グループ設定ができます。"));
   } else {
     masters.workers.forEach((worker) => {
       membershipList.appendChild(createMasterRow(
         { title: `${worker.displayName} / ${worker.fullName}` },
         renderWorkerMembershipSummary(worker),
-        "主所属�E雁E���E「主所属別」に反映されます、E,
+        "主所属は集計の「主所属別」に反映されます。",
         () => openMembershipEditorForWorker(worker.id),
         () => deleteWorkerMembershipSettings(worker.id)
       ));
@@ -7254,18 +6773,18 @@ function renderMasterLists() {
   }
 
   if (!masters.fixedTeamSets.length) {
-    teamSetList.appendChild(buildEmptyState("固定チームセチE��はまだありません、E));
+    teamSetList.appendChild(buildEmptyState("固定チームセットはまだありません。"));
   } else {
     masters.fixedTeamSets
       .slice()
       .sort((a, b) => (getGroupById(a.groupId)?.sortOrder || 999) - (getGroupById(b.groupId)?.sortOrder || 999) || a.name.localeCompare(b.name, "ja"))
       .forEach((teamSet) => {
         const group = getGroupById(teamSet.groupId);
-        const workers = teamSet.workerIds.map((workerId) => getWorkerById(workerId)?.displayName).filter(Boolean).join("、E);
+        const workers = teamSet.workerIds.map((workerId) => getWorkerById(workerId)?.displayName).filter(Boolean).join("、");
         teamSetList.appendChild(createMasterRow(
           { title: teamSet.name },
-          `${group?.name || "未設定グルーチE} ・ ${teamSet.workerIds.length}人`,
-          workers || "作業老E��設宁E,
+          `${group?.name || "未設定グループ"} ・ ${teamSet.workerIds.length}人`,
+          workers || "作業者未設定",
           () => {
             teamSetIdInput.value = teamSet.id;
             teamSetNameInput.value = teamSet.name;
@@ -7274,7 +6793,7 @@ function renderMasterLists() {
             renderTeamSetWorkerList();
           },
           () => {
-            if (!window.confirm("こ�E固定チームセチE��を削除しますか�E�E)) return;
+            if (!window.confirm("この固定チームセットを削除しますか？")) return;
             masters.fixedTeamSets = masters.fixedTeamSets.filter((item) => item.id !== teamSet.id);
             teamPlans = teamPlans.map((plan) => plan.fixedTeamSetId === teamSet.id ? { ...plan, fixedTeamSetId: "", fixedTeamSetName: "" } : plan);
             records = records.map((record) => record.fixedTeamSetId === teamSet.id ? { ...record, fixedTeamSetId: "", fixedTeamSetName: "" } : record);
@@ -7286,17 +6805,17 @@ function renderMasterLists() {
   }
 
   if (!teamPlans.length) {
-    teamPlanList.appendChild(buildEmptyState("日別チ�Eム編成�Eまだありません、E));
+    teamPlanList.appendChild(buildEmptyState("日別チーム編成はまだありません。"));
   } else {
     [...teamPlans]
       .sort((a, b) => b.workDate.localeCompare(a.workDate) || getGroupById(a.groupId)?.sortOrder - getGroupById(b.groupId)?.sortOrder)
       .forEach((plan) => {
         const group = getGroupById(plan.groupId);
-        const names = plan.workerIds.map((workerId) => getWorkerById(workerId)?.displayName).filter(Boolean).join("、E);
+        const names = plan.workerIds.map((workerId) => getWorkerById(workerId)?.displayName).filter(Boolean).join("、");
         teamPlanList.appendChild(createMasterRow(
-          { title: `${formatDate(plan.workDate)} / ${group?.name || "未設定グルーチE}` },
-          `${plan.workerIds.length}人編戁E{plan.fixedTeamSetName ? ` ・ 固定セチE��:${plan.fixedTeamSetName}` : ""}`,
-          names || "参加老E��ぁE,
+          { title: `${formatDate(plan.workDate)} / ${group?.name || "未設定グループ"}` },
+          `${plan.workerIds.length}人編成${plan.fixedTeamSetName ? ` ・ 固定セット:${plan.fixedTeamSetName}` : ""}`,
+          names || "参加者なし",
           () => {
             teamPlanIdInput.value = plan.id;
             teamPlanDateInput.value = plan.workDate;
@@ -7306,7 +6825,7 @@ function renderMasterLists() {
             renderTeamPlanWorkerList();
           },
           () => {
-            if (!window.confirm("こ�E日別チ�Eム編成を削除しますか�E�E)) return;
+            if (!window.confirm("この日別チーム編成を削除しますか？")) return;
             teamPlans = teamPlans.filter((item) => item.id !== plan.id);
             saveState();
             render();
@@ -7318,7 +6837,7 @@ function renderMasterLists() {
 
 function deleteOrchard(id) {
   const relatedPlots = masters.plots.filter((plot) => plot.orchardId === id);
-  if (!window.confirm(`こ�E園地を削除しますか�E�E関連する区画 ${relatedPlots.length} 件は未所属になります。`)) return;
+  if (!window.confirm(`この園地を削除しますか？ 関連する区画 ${relatedPlots.length} 件は未所属になります。`)) return;
   const relatedPlotIds = new Set(relatedPlots.map((plot) => plot.id));
   masters.orchards = masters.orchards.filter((orchard) => orchard.id !== id);
   masters.plots = masters.plots.filter((plot) => plot.orchardId !== id);
@@ -7329,7 +6848,7 @@ function deleteOrchard(id) {
 }
 
 function deletePlot(id) {
-  if (!window.confirm("こ�E区画を削除しますか�E�E)) return;
+  if (!window.confirm("この区画を削除しますか？")) return;
   masters.plots = masters.plots.filter((plot) => plot.id !== id);
   records = records.map((record) => record.plotId === id ? { ...record, plotId: "", plotName: "" } : record);
   saveState();
@@ -7337,7 +6856,7 @@ function deletePlot(id) {
 }
 
 function deleteVariety(id) {
-  if (!window.confirm("こ�E品種を削除しますか�E�E)) return;
+  if (!window.confirm("この品種を削除しますか？")) return;
   masters.varieties = masters.varieties.filter((variety) => variety.id !== id);
   records = records.map((record) => record.varietyId === id ? { ...record, varietyId: "", varietyName: "" } : record);
   saveState();
@@ -7346,7 +6865,7 @@ function deleteVariety(id) {
 
 function deleteGroup(id) {
   const relatedMemberships = getMembershipsByGroupId(id).length;
-  if (!window.confirm(`こ�Eグループを削除しますか�E�E所属設宁E${relatedMemberships} 件は解除されます。`)) return;
+  if (!window.confirm(`このグループを削除しますか？ 所属設定 ${relatedMemberships} 件は解除されます。`)) return;
   const previousPrimaryByWorkerId = new Map(masters.workers.map((worker) => [worker.id, worker.primaryGroupId || ""]));
   masters.groups = masters.groups.filter((group) => group.id !== id);
   masters.workerGroupMemberships = masters.workerGroupMemberships.filter((membership) => membership.groupId !== id);
@@ -7362,7 +6881,7 @@ function deleteGroup(id) {
 
 function deleteWorker(id) {
   const usedCount = records.filter((record) => record.assignedWorkers.some((item) => item.workerId === id)).length;
-  if (!window.confirm(`こ�E作業老E��削除しますか�E�E既存記録 ${usedCount} 件には保存済みの作業老E��を残します。`)) return;
+  if (!window.confirm(`この作業者を削除しますか？ 既存記録 ${usedCount} 件には保存済みの作業者名を残します。`)) return;
   const deletedWorker = getWorkerById(id);
   masters.workers = masters.workers.filter((worker) => worker.id !== id);
   masters.workerGroupMemberships = masters.workerGroupMemberships.filter((membership) => membership.workerId !== id);
@@ -7388,7 +6907,7 @@ function deleteWorker(id) {
 }
 
 function deleteWorkerMembershipSettings(workerId) {
-  if (!window.confirm("こ�E作業老E�E所属グループ設定を解除しますか�E�E)) return;
+  if (!window.confirm("この作業者の所属グループ設定を解除しますか？")) return;
   masters.workerGroupMemberships = masters.workerGroupMemberships.filter((membership) => membership.workerId !== workerId);
   masters.workers = masters.workers.map((worker) => worker.id === workerId ? { ...worker, primaryGroupId: "" } : worker);
   saveState();
@@ -7480,31 +6999,30 @@ function renderAnalytics() {
   ).sort((a, b) => b[1] - a[1]);
   const primaryGroupEntries = aggregateBy(
     records.flatMap((record) => getAssignedWorkers(record).map((worker) => ({ worker, hours: Number(getWorkerHoursForRecord(record, worker.id, companySettings) || 0) }))),
-    (item) => getWorkerPrimaryGroup(item.worker)?.name || "主所属未設宁E,
+    (item) => getWorkerPrimaryGroup(item.worker)?.name || "主所属未設定",
     (item) => item.hours
   ).sort((a, b) => b[1] - a[1]);
   const varietyEntries = aggregateBy(records, (record) => getRecordDisplay(record).varietyName, (record) => getRecordResolvedWorkHours(record, companySettings)).sort((a, b) => b[1] - a[1]);
 
-  buildSummaryRows(monthlyCountList, monthlyCountEntries.map(([month, value]) => [formatMonth(month), value]), (value) => `${value}件`, "作業記録がありません、E);
-  buildSummaryRows(monthlyHoursList, monthlyHourEntries.map(([month, value]) => [formatMonth(month), value]), (value) => formatHours(value), "作業記録がありません、E);
-  buildSummaryRows(orchardHoursList, orchardEntries, (value) => formatHours(value), "園地別雁E���Eまだありません、E);
-  buildSummaryRows(orchardPersonHoursList, orchardPersonHoursEntries, (value) => formatPersonHours(value), "園地別雁E���Eまだありません、E);
-  buildSummaryRows(orchardLaborCostList, orchardLaborCostEntries, (value) => formatCurrency(value), "園地別雁E���Eまだありません、E);
-  buildSummaryRows(plotHoursList, plotEntries, (value) => formatHours(value), "区画別雁E���Eまだありません、E);
-  buildSummaryRows(plotPersonHoursList, plotPersonHoursEntries, (value) => formatPersonHours(value), "区画別雁E���Eまだありません、E);
-  buildSummaryRows(plotLaborCostList, plotLaborCostEntries, (value) => formatCurrency(value), "区画別雁E���Eまだありません、E);
-  buildSummaryRows(taskHoursList, taskEntries, (value) => formatHours(value), "作業冁E��別雁E���Eまだありません、E);
-  buildSummaryRows(workerTotalHoursList, workerTotalEntries, (value) => formatHours(value), "作業老E��雁E���Eまだありません、E);
-  buildSummaryRows(groupWorkerHoursList, groupWorkerEntries, (value) => formatHours(value), "グループ別・作業老E��雁E���Eまだありません、E);
-  buildSummaryRows(primaryGroupHoursList, primaryGroupEntries, (value) => formatHours(value), "主所属別雁E���Eまだありません、E);
-  buildSummaryRows(groupCountList, groupCountEntries, (value) => `${value}件`, "グループ別雁E���Eまだありません、E);
-  buildSummaryRows(groupHoursList, groupEntries, (value) => formatHours(value), "グループ別雁E���Eまだありません、E);
-  buildSummaryRows(groupPersonHoursList, groupPersonHoursEntries, (value) => formatPersonHours(value), "グループ別雁E���Eまだありません、E);
-  buildSummaryRows(groupLaborCostList, groupLaborCostEntries, (value) => formatCurrency(value), "グループ別雁E���Eまだありません、E);
-  buildSummaryRows(varietyHoursList, varietyEntries, (value) => formatHours(value), "品種別雁E���Eまだありません、E);
+  buildSummaryRows(monthlyCountList, monthlyCountEntries.map(([month, value]) => [formatMonth(month), value]), (value) => `${value}件`, "作業記録がありません。");
+  buildSummaryRows(monthlyHoursList, monthlyHourEntries.map(([month, value]) => [formatMonth(month), value]), (value) => formatHours(value), "作業記録がありません。");
+  buildSummaryRows(orchardHoursList, orchardEntries, (value) => formatHours(value), "園地別集計はまだありません。");
+  buildSummaryRows(orchardPersonHoursList, orchardPersonHoursEntries, (value) => formatPersonHours(value), "園地別集計はまだありません。");
+  buildSummaryRows(orchardLaborCostList, orchardLaborCostEntries, (value) => formatCurrency(value), "園地別集計はまだありません。");
+  buildSummaryRows(plotHoursList, plotEntries, (value) => formatHours(value), "区画別集計はまだありません。");
+  buildSummaryRows(plotPersonHoursList, plotPersonHoursEntries, (value) => formatPersonHours(value), "区画別集計はまだありません。");
+  buildSummaryRows(plotLaborCostList, plotLaborCostEntries, (value) => formatCurrency(value), "区画別集計はまだありません。");
+  buildSummaryRows(taskHoursList, taskEntries, (value) => formatHours(value), "作業内容別集計はまだありません。");
+  buildSummaryRows(workerTotalHoursList, workerTotalEntries, (value) => formatHours(value), "作業者別集計はまだありません。");
+  buildSummaryRows(groupWorkerHoursList, groupWorkerEntries, (value) => formatHours(value), "グループ別・作業者別集計はまだありません。");
+  buildSummaryRows(primaryGroupHoursList, primaryGroupEntries, (value) => formatHours(value), "主所属別集計はまだありません。");
+  buildSummaryRows(groupCountList, groupCountEntries, (value) => `${value}件`, "グループ別集計はまだありません。");
+  buildSummaryRows(groupHoursList, groupEntries, (value) => formatHours(value), "グループ別集計はまだありません。");
+  buildSummaryRows(groupPersonHoursList, groupPersonHoursEntries, (value) => formatPersonHours(value), "グループ別集計はまだありません。");
+  buildSummaryRows(groupLaborCostList, groupLaborCostEntries, (value) => formatCurrency(value), "グループ別集計はまだありません。");
+  buildSummaryRows(varietyHoursList, varietyEntries, (value) => formatHours(value), "品種別集計はまだありません。");
 }
 
-/*
 function updateTimeHint() {
   const settings = normalizeCompanySettings(companySettings);
   const breakMinutes = getFormBreakMinutes(settings);
@@ -7519,21 +7037,21 @@ function updateTimeHint() {
     ? standardHoursByBreak
     : getDefaultWorkHours(settings);
   const manualHours = getFormManualWorkHours(settings);
-  const breakText = `${Math.floor(breakMinutes / 60)}時間${String(breakMinutes % 60).padStart(2, "0")}刁E;
+  const breakText = `${Math.floor(breakMinutes / 60)}時間${String(breakMinutes % 60).padStart(2, "0")}分`;
   if (calculatedWorkHoursInput) {
     calculatedWorkHoursInput.value = Number.isFinite(autoHours) ? String(autoHours) : "";
   }
 
   if (startTimeInput.value && endTimeInput.value && autoHours === null) {
-    timeHint.textContent = "終亁E��刻は開始時刻より後に設定してください、E;
+    timeHint.textContent = "終了時刻は開始時刻より後に設定してください。";
     return;
   }
 
   if (autoHours !== null) {
     if (manualHours !== null) {
-      timeHint.textContent = `自動計算�E ${autoHours} 時間です。手入力上書ぁE${manualHours} 時間を採用します。`;
+      timeHint.textContent = `自動計算は ${autoHours} 時間です。手入力上書き ${manualHours} 時間を採用します。`;
     } else {
-      timeHint.textContent = `実労僁E${autoHours} 時間�E�控除 ${breakText}、E{settings.payrollTimeUnitMinutes}刁E��位で丸めE��を自動計算しました。`;
+      timeHint.textContent = `実労働 ${autoHours} 時間（控除 ${breakText}、${settings.payrollTimeUnitMinutes}分単位で丸め）を自動計算しました。`;
     }
     renderWorkerTimeDetailList();
     return;
@@ -7541,139 +7059,16 @@ function updateTimeHint() {
 
   if (!startTimeInput.value && !endTimeInput.value) {
     if (manualHours !== null) {
-      timeHint.textContent = `作業時間 ${manualHours} 時間�E�E{settings.payrollTimeUnitMinutes}刁E��位で丸めた手�E力値�E�を使用します。`;
+      timeHint.textContent = `作業時間 ${manualHours} 時間（${settings.payrollTimeUnitMinutes}分単位で丸めた手入力値）を使用します。`;
       renderWorkerTimeDetailList();
       return;
     }
-    timeHint.textContent = `時刻未入力�Eため、標準勤勁E${settings.workdayStartTime}、E{settings.workdayEndTime}�E�休�E ${breakText}�E�E ${defaultHours} 時間で扱ぁE��す。`;
+    timeHint.textContent = `時刻未入力のため、標準勤務 ${settings.workdayStartTime}〜${settings.workdayEndTime}（休憩 ${breakText}）= ${defaultHours} 時間で扱います。`;
     renderWorkerTimeDetailList();
     return;
   }
 
-  timeHint.textContent = "開始時刻と終亁E��刻をセチE��で入力すると、実働時間を�E動計算します、E;
-  renderWorkerTimeDetailList();
-}
-
-function updateTimeHint() {
-  const settings = normalizeCompanySettings(companySettings);
-  const shiftType = getSelectedFormShiftType();
-  const breakMinutes = getFormBreakMinutes(settings);
-  const boundHours = calculateBoundHoursByRange(startTimeInput?.value || "", endTimeInput?.value || "");
-  const autoHours = calculateHoursFromRange(startTimeInput?.value || "", endTimeInput?.value || "", settings, breakMinutes);
-  const fullDayPreset = getShiftPreset(WORK_SHIFT_TYPE.FULL_DAY, settings);
-  const defaultHours = calculateHoursFromRange(
-    fullDayPreset.startTime,
-    fullDayPreset.endTime,
-    settings,
-    fullDayPreset.breakMinutes
-  ) ?? getDefaultWorkHours(settings);
-  const manualHours = getFormManualWorkHours(settings);
-  const deductionText = `${breakMinutes}刁E;
-  const boundText = Number.isFinite(boundHours) ? `${boundHours}時間` : " E;
-  const shiftLabel = getShiftTypeLabel(shiftType);
-
-  if (calculatedWorkHoursInput) {
-    calculatedWorkHoursInput.value = Number.isFinite(autoHours) ? String(autoHours) : "";
-  }
-
-  if (startTimeInput?.value && endTimeInput?.value && autoHours === null) {
-    if (timeHint) {
-      timeHint.textContent = "終亁E��刻は開始時刻より後に設定してください、E;
-    }
-    return;
-  }
-
-  if (autoHours !== null) {
-    if (timeHint) {
-      if (manualHours !== null) {
-        timeHint.textContent = `勤務区刁E ${shiftLabel} / 拘束 ${boundText} / 控除 ${deductionText} / 自勁E${autoHours}時間�E�手入劁E${manualHours}時間を優先）`;
-      } else {
-        timeHint.textContent = `勤務区刁E ${shiftLabel} / 拘束 ${boundText} / 控除 ${deductionText} / 実労僁E${autoHours}時間`;
-      }
-    }
-    renderWorkerTimeDetailList();
-    return;
-  }
-
-  if (!startTimeInput?.value && !endTimeInput?.value) {
-    if (timeHint) {
-      if (manualHours !== null) {
-        timeHint.textContent = `勤務区刁E ${shiftLabel} / 実労僁E${manualHours}時間�E�手入力を使用�E�`;
-      } else {
-        timeHint.textContent = `時刻未入力�Eため、標準勤勁E${settings.workdayStartTime}、E{settings.workdayEndTime}�E�控除 ${settings.workdayBreakMinutes}刁E��E ${defaultHours}時間で計算されます。`;
-      }
-    }
-    renderWorkerTimeDetailList();
-    return;
-  }
-
-  if (timeHint) {
-    timeHint.textContent = "開始時刻と終亁E��刻をセチE��で入力してください、E;
-  }
-  renderWorkerTimeDetailList();
-}
-*/
-
-function updateTimeHint() {
-  const settings = normalizeCompanySettings(companySettings);
-  const shiftType = getSelectedFormShiftType();
-  const breakMinutes = getFormBreakMinutes(settings);
-  const startTime = startTimeInput?.value || "";
-  const endTime = endTimeInput?.value || "";
-  const boundHours = calculateBoundHoursByRange(startTime, endTime);
-  const autoHours = calculateHoursFromRange(startTime, endTime, settings, breakMinutes);
-  const fullDayPreset = getShiftPreset(WORK_SHIFT_TYPE.FULL_DAY, settings);
-  const defaultHours = calculateHoursFromRange(
-    fullDayPreset.startTime,
-    fullDayPreset.endTime,
-    settings,
-    fullDayPreset.breakMinutes
-  ) ?? getDefaultWorkHours(settings);
-  const manualHours = getFormManualWorkHours(settings);
-  const shiftLabel = getShiftTypeLabel(shiftType);
-  const boundText = Number.isFinite(boundHours) ? `${boundHours}\u6642\u9593` : "-";
-  const deductionText = `${breakMinutes}\u5206`;
-
-  if (calculatedWorkHoursInput) {
-    calculatedWorkHoursInput.value = Number.isFinite(autoHours) ? String(autoHours) : "";
-  }
-
-  if (startTime && endTime && autoHours === null) {
-    if (timeHint) {
-      timeHint.textContent = "\u7d42\u4e86\u6642\u523b\u306f\u958b\u59cb\u6642\u523b\u3088\u308a\u5f8c\u306b\u8a2d\u5b9a\u3057\u3066\u304f\u3060\u3055\u3044\u3002";
-    }
-    return;
-  }
-
-  if (Number.isFinite(autoHours)) {
-    if (timeHint) {
-      if (manualHours !== null) {
-        timeHint.textContent = `\u52e4\u52d9\u533a\u5206 ${shiftLabel} / \u62d8\u675f ${boundText} / \u63a7\u9664 ${deductionText} / \u81ea\u52d5 ${autoHours}\u6642\u9593\uff08\u624b\u5165\u529b ${manualHours}\u6642\u9593\u3092\u512a\u5148\uff09`;
-      } else {
-        timeHint.textContent = `\u52e4\u52d9\u533a\u5206 ${shiftLabel} / \u62d8\u675f ${boundText} / \u63a7\u9664 ${deductionText} / \u5b9f\u52b4\u50cd ${autoHours}\u6642\u9593`;
-      }
-    }
-    renderWorkerTimeDetailList();
-    return;
-  }
-
-  if (!startTime && !endTime) {
-    if (timeHint) {
-      if (manualHours !== null) {
-        timeHint.textContent = `\u52e4\u52d9\u533a\u5206 ${shiftLabel} / \u5b9f\u52b4\u50cd ${manualHours}\u6642\u9593\uff08\u624b\u5165\u529b\u5024\u3092\u4f7f\u7528\uff09`;
-      } else if (shiftType === WORK_SHIFT_TYPE.MANUAL) {
-        timeHint.textContent = "\u52e4\u52d9\u533a\u5206 \u624b\u5165\u529b / \u5b9f\u52b4\u50cd\u6642\u9593\u3092\u76f4\u63a5\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044\u3002";
-      } else {
-        timeHint.textContent = `\u6642\u523b\u672a\u5165\u529b\u306e\u305f\u3081\u3001\u6a19\u6e96\u52e4\u52d9 ${settings.workdayStartTime}\u301c${settings.workdayEndTime}\uff08\u63a7\u9664 ${settings.workdayBreakMinutes}\u5206\uff09= ${defaultHours}\u6642\u9593\u3067\u8a08\u7b97\u3057\u307e\u3059\u3002`;
-      }
-    }
-    renderWorkerTimeDetailList();
-    return;
-  }
-
-  if (timeHint) {
-    timeHint.textContent = "\u958b\u59cb\u6642\u523b\u3068\u7d42\u4e86\u6642\u523b\u3092\u30bb\u30c3\u30c8\u3067\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044\u3002";
-  }
+  timeHint.textContent = "開始時刻と終了時刻をセットで入力すると、実働時間を自動計算します。";
   renderWorkerTimeDetailList();
 }
 
@@ -7681,9 +7076,9 @@ function downloadJsonBackup() {
   const currentState = { companySettings, masters, records, teamPlans, payrollAdjustments };
   const counts = getStateCounts(currentState);
   renderBackupSummary(counts);
-  const confirmMessage = `JSONバックアチE�Eを保存します、En\n${formatCountsSummary(counts)}\n\nこ�E冁E��で保存しますか�E�`;
+  const confirmMessage = `JSONバックアップを保存します。\n\n${formatCountsSummary(counts)}\n\nこの内容で保存しますか？`;
   if (!window.confirm(confirmMessage)) {
-    setBackupMessage("JSON保存をキャンセルしました、E);
+    setBackupMessage("JSON保存をキャンセルしました。");
     return;
   }
   const exportedAt = new Date().toISOString();
@@ -7697,7 +7092,7 @@ function downloadJsonBackup() {
   URL.revokeObjectURL(url);
   localStorage.setItem(LAST_BACKUP_AT_KEY, exportedAt);
   updateBackupTimestamp(exportedAt);
-  setBackupMessage(`JSON保存が完亁E��ました。件数サマリー: ${counts.records}件の作業記録 / ${counts.teamPlans}件の日別チ�Eム編成`);
+  setBackupMessage(`JSON保存が完了しました。件数サマリー: ${counts.records}件の作業記録 / ${counts.teamPlans}件の日別チーム編成`);
 }
 
 function applyState(restoredState) {
@@ -7741,25 +7136,25 @@ function handleRestoreFile(event) {
       try {
         parsed = JSON.parse(String(reader.result || "{}"));
       } catch (syntaxError) {
-        throw new Error("JSON形式が不正です。ファイル冁E��を確認してください、E);
+        throw new Error("JSON形式が不正です。ファイル内容を確認してください。");
       }
       const incomingState = parseRestorePayload(parsed);
       const incomingCounts = getStateCounts(incomingState);
-      const modeLabel = mode === "append" ? "追加復允E : "上書き復允E;
-      const confirmMessage = `JSON復允E��実行します！E{modeLabel}�E�、En\n取込チE�Eタ件数:\n${formatCountsSummary(incomingCounts)}\n\nこ�E冁E��で復允E��ますか�E�`;
+      const modeLabel = mode === "append" ? "追加復元" : "上書き復元";
+      const confirmMessage = `JSON復元を実行します（${modeLabel}）。\n\n取込データ件数:\n${formatCountsSummary(incomingCounts)}\n\nこの内容で復元しますか？`;
       if (!window.confirm(confirmMessage)) {
-        setBackupMessage("JSON復允E��キャンセルしました、E);
+        setBackupMessage("JSON復元をキャンセルしました。");
         return;
       }
       const restoredState = restoreFromBackupObject(parsed, mode);
       const resultCounts = getStateCounts(restoredState);
       renderBackupSummary(resultCounts);
-      setBackupMessage(`JSON復允E��完亁E��ました�E�E{modeLabel}�E�。`);
-      window.alert(`JSON復允E��完亁E��ました、En\n${formatCountsSummary(resultCounts)}`);
+      setBackupMessage(`JSON復元が完了しました（${modeLabel}）。`);
+      window.alert(`JSON復元が完了しました。\n\n${formatCountsSummary(resultCounts)}`);
     } catch (error) {
       console.error(error);
-      setBackupMessage(error.message || "JSONファイルの読み込みに失敗しました、E);
-      window.alert(error.message || "JSONファイルの読み込みに失敗しました、E);
+      setBackupMessage(error.message || "JSONファイルの読み込みに失敗しました。");
+      window.alert(error.message || "JSONファイルの読み込みに失敗しました。");
     } finally {
       restoreInput.value = "";
     }
@@ -7768,20 +7163,20 @@ function handleRestoreFile(event) {
 }
 
 function resetAllDataToSeedState() {
-  const firstConfirm = window.confirm("初期チE�Eタに戻します。現在のチE�Eタは失われます、En\n先にバックアチE�E保存しましたか！E);
+  const firstConfirm = window.confirm("初期データに戻します。現在のデータは失われます。\n\n先にバックアップ保存しましたか？");
   if (!firstConfirm) return;
-  const secondConfirm = window.confirm("本当に初期チE�Eタに戻しますか�E�E);
+  const secondConfirm = window.confirm("本当に初期データに戻しますか？");
   if (!secondConfirm) return;
 
   const resetState = hydrateWorkerRelations(createSeedState());
   applyState(resetState);
   const counts = getStateCounts(resetState);
   renderBackupSummary(counts);
-  setBackupMessage("初期チE�Eタに戻しました。忁E��に応じて再設定してください、E);
+  setBackupMessage("初期データに戻しました。必要に応じて再設定してください。");
   localStorage.removeItem(LAST_BACKUP_AT_KEY);
   updateBackupTimestamp(localStorage.getItem(LAST_BACKUP_AT_KEY));
   setSettingsSection("backup", { switchToSettingsView: true, scrollIntoView: true, focusElement: backupButton });
-  window.alert(`初期チE�Eタへの復允E��完亁E��ました、En\n${formatCountsSummary(counts)}`);
+  window.alert(`初期データへの復元が完了しました。\n\n${formatCountsSummary(counts)}`);
 }
 
 function renderBackupPanel() {
@@ -7802,7 +7197,7 @@ function loadImageElement(src) {
     image.crossOrigin = "anonymous";
     image.referrerPolicy = "no-referrer";
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("QR画像�E読み込みに失敗しました、E));
+    image.onerror = () => reject(new Error("QR画像の読み込みに失敗しました。"));
     image.src = src;
   });
 }
@@ -7867,7 +7262,7 @@ function openGeneratedDocumentWindow(html, options = {}) {
   const {
     width = 1200,
     height = 920,
-    popupBlockedMessage = "画面を開けませんでした。ブラウザのポップアチE�E設定を確認してください、E
+    popupBlockedMessage = "画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
   } = options;
   const features = `width=${Math.max(480, width)},height=${Math.max(480, height)}`;
   let blobUrl = "";
@@ -7888,7 +7283,7 @@ function openGeneratedDocumentWindow(html, options = {}) {
     if (blobUrl) {
       URL.revokeObjectURL(blobUrl);
     }
-    console.warn("Blobプレビューの起動に失敗したためE��常モードへフォールバックします、E, error);
+    console.warn("Blobプレビューの起動に失敗したため通常モードへフォールバックします。", error);
   }
 
   const fallbackWindow = window.open("", "_blank", features);
@@ -7904,7 +7299,7 @@ function openGeneratedDocumentWindow(html, options = {}) {
 
 async function shareReportHtmlFromMainPage({ html, fileName, title, text }) {
   if (!navigator.share) {
-    window.alert("こ�E端末では共有機�Eを利用できません、E);
+    window.alert("この端末では共有機能を利用できません。");
     return;
   }
   try {
@@ -7925,7 +7320,7 @@ async function shareReportHtmlFromMainPage({ html, fileName, title, text }) {
     }
   } catch (error) {
     if (error?.name === "AbortError") return;
-    window.alert("共有に失敗しました。もぁE��度お試しください、E);
+    window.alert("共有に失敗しました。もう一度お試しください。");
   }
 }
 
@@ -7936,9 +7331,9 @@ function buildQrLabelSheetItems(type) {
       return {
         itemType: "orchard",
         typeLabel: "園地札",
-        nameLine1: orchard.name || "園地名未設宁E,
+        nameLine1: orchard.name || "園地名未設定",
         nameLine2: "",
-        managementCode: code || "未設宁E,
+        managementCode: code || "未設定",
         missingManagementCode: !code,
         idLabel: `園地ID: ${orchard.id}`,
         payload: buildLocationQrPayload(orchard.id, "")
@@ -7951,9 +7346,9 @@ function buildQrLabelSheetItems(type) {
     return {
       itemType: "plot",
       typeLabel: "区画札",
-      nameLine1: plot.name || "区画名未設宁E,
-      nameLine2: `園地: ${orchard?.name || "未設宁E}`,
-      managementCode: code || "未設宁E,
+      nameLine1: plot.name || "区画名未設定",
+      nameLine2: `園地: ${orchard?.name || "未設定"}`,
+      managementCode: code || "未設定",
       missingManagementCode: !code,
       idLabel: `園地ID: ${plot.orchardId} / 区画ID: ${plot.id}`,
       payload: buildLocationQrPayload(plot.orchardId, plot.id)
@@ -7969,10 +7364,10 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard", option
     ? `(株)大成園 ${targetLabel}QR簡易ラベル印刷`
     : `(株)大成園 ${targetLabel}QRラベル印刷`;
   const subtitle = isSimple
-    ? `${targetLabel}の管琁E��ードを最優先で大きく表示する簡易ラベルです。管琁E��ード未設定時は警告表示されます。`
+    ? `${targetLabel}の管理コードを最優先で大きく表示する簡易ラベルです。管理コード未設定時は警告表示されます。`
     : type === "orchard"
-      ? "園地札用ラベルです。現場貼付前に園地IDを確認してください、E
-      : "区画札用ラベルです。現場貼付前に園地ID・区画IDの両方を確認してください、E;
+      ? "園地札用ラベルです。現場貼付前に園地IDを確認してください。"
+      : "区画札用ラベルです。現場貼付前に園地ID・区画IDの両方を確認してください。";
 
   const cardsHtml = labelItems.map((item) => {
     if (isSimple) {
@@ -7981,7 +7376,7 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard", option
           <div class="label-card__head">
             <span class="label-card__kind label-card__kind--${escapeHtml(item.itemType)}">${escapeHtml(item.typeLabel)}</span>
             <p class="label-card__code label-card__code--simple ${item.missingManagementCode ? "label-card__code--warning" : ""}">${escapeHtml(item.managementCode)}</p>
-            ${item.missingManagementCode ? '<p class="label-card__warning">管琁E��ード未設定（�Eスター設定が忁E��E��E/p>' : ""}
+            ${item.missingManagementCode ? '<p class="label-card__warning">管理コード未設定（マスター設定が必要）</p>' : ""}
             <strong class="label-card__name label-card__name--simple">${escapeHtml(item.nameLine1)}</strong>
             ${item.nameLine2 ? `<span class="label-card__name-sub">${escapeHtml(item.nameLine2)}</span>` : ""}
           </div>
@@ -7997,8 +7392,8 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard", option
           <strong class="label-card__name">${escapeHtml(item.nameLine1)}</strong>
           ${item.nameLine2 ? `<span class="label-card__name-sub">${escapeHtml(item.nameLine2)}</span>` : ""}
         </div>
-        <p class="label-card__code ${item.missingManagementCode ? "label-card__code--warning" : ""}">管琁E��ーチE ${escapeHtml(item.managementCode)}</p>
-        ${item.missingManagementCode ? '<p class="label-card__warning">管琁E��ード未設定（�Eスター設定が忁E��E��E/p>' : ""}
+        <p class="label-card__code ${item.missingManagementCode ? "label-card__code--warning" : ""}">管理コード: ${escapeHtml(item.managementCode)}</p>
+        ${item.missingManagementCode ? '<p class="label-card__warning">管理コード未設定（マスター設定が必要）</p>' : ""}
         <img class="label-card__qr" src="${escapeHtml(item.qrImageSrc || buildQrImageUrl(item.payload))}" alt="${escapeHtml(item.typeLabel)} QR">
         <p class="label-card__id">${escapeHtml(item.idLabel)}</p>
         <p class="label-card__payload">${escapeHtml(item.payload)}</p>
@@ -8079,14 +7474,14 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard", option
           <div>
             <h1 class="sheet-toolbar__title">${escapeHtml(title)}</h1>
             <p class="sheet-toolbar__lead">${escapeHtml(subtitle)}</p>
-            <p class="sheet-toolbar__lead sheet-toolbar__lead--status" id="sheetLoadStatus">QR画像を読み込み中でぁE..</p>
-            <p class="sheet-toolbar__lead">Androidは「PDF保存」後に共有�Eアプリで印刷すると安定しめE��ぁE��す、E/p>
+            <p class="sheet-toolbar__lead sheet-toolbar__lead--status" id="sheetLoadStatus">QR画像を読み込み中です...</p>
+            <p class="sheet-toolbar__lead">Androidは「PDF保存」後に共有先アプリで印刷すると安定しやすいです。</p>
           </div>
           <div class="sheet-toolbar__actions">
-            <button class="sheet-button sheet-button--print" id="sheetPrintButton" type="button" onclick="printAfterQrReady('print')" disabled>こ�E画面を印刷</button>
-            <button class="sheet-button sheet-button--pdf" id="sheetPdfButton" type="button" onclick="printAfterQrReady('pdf')" disabled>PDF保孁E/button>
-            <button class="sheet-button sheet-button--share" id="sheetShareButton" type="button">共朁E/button>
-            <button class="sheet-button sheet-button--close" type="button" onclick="window.close()">閉じめE/button>
+            <button class="sheet-button sheet-button--print" id="sheetPrintButton" type="button" onclick="printAfterQrReady('print')" disabled>この画面を印刷</button>
+            <button class="sheet-button sheet-button--pdf" id="sheetPdfButton" type="button" onclick="printAfterQrReady('pdf')" disabled>PDF保存</button>
+            <button class="sheet-button sheet-button--share" id="sheetShareButton" type="button">共有</button>
+            <button class="sheet-button sheet-button--close" type="button" onclick="window.close()">閉じる</button>
           </div>
         </header>
         <main class="sheet-body">
@@ -8123,11 +7518,11 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard", option
             const syncButtons = (allReady) => {
               if (printButton) {
                 printButton.disabled = !allReady;
-                printButton.textContent = allReady ? "こ�E画面を印刷" : "QR読込中...";
+                printButton.textContent = allReady ? "この画面を印刷" : "QR読込中...";
               }
               if (pdfButton) {
                 pdfButton.disabled = !allReady;
-                pdfButton.textContent = allReady ? "PDF保孁E : "QR読込中...";
+                pdfButton.textContent = allReady ? "PDF保存" : "QR読込中...";
               }
             };
 
@@ -8137,15 +7532,15 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard", option
               const allReady = results.every(Boolean);
               if (status) {
                 status.textContent = allReady
-                  ? "QR画像�E準備ができました。印刷できます、E
-                  : "QR画像�E読み込みに失敗した頁E��があります。�E読み込みしてください、E;
+                  ? "QR画像の準備ができました。印刷できます。"
+                  : "QR画像の読み込みに失敗した項目があります。再読み込みしてください。";
               }
               syncButtons(allReady);
               if (allReady) {
                 if (status) {
                   status.textContent = triggerMode === "pdf"
-                    ? "PDF保存ダイアログを開きます。保存�Eを選択してください、E
-                    : "印刷ダイアログを開きます、E;
+                    ? "PDF保存ダイアログを開きます。保存先を選択してください。"
+                    : "印刷ダイアログを開きます。";
                 }
                 window.print();
               }
@@ -8154,7 +7549,7 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard", option
             if (shareButton) {
               if (!navigator.share) {
                 shareButton.disabled = true;
-                shareButton.textContent = "共有未対忁E;
+                shareButton.textContent = "共有未対応";
               } else {
                 shareButton.addEventListener("click", async () => {
                   try {
@@ -8165,7 +7560,7 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard", option
                       if (navigator.canShare({ files: [file] })) {
                         await navigator.share({
                           title: document.title,
-                          text: "QRラベルを�E有しまぁE,
+                          text: "QRラベルを共有します",
                           files: [file]
                         });
                         shared = true;
@@ -8174,12 +7569,12 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard", option
                     if (!shared) {
                       await navigator.share({
                         title: document.title,
-                        text: "QRラベルを�E有しまぁE
+                        text: "QRラベルを共有します"
                       });
                     }
                   } catch (error) {
                     if (error && error.name === "AbortError") return;
-                    window.alert("共有に失敗しました、E);
+                    window.alert("共有に失敗しました。");
                   }
                 });
               }
@@ -8189,12 +7584,12 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard", option
               const allReady = results.every(Boolean);
               if (status) {
                 status.textContent = allReady
-                  ? "QR画像�E準備ができました。印刷できます、E
-                  : "QR画像�E読み込みに失敗した頁E��があります。�E読み込みしてください、E;
+                  ? "QR画像の準備ができました。印刷できます。"
+                  : "QR画像の読み込みに失敗した項目があります。再読み込みしてください。";
               }
               if (printButton) {
                 printButton.disabled = !allReady;
-                printButton.textContent = allReady ? "こ�E画面を印刷" : "QR読込エラー";
+                printButton.textContent = allReady ? "この画面を印刷" : "QR読込エラー";
               }
               syncButtons(allReady);
               if (allReady && preferredAction === "pdf") {
@@ -8213,7 +7608,7 @@ function buildQrLabelSheetHtml(type, labelItems, layoutMode = "standard", option
 async function openQrLabelSheet(type, layoutMode = "standard", preferredAction = "print") {
   const items = buildQrLabelSheetItems(type);
   if (!items.length) {
-    window.alert(type === "orchard" ? "園地チE�EタがなぁE��め印刷できません、E : "区画チE�EタがなぁE��め印刷できません、E);
+    window.alert(type === "orchard" ? "園地データがないため印刷できません。" : "区画データがないため印刷できません。");
     return;
   }
   const loadingHtml = `
@@ -8228,15 +7623,15 @@ async function openQrLabelSheet(type, layoutMode = "standard", preferredAction =
         </style>
       </head>
       <body>
-        <h1>QR印刷画面を準備してぁE��ぁE..</h1>
-        <p>画像�E読み込みが終わるまでそ�Eままお征E��ください、E/p>
+        <h1>QR印刷画面を準備しています...</h1>
+        <p>画像の読み込みが終わるまでそのままお待ちください。</p>
       </body>
     </html>
   `;
   const win = openGeneratedDocumentWindow(loadingHtml, {
     width: 1200,
     height: 920,
-    popupBlockedMessage: "印刷画面を開けませんでした。ブラウザのポップアチE�E設定を確認してください、E
+    popupBlockedMessage: "印刷画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
   });
   if (!win) return;
   try {
@@ -8264,8 +7659,8 @@ async function openQrLabelSheet(type, layoutMode = "standard", preferredAction =
         </head>
         <body>
           <h1>QR印刷画面の準備に失敗しました</h1>
-          <p>通信環墁E��ご確認�EぁE��、もぁE��度お試しください、E/p>
-          <p>問題が続く場合�E、一覧画面から画像保存して印刷してください、E/p>
+          <p>通信環境をご確認のうえ、もう一度お試しください。</p>
+          <p>問題が続く場合は、一覧画面から画像保存して印刷してください。</p>
         </body>
       </html>
     `);
@@ -8304,35 +7699,35 @@ function buildDailyReportRowsHtml(dayRecords) {
   return dayRecords.map((record, index) => {
     const names = getRecordDisplay(record);
     const metrics = getRecordMetrics(record);
-    const startTime = record.startTime || " E;
-    const endTime = record.endTime || " E;
-    const weather = record.weather || " E;
-    const materials = record.materials || " E;
-    const notes = record.notes || " E;
+    const startTime = record.startTime || "―";
+    const endTime = record.endTime || "―";
+    const weather = record.weather || "―";
+    const materials = record.materials || "―";
+    const notes = record.notes || "―";
 
     return `
       <article class="daily-report-card">
         <div class="daily-report-card__header">
           <span class="daily-report-card__index">No.${index + 1}</span>
-          <h3>${escapeHtml(record.taskType || "未設宁E)}</h3>
-          <span class="daily-report-card__group">${escapeHtml(names.dailyGroupName || "未設宁E)}</span>
+          <h3>${escapeHtml(record.taskType || "未設定")}</h3>
+          <span class="daily-report-card__group">${escapeHtml(names.dailyGroupName || "未設定")}</span>
         </div>
         <div class="daily-report-grid">
           <div class="daily-report-item"><span>作業日</span><strong>${escapeHtml(formatDateYmd(record.workDate))}</strong></div>
-          <div class="daily-report-item"><span>園地吁E/span><strong>${escapeHtml(names.orchardName || "未設宁E)}</strong></div>
-          <div class="daily-report-item"><span>区画吁E/span><strong>${escapeHtml(names.plotName || "未設宁E)}</strong></div>
-          <div class="daily-report-item"><span>品種</span><strong>${escapeHtml(names.varietyName || "未設宁E)}</strong></div>
-          <div class="daily-report-item"><span>作業区刁E/span><strong>${escapeHtml(record.taskType || "未設宁E)}</strong></div>
-          <div class="daily-report-item"><span>作業グルーチE/span><strong>${escapeHtml(names.dailyGroupName || "未設宁E)}</strong></div>
-          <div class="daily-report-item daily-report-item--full"><span>作業老E��覧</span><strong>${escapeHtml(names.workerListText || "未設宁E)}</strong></div>
+          <div class="daily-report-item"><span>園地名</span><strong>${escapeHtml(names.orchardName || "未設定")}</strong></div>
+          <div class="daily-report-item"><span>区画名</span><strong>${escapeHtml(names.plotName || "未設定")}</strong></div>
+          <div class="daily-report-item"><span>品種</span><strong>${escapeHtml(names.varietyName || "未設定")}</strong></div>
+          <div class="daily-report-item"><span>作業区分</span><strong>${escapeHtml(record.taskType || "未設定")}</strong></div>
+          <div class="daily-report-item"><span>作業グループ</span><strong>${escapeHtml(names.dailyGroupName || "未設定")}</strong></div>
+          <div class="daily-report-item daily-report-item--full"><span>作業者一覧</span><strong>${escapeHtml(names.workerListText || "未設定")}</strong></div>
           <div class="daily-report-item"><span>作業人数</span><strong>${escapeHtml(formatCount(metrics.workerCount))}</strong></div>
           <div class="daily-report-item"><span>開始時刻</span><strong>${escapeHtml(startTime)}</strong></div>
-          <div class="daily-report-item"><span>終亁E��刻</span><strong>${escapeHtml(endTime)}</strong></div>
+          <div class="daily-report-item"><span>終了時刻</span><strong>${escapeHtml(endTime)}</strong></div>
           <div class="daily-report-item"><span>作業時間</span><strong>${escapeHtml(formatHours(metrics.hours))}</strong></div>
-          <div class="daily-report-item"><span>延べ人晁E/span><strong>${escapeHtml(formatPersonHours(metrics.personHours))}</strong></div>
+          <div class="daily-report-item"><span>延べ人時</span><strong>${escapeHtml(formatPersonHours(metrics.personHours))}</strong></div>
           <div class="daily-report-item"><span>概算人件費</span><strong>${escapeHtml(formatCurrency(metrics.laborCost))}</strong></div>
-          <div class="daily-report-item"><span>天氁E/span><strong>${escapeHtml(weather)}</strong></div>
-          <div class="daily-report-item daily-report-item--full"><span>使用賁E��</span><strong>${escapeHtml(materials)}</strong></div>
+          <div class="daily-report-item"><span>天気</span><strong>${escapeHtml(weather)}</strong></div>
+          <div class="daily-report-item daily-report-item--full"><span>使用資材</span><strong>${escapeHtml(materials)}</strong></div>
           <div class="daily-report-item daily-report-item--full"><span>メモ</span><strong>${escapeHtml(notes)}</strong></div>
         </div>
       </article>
@@ -8345,7 +7740,7 @@ function buildDailyReportHtml(targetDate, options = {}) {
   const summary = getDailyReportSummary(dayRecords);
   const rowsHtml = dayRecords.length
     ? buildDailyReportRowsHtml(dayRecords)
-    : `<div class="daily-report-empty">持E��日の作業記録はありません、E/div>`;
+    : `<div class="daily-report-empty">指定日の作業記録はありません。</div>`;
 
   return `
     <html lang="ja">
@@ -8411,11 +7806,11 @@ function buildDailyReportHtml(targetDate, options = {}) {
         <header class="report-toolbar">
           <div>
             <h1>作業日報プレビュー</h1>
-            <p>持E��日: ${escapeHtml(formatDateYmd(targetDate))}</p>
+            <p>指定日: ${escapeHtml(formatDateYmd(targetDate))}</p>
           </div>
           <div class="report-actions">
-            <button class="report-button report-button--print" type="button" onclick="window.print()">こ�E画面を印刷</button>
-            <button class="report-button report-button--close" type="button" onclick="window.close()">閉じめE/button>
+            <button class="report-button report-button--print" type="button" onclick="window.print()">この画面を印刷</button>
+            <button class="report-button report-button--close" type="button" onclick="window.close()">閉じる</button>
           </div>
         </header>
         <main class="report-body">
@@ -8426,7 +7821,7 @@ function buildDailyReportHtml(targetDate, options = {}) {
             <div class="report-summary">
               <div class="report-summary__item"><span>当日の総作業件数</span><strong>${escapeHtml(formatCount(summary.count))}</strong></div>
               <div class="report-summary__item"><span>当日の総作業時間</span><strong>${escapeHtml(formatHours(summary.hours))}</strong></div>
-              <div class="report-summary__item"><span>当日の総延べ人晁E/span><strong>${escapeHtml(formatPersonHours(summary.personHours))}</strong></div>
+              <div class="report-summary__item"><span>当日の総延べ人時</span><strong>${escapeHtml(formatPersonHours(summary.personHours))}</strong></div>
               <div class="report-summary__item"><span>当日の総概算人件費</span><strong>${escapeHtml(formatCurrency(summary.laborCost))}</strong></div>
             </div>
           </section>
@@ -8469,13 +7864,13 @@ function buildDailyReportHtml(targetDate, options = {}) {
 
 function openDailyReportWindow() {
   if (!dailyReportDateInput || !dailyReportDateInput.value) {
-    window.alert("日報対象日を選択してください、E);
+    window.alert("日報対象日を選択してください。");
     return;
   }
   const targetDate = dailyReportDateInput.value;
   const win = window.open("", "_blank", "width=1200,height=920");
   if (!win) {
-    window.alert("日報画面を開けませんでした。ブラウザのポップアチE�E設定を確認してください、E);
+    window.alert("日報画面を開けませんでした。ブラウザのポップアップ設定を確認してください。");
     return;
   }
   win.document.write(buildDailyReportHtml(targetDate));
@@ -8519,7 +7914,7 @@ function buildDailyReportRowsHtml(dayRecords) {
     const weather = weatherDetail ? `${weatherBase} / ${weatherDetail}` : weatherBase;
     const materials = record.materials || text.none;
     const observationSummary = formatFieldObservationSummary(record.fieldObservation);
-    const noteParts = [record.notes, observationSummary ? `現場確誁E ${observationSummary}` : ""].filter(Boolean);
+    const noteParts = [record.notes, observationSummary ? `現場確認: ${observationSummary}` : ""].filter(Boolean);
     const notes = noteParts.length ? noteParts.join(" / ") : text.none;
     const workTypeText = getRecordTaskTypeText(record, text.unset);
 
@@ -8722,7 +8117,7 @@ function openDailyReportWindow(preferredAction = "print") {
 
 async function shareDailyReportFromMainPage() {
   if (!dailyReportDateInput || !dailyReportDateInput.value) {
-    window.alert("日報対象日を選択してください、E);
+    window.alert("日報対象日を選択してください。");
     return;
   }
   const targetDate = dailyReportDateInput.value;
@@ -8731,7 +8126,7 @@ async function shareDailyReportFromMainPage() {
     html,
     fileName: `taiseien-daily-report-${targetDate}.html`,
     title: "(株)大成園 作業日報",
-    text: `${formatDateYmd(targetDate)} の作業日報を�E有します`
+    text: `${formatDateYmd(targetDate)} の作業日報を共有します`
   });
 }
 
@@ -8744,7 +8139,7 @@ function getMonthDateRangeFromMonth(targetMonth) {
       targetMonth: fallbackMonth,
       from: fallbackRange.from,
       to: fallbackRange.to,
-      monthLabel: `${fallbackMonth.slice(0, 4)}年${Number(fallbackMonth.slice(5, 7))}朁E
+      monthLabel: `${fallbackMonth.slice(0, 4)}年${Number(fallbackMonth.slice(5, 7))}月`
     };
   }
   const [yearText, monthText] = value.split("-");
@@ -8755,7 +8150,7 @@ function getMonthDateRangeFromMonth(targetMonth) {
     targetMonth: value,
     from: `${yearText}-${monthText}-01`,
     to: `${yearText}-${monthText}-${String(lastDay).padStart(2, "0")}`,
-    monthLabel: `${year}年${month}朁E
+    monthLabel: `${year}年${month}月`
   };
 }
 
@@ -8784,7 +8179,7 @@ function getMonthlyReportData(targetMonth) {
     const map = new Map();
     recordsWithMetrics.forEach((item) => {
       const key = getKey(item) || "unset";
-      const label = getLabel(item) || "未設宁E;
+      const label = getLabel(item) || "未設定";
       const current = map.get(key) || { label, count: 0, hours: 0, personHours: 0, laborCost: 0 };
       current.count += 1;
       current.hours += item.metrics.hours;
@@ -8797,11 +8192,11 @@ function getMonthlyReportData(targetMonth) {
 
   const orchardEntries = buildMetricEntries(
     (item) => item.record.orchardId || item.names.orchardName,
-    (item) => item.names.orchardName || "未設宁E
+    (item) => item.names.orchardName || "未設定"
   );
   const plotEntries = buildMetricEntries(
     (item) => item.record.plotId || `${item.names.orchardName}/${item.names.plotName}`,
-    (item) => `${item.names.orchardName || "未設宁E} / ${item.names.plotName || "未設宁E}`
+    (item) => `${item.names.orchardName || "未設定"} / ${item.names.plotName || "未設定"}`
   );
   const taskEntries = (() => {
     const map = new Map();
@@ -8819,7 +8214,7 @@ function getMonthlyReportData(targetMonth) {
   })();
   const groupEntries = buildMetricEntries(
     (item) => item.record.dailyGroupId || item.names.dailyGroupName,
-    (item) => item.names.dailyGroupName || "未設宁E
+    (item) => item.names.dailyGroupName || "未設定"
   );
 
   const workerHoursEntries = Array.from(
@@ -8829,7 +8224,7 @@ function getMonthlyReportData(targetMonth) {
         if (!Number.isFinite(hours) || hours <= 0) return;
         const key = worker.id || worker.displayName;
         map.set(key, {
-          label: worker.displayName || "未設宁E,
+          label: worker.displayName || "未設定",
           hours: (map.get(key)?.hours || 0) + hours
         });
       });
@@ -8871,7 +8266,7 @@ function buildMonthlyMetricsRowsHtml(entries, emptyMessage) {
 
 function buildMonthlyWorkerRowsHtml(entries) {
   if (!entries.length) {
-    return `<tr><td colspan="2" class="monthly-empty-cell">作業老E��ータはありません、E/td></tr>`;
+    return `<tr><td colspan="2" class="monthly-empty-cell">作業者データはありません。</td></tr>`;
   }
   return entries.map((entry) => `
     <tr>
@@ -8883,8 +8278,8 @@ function buildMonthlyWorkerRowsHtml(entries) {
 
 function buildMonthlyReportHtml(targetMonth, options = {}) {
   const data = getMonthlyReportData(targetMonth);
-  const rangeText = `${formatDateYmd(data.from)}、E{formatDateYmd(data.to)}`;
-  const fiscalText = `${formatDateYmd(data.fiscalFrom)}、E{formatDateYmd(data.fiscalTo)}`;
+  const rangeText = `${formatDateYmd(data.from)}〜${formatDateYmd(data.to)}`;
+  const fiscalText = `${formatDateYmd(data.fiscalFrom)}〜${formatDateYmd(data.fiscalTo)}`;
   const preferredAction = options.preferredAction === "pdf" ? "pdf" : "print";
 
   const renderSection = (title, entries, emptyMessage) => `
@@ -8894,10 +8289,10 @@ function buildMonthlyReportHtml(targetMonth, options = {}) {
         <table class="monthly-table">
           <thead>
             <tr>
-              <th>区刁E/th>
+              <th>区分</th>
               <th>件数</th>
               <th>総作業時間</th>
-              <th>延べ人晁E/th>
+              <th>延べ人時</th>
               <th>概算人件費</th>
             </tr>
           </thead>
@@ -8967,41 +8362,41 @@ function buildMonthlyReportHtml(targetMonth, options = {}) {
         <header class="monthly-toolbar">
           <div>
             <h1>月報プレビュー</h1>
-            <p>対象年朁E ${escapeHtml(data.monthLabel)}</p>
-            <p class="monthly-toolbar__hint">Androidは「PDF保存」�E「�E有」で印刷アプリへ渡すと安定しめE��ぁE��す、E/p>
+            <p>対象年月: ${escapeHtml(data.monthLabel)}</p>
+            <p class="monthly-toolbar__hint">Androidは「PDF保存」→「共有」で印刷アプリへ渡すと安定しやすいです。</p>
           </div>
           <div class="monthly-actions">
-            <button class="monthly-button monthly-button--print" type="button" onclick="window.print()">こ�E画面を印刷</button>
-            <button class="monthly-button monthly-button--pdf" id="monthlyPdfButton" type="button" onclick="window.print()">PDF保孁E/button>
-            <button class="monthly-button monthly-button--share" id="monthlyShareButton" type="button">共朁E/button>
-            <button class="monthly-button monthly-button--close" type="button" onclick="window.close()">閉じめE/button>
+            <button class="monthly-button monthly-button--print" type="button" onclick="window.print()">この画面を印刷</button>
+            <button class="monthly-button monthly-button--pdf" id="monthlyPdfButton" type="button" onclick="window.print()">PDF保存</button>
+            <button class="monthly-button monthly-button--share" id="monthlyShareButton" type="button">共有</button>
+            <button class="monthly-button monthly-button--close" type="button" onclick="window.close()">閉じる</button>
           </div>
         </header>
         <main class="monthly-body">
           <section class="monthly-header">
             <p class="monthly-app-name">(株)大成園　作業記録アプリ</p>
-            <h2 class="monthly-title">月次レポ�Eト（月報�E�E/h2>
-            <p class="monthly-meta">対象年朁E ${escapeHtml(data.monthLabel)}</p>
-            <p class="monthly-meta">雁E��期閁E ${escapeHtml(rangeText)}</p>
+            <h2 class="monthly-title">月次レポート（月報）</h2>
+            <p class="monthly-meta">対象年月: ${escapeHtml(data.monthLabel)}</p>
+            <p class="monthly-meta">集計期間: ${escapeHtml(rangeText)}</p>
             <p class="monthly-meta">該当決算年度: ${escapeHtml(fiscalText)}</p>
             <div class="monthly-summary">
               <div class="monthly-summary__item"><span>月間総作業件数</span><strong>${escapeHtml(formatCount(data.summary.count))}</strong></div>
               <div class="monthly-summary__item"><span>月間総作業時間</span><strong>${escapeHtml(formatHours(data.summary.hours))}</strong></div>
-              <div class="monthly-summary__item"><span>月間総延べ人晁E/span><strong>${escapeHtml(formatPersonHours(data.summary.personHours))}</strong></div>
+              <div class="monthly-summary__item"><span>月間総延べ人時</span><strong>${escapeHtml(formatPersonHours(data.summary.personHours))}</strong></div>
               <div class="monthly-summary__item"><span>月間総概算人件費</span><strong>${escapeHtml(formatCurrency(data.summary.laborCost))}</strong></div>
             </div>
           </section>
-          ${renderSection("園地別の月間雁E��E, data.orchardEntries, "園地チE�Eタはありません、E)}
-          ${renderSection("区画別の月間雁E��E, data.plotEntries, "区画チE�Eタはありません、E)}
-          ${renderSection("作業区刁E��の月間雁E��E, data.taskEntries, "作業区刁E��ータはありません、E)}
-          ${renderSection("作業グループ別の月間雁E��E, data.groupEntries, "作業グループデータはありません、E)}
+          ${renderSection("園地別の月間集計", data.orchardEntries, "園地データはありません。")}
+          ${renderSection("区画別の月間集計", data.plotEntries, "区画データはありません。")}
+          ${renderSection("作業区分別の月間集計", data.taskEntries, "作業区分データはありません。")}
+          ${renderSection("作業グループ別の月間集計", data.groupEntries, "作業グループデータはありません。")}
           <section class="monthly-section">
-            <h3>作業老E��の月間総作業時間</h3>
+            <h3>作業者別の月間総作業時間</h3>
             <div class="monthly-table-wrap">
               <table class="monthly-table">
                 <thead>
                   <tr>
-                    <th>作業老E/th>
+                    <th>作業者</th>
                     <th>総作業時間</th>
                   </tr>
                 </thead>
@@ -9020,17 +8415,17 @@ function buildMonthlyReportHtml(targetMonth, options = {}) {
             if (shareButton) {
               if (!navigator.share) {
                 shareButton.disabled = true;
-                shareButton.textContent = "共有未対忁E;
+                shareButton.textContent = "共有未対応";
               } else {
                 shareButton.addEventListener("click", async () => {
                   try {
                     await navigator.share({
                       title: document.title,
-                      text: "月報を�E有しまぁE
+                      text: "月報を共有します"
                     });
                   } catch (error) {
                     if (error && error.name === "AbortError") return;
-                    window.alert("共有に失敗しました、E);
+                    window.alert("共有に失敗しました。");
                   }
                 });
               }
@@ -9047,7 +8442,7 @@ function buildMonthlyReportHtml(targetMonth, options = {}) {
 
 function openMonthlyReportWindow(preferredAction = "print") {
   if (!monthlyReportMonthInput || !monthlyReportMonthInput.value) {
-    window.alert("月報対象年月を選択してください、E);
+    window.alert("月報対象年月を選択してください。");
     return;
   }
   const targetMonth = monthlyReportMonthInput.value;
@@ -9055,13 +8450,13 @@ function openMonthlyReportWindow(preferredAction = "print") {
   openGeneratedDocumentWindow(html, {
     width: 1280,
     height: 920,
-    popupBlockedMessage: "月報画面を開けませんでした。ブラウザのポップアチE�E設定を確認してください、E
+    popupBlockedMessage: "月報画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
   });
 }
 
 async function shareMonthlyReportFromMainPage() {
   if (!monthlyReportMonthInput || !monthlyReportMonthInput.value) {
-    window.alert("月報対象年月を選択してください、E);
+    window.alert("月報対象年月を選択してください。");
     return;
   }
   const targetMonth = monthlyReportMonthInput.value;
@@ -9070,22 +8465,22 @@ async function shareMonthlyReportFromMainPage() {
     html,
     fileName: `taiseien-monthly-report-${targetMonth}.html`,
     title: "(株)大成園 月報",
-    text: `${targetMonth} の月報を�E有します`
+    text: `${targetMonth} の月報を共有します`
   });
 }
 
 function exportMonthlyReportCsv() {
   if (!monthlyReportMonthInput || !monthlyReportMonthInput.value) {
-    window.alert("月報対象年月を選択してください、E);
+    window.alert("月報対象年月を選択してください。");
     return;
   }
   const data = getMonthlyReportData(monthlyReportMonthInput.value);
-  const rangeText = `${formatDateYmd(data.from)}、E{formatDateYmd(data.to)}`;
-  const fiscalText = `${formatDateYmd(data.fiscalFrom)}、E{formatDateYmd(data.fiscalTo)}`;
+  const rangeText = `${formatDateYmd(data.from)}〜${formatDateYmd(data.to)}`;
+  const fiscalText = `${formatDateYmd(data.fiscalFrom)}〜${formatDateYmd(data.fiscalTo)}`;
 
   const rows = [
-    ["雁E��区刁E, "名称", "件数", "総作業時間", "延べ人晁E, "概算人件費", "対象年朁E, "雁E��期閁E, "該当決算年度"],
-    ["月間合訁E, "全佁E, data.summary.count, data.summary.hours, data.summary.personHours, data.summary.laborCost, data.monthLabel, rangeText, fiscalText]
+    ["集計区分", "名称", "件数", "総作業時間", "延べ人時", "概算人件費", "対象年月", "集計期間", "該当決算年度"],
+    ["月間合計", "全体", data.summary.count, data.summary.hours, data.summary.personHours, data.summary.laborCost, data.monthLabel, rangeText, fiscalText]
   ];
 
   const pushMetricRows = (sectionLabel, entries) => {
@@ -9096,10 +8491,10 @@ function exportMonthlyReportCsv() {
 
   pushMetricRows("園地別", data.orchardEntries);
   pushMetricRows("区画別", data.plotEntries);
-  pushMetricRows("作業区刁E��", data.taskEntries);
+  pushMetricRows("作業区分別", data.taskEntries);
   pushMetricRows("作業グループ別", data.groupEntries);
   data.workerHoursEntries.forEach((entry) => {
-    rows.push(["作業老E��", entry.label, "", entry.hours, "", "", data.monthLabel, rangeText, fiscalText]);
+    rows.push(["作業者別", entry.label, "", entry.hours, "", "", data.monthLabel, rangeText, fiscalText]);
   });
 
   const csv = rows.map((row) => row.map(escapeCsvValue).join(",")).join("\n");
@@ -9116,8 +8511,8 @@ function buildTaskTypeReportHtml() {
   const reportData = buildTaskTypeReportData();
   const config = reportData.periodConfig;
   const metricLabel = getSortMetricLabel(reportData.metric);
-  const sortLabel = reportData.sortOrder === "asc" ? "少なぁE��E : "多い頁E;
-  const periodRangeText = config.rangeText || `${formatDateYmd(config.from)}、E{formatDateYmd(config.to)}`;
+  const sortLabel = reportData.sortOrder === "asc" ? "少ない順" : "多い順";
+  const periodRangeText = config.rangeText || `${formatDateYmd(config.from)}〜${formatDateYmd(config.to)}`;
 
   const renderMetricSection = (title, entries, emptyMessage, labelColumn) => `
     <section class="task-type-section">
@@ -9129,7 +8524,7 @@ function buildTaskTypeReportHtml() {
               <th>${escapeHtml(labelColumn)}</th>
               <th>件数</th>
               <th>総作業時間</th>
-              <th>延べ人晁E/th>
+              <th>延べ人時</th>
               <th>概算人件費</th>
             </tr>
           </thead>
@@ -9143,17 +8538,17 @@ function buildTaskTypeReportHtml() {
 
   const renderWorkerSection = (entries) => `
     <section class="task-type-section">
-      <h4>作業老E��総作業時間</h4>
+      <h4>作業者別総作業時間</h4>
       <div class="task-type-table-wrap">
         <table class="task-type-table">
           <thead>
             <tr>
-              <th>作業老E/th>
+              <th>作業者</th>
               <th>総作業時間</th>
             </tr>
           </thead>
           <tbody>
-            ${buildTaskTypeWorkerRowsHtml(entries, "作業老E��チE�Eタはありません、E)}
+            ${buildTaskTypeWorkerRowsHtml(entries, "作業者別データはありません。")}
           </tbody>
         </table>
       </div>
@@ -9167,13 +8562,13 @@ function buildTaskTypeReportHtml() {
         <div class="task-type-card__summary">
           <span>件数: <strong>${escapeHtml(formatCount(entry.count))}</strong></span>
           <span>総作業時間: <strong>${escapeHtml(formatHours(entry.hours))}</strong></span>
-          <span>延べ人晁E <strong>${escapeHtml(formatPersonHours(entry.personHours))}</strong></span>
+          <span>延べ人時: <strong>${escapeHtml(formatPersonHours(entry.personHours))}</strong></span>
           <span>概算人件費: <strong>${escapeHtml(formatCurrency(entry.laborCost))}</strong></span>
         </div>
       </header>
-      ${renderMetricSection("園地別冁E��", entry.orchardEntries, "園地別チE�Eタはありません、E, "園地")}
-      ${renderMetricSection("区画別冁E��", entry.plotEntries, "区画別チE�Eタはありません、E, "区画")}
-      ${renderMetricSection("作業グループ別雁E��E, entry.groupEntries, "作業グループ別チE�Eタはありません、E, "作業グルーチE)}
+      ${renderMetricSection("園地別内訳", entry.orchardEntries, "園地別データはありません。", "園地")}
+      ${renderMetricSection("区画別内訳", entry.plotEntries, "区画別データはありません。", "区画")}
+      ${renderMetricSection("作業グループ別集計", entry.groupEntries, "作業グループ別データはありません。", "作業グループ")}
       ${renderWorkerSection(entry.workerEntries)}
     </section>
   `).join("");
@@ -9183,7 +8578,7 @@ function buildTaskTypeReportHtml() {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>(株)大成園　作業記録アプリ 作業区刁E��レポ�EチE/title>
+        <title>(株)大成園　作業記録アプリ 作業区分別レポート</title>
         <style>
           @page { size: A4 portrait; margin: 12mm; }
           * { box-sizing: border-box; }
@@ -9237,29 +8632,29 @@ function buildTaskTypeReportHtml() {
       <body>
         <header class="task-type-toolbar">
           <div>
-            <h1>作業区刁E��レポ�EチE/h1>
+            <h1>作業区分別レポート</h1>
             <p>対象期間: ${escapeHtml(config.label)} / ${escapeHtml(periodRangeText)}</p>
           </div>
           <div class="task-type-actions">
-            <button class="task-type-button task-type-button--print" type="button" onclick="window.print()">こ�E画面を印刷</button>
-            <button class="task-type-button task-type-button--close" type="button" onclick="window.close()">閉じめE/button>
+            <button class="task-type-button task-type-button--print" type="button" onclick="window.print()">この画面を印刷</button>
+            <button class="task-type-button task-type-button--close" type="button" onclick="window.close()">閉じる</button>
           </div>
         </header>
         <main class="task-type-body">
           <section class="task-type-header">
             <p class="task-type-app">(株)大成園　作業記録アプリ</p>
-            <h2 class="task-type-title">作業区刁E��レポ�EチE/h2>
-            <p class="task-type-meta">比輁E��閁E ${escapeHtml(config.label)}</p>
-            <p class="task-type-meta">期間篁E��: ${escapeHtml(periodRangeText)}</p>
-            <p class="task-type-meta">並び替え基溁E ${escapeHtml(metricLabel)} / 並び頁E ${escapeHtml(sortLabel)}</p>
+            <h2 class="task-type-title">作業区分別レポート</h2>
+            <p class="task-type-meta">比較期間: ${escapeHtml(config.label)}</p>
+            <p class="task-type-meta">期間範囲: ${escapeHtml(periodRangeText)}</p>
+            <p class="task-type-meta">並び替え基準: ${escapeHtml(metricLabel)} / 並び順: ${escapeHtml(sortLabel)}</p>
             <div class="task-type-summary">
               <div class="task-type-summary__item"><span>総作業件数</span><strong>${escapeHtml(formatCount(reportData.summary.count))}</strong></div>
               <div class="task-type-summary__item"><span>総作業時間</span><strong>${escapeHtml(formatHours(reportData.summary.hours))}</strong></div>
-              <div class="task-type-summary__item"><span>総延べ人晁E/span><strong>${escapeHtml(formatPersonHours(reportData.summary.personHours))}</strong></div>
+              <div class="task-type-summary__item"><span>総延べ人時</span><strong>${escapeHtml(formatPersonHours(reportData.summary.personHours))}</strong></div>
               <div class="task-type-summary__item"><span>総概算人件費</span><strong>${escapeHtml(formatCurrency(reportData.summary.laborCost))}</strong></div>
             </div>
           </section>
-          ${taskSectionHtml || `<section class="task-type-card"><p>条件を満たす作業区刁E��チE�Eタはありません、E/p></section>`}
+          ${taskSectionHtml || `<section class="task-type-card"><p>条件を満たす作業区分別データはありません。</p></section>`}
         </main>
       </body>
     </html>
@@ -9269,13 +8664,13 @@ function buildTaskTypeReportHtml() {
 function openTaskTypeReportWindow() {
   const config = getTaskReportPeriodConfig();
   if (!config.isValid) {
-    window.alert(config.error || "比輁E��件を確認してください、E);
+    window.alert(config.error || "比較条件を確認してください。");
     return;
   }
   openGeneratedDocumentWindow(buildTaskTypeReportHtml(), {
     width: 1280,
     height: 920,
-    popupBlockedMessage: "作業区刁E��レポ�Eト画面を開けませんでした。ブラウザのポップアチE�E設定を確認してください、E
+    popupBlockedMessage: "作業区分別レポート画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
   });
 }
 
@@ -9283,31 +8678,31 @@ function exportTaskTypeReportCsv() {
   const reportData = buildTaskTypeReportData();
   const config = reportData.periodConfig;
   if (!config.isValid) {
-    window.alert(config.error || "比輁E��件を確認してください、E);
+    window.alert(config.error || "比較条件を確認してください。");
     return;
   }
-  const periodRangeText = config.rangeText || `${formatDateYmd(config.from)}、E{formatDateYmd(config.to)}`;
+  const periodRangeText = config.rangeText || `${formatDateYmd(config.from)}〜${formatDateYmd(config.to)}`;
   const metricLabel = getSortMetricLabel(reportData.metric);
-  const sortLabel = reportData.sortOrder === "asc" ? "少なぁE��E : "多い頁E;
+  const sortLabel = reportData.sortOrder === "asc" ? "少ない順" : "多い順";
 
   const rows = [
-    ["レポ�Eト区刁E, "作業区刁E, "冁E��区刁E, "名称", "件数", "総作業時間", "総延べ人晁E, "総概算人件費", "比輁E��閁E, "期間篁E��", "並び替え基溁E, "並び頁E],
-    ["期間合訁E, "全作業区刁E, "-", "全佁E, reportData.summary.count, reportData.summary.hours, reportData.summary.personHours, reportData.summary.laborCost, config.label, periodRangeText, metricLabel, sortLabel]
+    ["レポート区分", "作業区分", "内訳区分", "名称", "件数", "総作業時間", "総延べ人時", "総概算人件費", "比較期間", "期間範囲", "並び替え基準", "並び順"],
+    ["期間合計", "全作業区分", "-", "全体", reportData.summary.count, reportData.summary.hours, reportData.summary.personHours, reportData.summary.laborCost, config.label, periodRangeText, metricLabel, sortLabel]
   ];
 
   reportData.taskEntries.forEach((taskEntry) => {
-    rows.push(["作業区刁E��", taskEntry.label, "合訁E, taskEntry.label, taskEntry.count, taskEntry.hours, taskEntry.personHours, taskEntry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
+    rows.push(["作業区分別", taskEntry.label, "合計", taskEntry.label, taskEntry.count, taskEntry.hours, taskEntry.personHours, taskEntry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
     taskEntry.orchardEntries.forEach((entry) => {
-      rows.push(["作業区刁E��", taskEntry.label, "園地別冁E��", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
+      rows.push(["作業区分別", taskEntry.label, "園地別内訳", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
     });
     taskEntry.plotEntries.forEach((entry) => {
-      rows.push(["作業区刁E��", taskEntry.label, "区画別冁E��", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
+      rows.push(["作業区分別", taskEntry.label, "区画別内訳", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
     });
     taskEntry.groupEntries.forEach((entry) => {
-      rows.push(["作業区刁E��", taskEntry.label, "作業グループ別", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
+      rows.push(["作業区分別", taskEntry.label, "作業グループ別", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
     });
     taskEntry.workerEntries.forEach((entry) => {
-      rows.push(["作業区刁E��", taskEntry.label, "作業老E��時間", entry.label, "", entry.hours, "", "", config.label, periodRangeText, metricLabel, sortLabel]);
+      rows.push(["作業区分別", taskEntry.label, "作業者別時間", entry.label, "", entry.hours, "", "", config.label, periodRangeText, metricLabel, sortLabel]);
     });
   });
 
@@ -9326,8 +8721,8 @@ function buildVarietyTypeReportHtml() {
   const reportData = buildVarietyTypeReportData();
   const config = reportData.periodConfig;
   const metricLabel = getSortMetricLabel(reportData.metric);
-  const sortLabel = reportData.sortOrder === "asc" ? "少なぁE��E : "多い頁E;
-  const periodRangeText = config.rangeText || `${formatDateYmd(config.from)}、E{formatDateYmd(config.to)}`;
+  const sortLabel = reportData.sortOrder === "asc" ? "少ない順" : "多い順";
+  const periodRangeText = config.rangeText || `${formatDateYmd(config.from)}〜${formatDateYmd(config.to)}`;
 
   const renderMetricSection = (title, entries, emptyMessage, labelColumn) => `
     <section class="variety-type-section">
@@ -9339,7 +8734,7 @@ function buildVarietyTypeReportHtml() {
               <th>${escapeHtml(labelColumn)}</th>
               <th>件数</th>
               <th>総作業時間</th>
-              <th>延べ人晁E/th>
+              <th>延べ人時</th>
               <th>概算人件費</th>
             </tr>
           </thead>
@@ -9353,17 +8748,17 @@ function buildVarietyTypeReportHtml() {
 
   const renderWorkerSection = (entries) => `
     <section class="variety-type-section">
-      <h4>作業老E��総作業時間</h4>
+      <h4>作業者別総作業時間</h4>
       <div class="variety-type-table-wrap">
         <table class="variety-type-table">
           <thead>
             <tr>
-              <th>作業老E/th>
+              <th>作業者</th>
               <th>総作業時間</th>
             </tr>
           </thead>
           <tbody>
-            ${buildTaskTypeWorkerRowsHtml(entries, "作業老E��チE�Eタはありません、E)}
+            ${buildTaskTypeWorkerRowsHtml(entries, "作業者別データはありません。")}
           </tbody>
         </table>
       </div>
@@ -9377,14 +8772,14 @@ function buildVarietyTypeReportHtml() {
         <div class="variety-type-card__summary">
           <span>件数: <strong>${escapeHtml(formatCount(entry.count))}</strong></span>
           <span>総作業時間: <strong>${escapeHtml(formatHours(entry.hours))}</strong></span>
-          <span>延べ人晁E <strong>${escapeHtml(formatPersonHours(entry.personHours))}</strong></span>
+          <span>延べ人時: <strong>${escapeHtml(formatPersonHours(entry.personHours))}</strong></span>
           <span>概算人件費: <strong>${escapeHtml(formatCurrency(entry.laborCost))}</strong></span>
         </div>
       </header>
-      ${renderMetricSection("園地別冁E��", entry.orchardEntries, "園地別チE�Eタはありません、E, "園地")}
-      ${renderMetricSection("区画別冁E��", entry.plotEntries, "区画別チE�Eタはありません、E, "区画")}
-      ${renderMetricSection("作業区刁E��冁E��", entry.taskEntries, "作業区刁E��チE�Eタはありません、E, "作業区刁E)}
-      ${renderMetricSection("作業グループ別雁E��E, entry.groupEntries, "作業グループ別チE�Eタはありません、E, "作業グルーチE)}
+      ${renderMetricSection("園地別内訳", entry.orchardEntries, "園地別データはありません。", "園地")}
+      ${renderMetricSection("区画別内訳", entry.plotEntries, "区画別データはありません。", "区画")}
+      ${renderMetricSection("作業区分別内訳", entry.taskEntries, "作業区分別データはありません。", "作業区分")}
+      ${renderMetricSection("作業グループ別集計", entry.groupEntries, "作業グループ別データはありません。", "作業グループ")}
       ${renderWorkerSection(entry.workerEntries)}
     </section>
   `).join("");
@@ -9394,7 +8789,7 @@ function buildVarietyTypeReportHtml() {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>(株)大成園　作業記録アプリ 品種別レポ�EチE/title>
+        <title>(株)大成園　作業記録アプリ 品種別レポート</title>
         <style>
           @page { size: A4 portrait; margin: 12mm; }
           * { box-sizing: border-box; }
@@ -9448,29 +8843,29 @@ function buildVarietyTypeReportHtml() {
       <body>
         <header class="variety-type-toolbar">
           <div>
-            <h1>品種別レポ�EチE/h1>
+            <h1>品種別レポート</h1>
             <p>対象期間: ${escapeHtml(config.label)} / ${escapeHtml(periodRangeText)}</p>
           </div>
           <div class="variety-type-actions">
-            <button class="variety-type-button variety-type-button--print" type="button" onclick="window.print()">こ�E画面を印刷</button>
-            <button class="variety-type-button variety-type-button--close" type="button" onclick="window.close()">閉じめE/button>
+            <button class="variety-type-button variety-type-button--print" type="button" onclick="window.print()">この画面を印刷</button>
+            <button class="variety-type-button variety-type-button--close" type="button" onclick="window.close()">閉じる</button>
           </div>
         </header>
         <main class="variety-type-body">
           <section class="variety-type-header">
             <p class="variety-type-app">(株)大成園　作業記録アプリ</p>
-            <h2 class="variety-type-title">品種別レポ�EチE/h2>
-            <p class="variety-type-meta">比輁E��閁E ${escapeHtml(config.label)}</p>
-            <p class="variety-type-meta">期間篁E��: ${escapeHtml(periodRangeText)}</p>
-            <p class="variety-type-meta">並び替え基溁E ${escapeHtml(metricLabel)} / 並び頁E ${escapeHtml(sortLabel)}</p>
+            <h2 class="variety-type-title">品種別レポート</h2>
+            <p class="variety-type-meta">比較期間: ${escapeHtml(config.label)}</p>
+            <p class="variety-type-meta">期間範囲: ${escapeHtml(periodRangeText)}</p>
+            <p class="variety-type-meta">並び替え基準: ${escapeHtml(metricLabel)} / 並び順: ${escapeHtml(sortLabel)}</p>
             <div class="variety-type-summary">
               <div class="variety-type-summary__item"><span>総作業件数</span><strong>${escapeHtml(formatCount(reportData.summary.count))}</strong></div>
               <div class="variety-type-summary__item"><span>総作業時間</span><strong>${escapeHtml(formatHours(reportData.summary.hours))}</strong></div>
-              <div class="variety-type-summary__item"><span>総延べ人晁E/span><strong>${escapeHtml(formatPersonHours(reportData.summary.personHours))}</strong></div>
+              <div class="variety-type-summary__item"><span>総延べ人時</span><strong>${escapeHtml(formatPersonHours(reportData.summary.personHours))}</strong></div>
               <div class="variety-type-summary__item"><span>総概算人件費</span><strong>${escapeHtml(formatCurrency(reportData.summary.laborCost))}</strong></div>
             </div>
           </section>
-          ${varietySectionHtml || `<section class="variety-type-card"><p>条件を満たす品種別チE�Eタはありません、E/p></section>`}
+          ${varietySectionHtml || `<section class="variety-type-card"><p>条件を満たす品種別データはありません。</p></section>`}
         </main>
       </body>
     </html>
@@ -9480,13 +8875,13 @@ function buildVarietyTypeReportHtml() {
 function openVarietyTypeReportWindow() {
   const config = getVarietyReportPeriodConfig();
   if (!config.isValid) {
-    window.alert(config.error || "比輁E��件を確認してください、E);
+    window.alert(config.error || "比較条件を確認してください。");
     return;
   }
   openGeneratedDocumentWindow(buildVarietyTypeReportHtml(), {
     width: 1280,
     height: 920,
-    popupBlockedMessage: "品種別レポ�Eト画面を開けませんでした。ブラウザのポップアチE�E設定を確認してください、E
+    popupBlockedMessage: "品種別レポート画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
   });
 }
 
@@ -9494,34 +8889,34 @@ function exportVarietyTypeReportCsv() {
   const reportData = buildVarietyTypeReportData();
   const config = reportData.periodConfig;
   if (!config.isValid) {
-    window.alert(config.error || "比輁E��件を確認してください、E);
+    window.alert(config.error || "比較条件を確認してください。");
     return;
   }
-  const periodRangeText = config.rangeText || `${formatDateYmd(config.from)}、E{formatDateYmd(config.to)}`;
+  const periodRangeText = config.rangeText || `${formatDateYmd(config.from)}〜${formatDateYmd(config.to)}`;
   const metricLabel = getSortMetricLabel(reportData.metric);
-  const sortLabel = reportData.sortOrder === "asc" ? "少なぁE��E : "多い頁E;
+  const sortLabel = reportData.sortOrder === "asc" ? "少ない順" : "多い順";
 
   const rows = [
-    ["レポ�Eト区刁E, "品種", "冁E��区刁E, "名称", "件数", "総作業時間", "総延べ人晁E, "総概算人件費", "比輁E��閁E, "期間篁E��", "並び替え基溁E, "並び頁E],
-    ["期間合訁E, "全品種", "-", "全佁E, reportData.summary.count, reportData.summary.hours, reportData.summary.personHours, reportData.summary.laborCost, config.label, periodRangeText, metricLabel, sortLabel]
+    ["レポート区分", "品種", "内訳区分", "名称", "件数", "総作業時間", "総延べ人時", "総概算人件費", "比較期間", "期間範囲", "並び替え基準", "並び順"],
+    ["期間合計", "全品種", "-", "全体", reportData.summary.count, reportData.summary.hours, reportData.summary.personHours, reportData.summary.laborCost, config.label, periodRangeText, metricLabel, sortLabel]
   ];
 
   reportData.varietyEntries.forEach((varietyEntry) => {
-    rows.push(["品種別", varietyEntry.label, "合訁E, varietyEntry.label, varietyEntry.count, varietyEntry.hours, varietyEntry.personHours, varietyEntry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
+    rows.push(["品種別", varietyEntry.label, "合計", varietyEntry.label, varietyEntry.count, varietyEntry.hours, varietyEntry.personHours, varietyEntry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
     varietyEntry.orchardEntries.forEach((entry) => {
-      rows.push(["品種別", varietyEntry.label, "園地別冁E��", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
+      rows.push(["品種別", varietyEntry.label, "園地別内訳", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
     });
     varietyEntry.plotEntries.forEach((entry) => {
-      rows.push(["品種別", varietyEntry.label, "区画別冁E��", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
+      rows.push(["品種別", varietyEntry.label, "区画別内訳", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
     });
     varietyEntry.taskEntries.forEach((entry) => {
-      rows.push(["品種別", varietyEntry.label, "作業区刁E��冁E��", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
+      rows.push(["品種別", varietyEntry.label, "作業区分別内訳", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
     });
     varietyEntry.groupEntries.forEach((entry) => {
       rows.push(["品種別", varietyEntry.label, "作業グループ別", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, config.label, periodRangeText, metricLabel, sortLabel]);
     });
     varietyEntry.workerEntries.forEach((entry) => {
-      rows.push(["品種別", varietyEntry.label, "作業老E��時間", entry.label, "", entry.hours, "", "", config.label, periodRangeText, metricLabel, sortLabel]);
+      rows.push(["品種別", varietyEntry.label, "作業者別時間", entry.label, "", entry.hours, "", "", config.label, periodRangeText, metricLabel, sortLabel]);
     });
   });
 
@@ -9539,7 +8934,7 @@ function exportVarietyTypeReportCsv() {
 function buildAnnualReportHtml(options = {}) {
   const data = getAnnualReportData();
   const metricLabel = getSortMetricLabel(data.metric);
-  const sortLabel = data.sortOrder === "asc" ? "少なぁE��E : "多い頁E;
+  const sortLabel = data.sortOrder === "asc" ? "少ない順" : "多い順";
   const preferredAction = options.preferredAction === "pdf" ? "pdf" : "print";
 
   const renderMetricSection = (title, entries, emptyMessage, labelColumn) => `
@@ -9552,7 +8947,7 @@ function buildAnnualReportHtml(options = {}) {
               <th>${escapeHtml(labelColumn)}</th>
               <th>件数</th>
               <th>総作業時間</th>
-              <th>延べ人晁E/th>
+              <th>延べ人時</th>
               <th>概算人件費</th>
             </tr>
           </thead>
@@ -9569,7 +8964,7 @@ function buildAnnualReportHtml(options = {}) {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>(株)大成園　作業記録アプリ 年度レポ�Eト総合牁E/title>
+        <title>(株)大成園　作業記録アプリ 年度レポート総合版</title>
         <style>
           @page { size: A4 portrait; margin: 12mm; }
           * { box-sizing: border-box; }
@@ -9621,44 +9016,44 @@ function buildAnnualReportHtml(options = {}) {
       <body>
         <header class="annual-toolbar">
           <div>
-            <h1>年度レポ�Eト総合牁E/h1>
+            <h1>年度レポート総合版</h1>
             <p>対象決算年度: ${escapeHtml(data.periodLabel)}</p>
-            <p class="annual-toolbar__hint">Androidは「PDF保存」�E「�E有」で印刷アプリへ渡すと安定しめE��ぁE��す、E/p>
+            <p class="annual-toolbar__hint">Androidは「PDF保存」→「共有」で印刷アプリへ渡すと安定しやすいです。</p>
           </div>
           <div class="annual-actions">
-            <button class="annual-button annual-button--print" type="button" onclick="window.print()">こ�E画面を印刷</button>
-            <button class="annual-button annual-button--pdf" id="annualPdfButton" type="button" onclick="window.print()">PDF保孁E/button>
-            <button class="annual-button annual-button--share" id="annualShareButton" type="button">共朁E/button>
-            <button class="annual-button annual-button--close" type="button" onclick="window.close()">閉じめE/button>
+            <button class="annual-button annual-button--print" type="button" onclick="window.print()">この画面を印刷</button>
+            <button class="annual-button annual-button--pdf" id="annualPdfButton" type="button" onclick="window.print()">PDF保存</button>
+            <button class="annual-button annual-button--share" id="annualShareButton" type="button">共有</button>
+            <button class="annual-button annual-button--close" type="button" onclick="window.close()">閉じる</button>
           </div>
         </header>
         <main class="annual-body">
           <section class="annual-header">
             <p class="annual-app-name">(株)大成園　作業記録アプリ</p>
-            <h2 class="annual-title">年度レポ�Eト総合牁E/h2>
+            <h2 class="annual-title">年度レポート総合版</h2>
             <p class="annual-meta">対象決算年度: ${escapeHtml(data.periodLabel)}</p>
-            <p class="annual-meta">並び替え基溁E ${escapeHtml(metricLabel)} / 並び頁E ${escapeHtml(sortLabel)}</p>
+            <p class="annual-meta">並び替え基準: ${escapeHtml(metricLabel)} / 並び順: ${escapeHtml(sortLabel)}</p>
             <div class="annual-summary">
               <div class="annual-summary__item"><span>対象決算年度</span><strong>${escapeHtml(data.periodLabel)}</strong></div>
               <div class="annual-summary__item"><span>総作業件数</span><strong>${escapeHtml(formatCount(data.summary.count))}</strong></div>
               <div class="annual-summary__item"><span>総作業時間</span><strong>${escapeHtml(formatHours(data.summary.hours))}</strong></div>
-              <div class="annual-summary__item"><span>総延べ人晁E/span><strong>${escapeHtml(formatPersonHours(data.summary.personHours))}</strong></div>
+              <div class="annual-summary__item"><span>総延べ人時</span><strong>${escapeHtml(formatPersonHours(data.summary.personHours))}</strong></div>
               <div class="annual-summary__item"><span>総概算人件費</span><strong>${escapeHtml(formatCurrency(data.summary.laborCost))}</strong></div>
             </div>
           </section>
-          ${renderMetricSection("園地別年間集訁E, data.orchardEntries, "園地チE�Eタはありません、E, "園地")}
-          ${renderMetricSection("区画別年間集訁E, data.plotEntries, "区画チE�Eタはありません、E, "区画")}
-          ${renderMetricSection("作業区刁E��年間集訁E, data.taskEntries, "作業区刁E��ータはありません、E, "作業区刁E)}
-          ${renderMetricSection("品種別年間集訁E, data.varietyEntries, "品種チE�Eタはありません、E, "品種")}
-          ${renderMetricSection("グループ別年間集訁E, data.groupEntries, "グループデータはありません、E, "作業グルーチE)}
+          ${renderMetricSection("園地別年間集計", data.orchardEntries, "園地データはありません。", "園地")}
+          ${renderMetricSection("区画別年間集計", data.plotEntries, "区画データはありません。", "区画")}
+          ${renderMetricSection("作業区分別年間集計", data.taskEntries, "作業区分データはありません。", "作業区分")}
+          ${renderMetricSection("品種別年間集計", data.varietyEntries, "品種データはありません。", "品種")}
+          ${renderMetricSection("グループ別年間集計", data.groupEntries, "グループデータはありません。", "作業グループ")}
           <section class="annual-section">
-            <h4>作業老E��年間総作業時間</h4>
+            <h4>作業者別年間総作業時間</h4>
             <div class="annual-table-wrap">
               <table class="annual-table">
                 <thead>
-                  <tr><th>作業老E/th><th>総作業時間</th></tr>
+                  <tr><th>作業者</th><th>総作業時間</th></tr>
                 </thead>
-                <tbody>${buildTaskTypeWorkerRowsHtml(data.workerHoursEntries, "作業老E��チE�Eタはありません、E)}</tbody>
+                <tbody>${buildTaskTypeWorkerRowsHtml(data.workerHoursEntries, "作業者別データはありません。")}</tbody>
               </table>
             </div>
           </section>
@@ -9671,17 +9066,17 @@ function buildAnnualReportHtml(options = {}) {
             if (shareButton) {
               if (!navigator.share) {
                 shareButton.disabled = true;
-                shareButton.textContent = "共有未対忁E;
+                shareButton.textContent = "共有未対応";
               } else {
                 shareButton.addEventListener("click", async () => {
                   try {
                     await navigator.share({
                       title: document.title,
-                      text: "年度レポ�Eト総合版を共有しまぁE
+                      text: "年度レポート総合版を共有します"
                     });
                   } catch (error) {
                     if (error && error.name === "AbortError") return;
-                    window.alert("共有に失敗しました、E);
+                    window.alert("共有に失敗しました。");
                   }
                 });
               }
@@ -9701,7 +9096,7 @@ function openAnnualReportWindow(preferredAction = "print") {
   openGeneratedDocumentWindow(html, {
     width: 1280,
     height: 920,
-    popupBlockedMessage: "年度レポ�Eト画面を開けませんでした。ブラウザのポップアチE�E設定を確認してください、E
+    popupBlockedMessage: "年度レポート画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
   });
 }
 
@@ -9710,32 +9105,32 @@ async function shareAnnualReportFromMainPage() {
   await shareReportHtmlFromMainPage({
     html,
     fileName: "taiseien-annual-report.html",
-    title: "(株)大成園 年度レポ�Eト総合牁E,
-    text: "年度レポ�Eト総合版を共有しまぁE
+    title: "(株)大成園 年度レポート総合版",
+    text: "年度レポート総合版を共有します"
   });
 }
 
 function exportAnnualReportCsv() {
   const data = getAnnualReportData();
   const metricLabel = getSortMetricLabel(data.metric);
-  const sortLabel = data.sortOrder === "asc" ? "少なぁE��E : "多い頁E;
+  const sortLabel = data.sortOrder === "asc" ? "少ない順" : "多い順";
 
   const rows = [
-    ["レポ�Eト区刁E, "名称", "件数", "総作業時間", "延べ人晁E, "概算人件費", "対象決算年度", "並び替え基溁E, "並び頁E],
-    ["年度総括", "全佁E, data.summary.count, data.summary.hours, data.summary.personHours, data.summary.laborCost, data.periodLabel, metricLabel, sortLabel]
+    ["レポート区分", "名称", "件数", "総作業時間", "延べ人時", "概算人件費", "対象決算年度", "並び替え基準", "並び順"],
+    ["年度総括", "全体", data.summary.count, data.summary.hours, data.summary.personHours, data.summary.laborCost, data.periodLabel, metricLabel, sortLabel]
   ];
   const pushMetricRows = (sectionLabel, entries) => {
     entries.forEach((entry) => {
       rows.push([sectionLabel, entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, data.periodLabel, metricLabel, sortLabel]);
     });
   };
-  pushMetricRows("園地別年閁E, data.orchardEntries);
-  pushMetricRows("区画別年閁E, data.plotEntries);
-  pushMetricRows("作業区刁E��年閁E, data.taskEntries);
-  pushMetricRows("品種別年閁E, data.varietyEntries);
-  pushMetricRows("グループ別年閁E, data.groupEntries);
+  pushMetricRows("園地別年間", data.orchardEntries);
+  pushMetricRows("区画別年間", data.plotEntries);
+  pushMetricRows("作業区分別年間", data.taskEntries);
+  pushMetricRows("品種別年間", data.varietyEntries);
+  pushMetricRows("グループ別年間", data.groupEntries);
   data.workerHoursEntries.forEach((entry) => {
-    rows.push(["作業老E��年間時閁E, entry.label, "", entry.hours, "", "", data.periodLabel, metricLabel, sortLabel]);
+    rows.push(["作業者別年間時間", entry.label, "", entry.hours, "", "", data.periodLabel, metricLabel, sortLabel]);
   });
 
   const csv = rows.map((row) => row.map(escapeCsvValue).join(",")).join("\n");
@@ -9749,16 +9144,16 @@ function exportAnnualReportCsv() {
 }
 
 function getWorktimeCsvPeriodLabel(key) {
-  if (key === "week") return "週閁E;
+  if (key === "week") return "週間";
   if (key === "month") return "月間";
-  if (key === "year") return "年閁E;
-  return "任意期閁E;
+  if (key === "year") return "年間";
+  return "任意期間";
 }
 
 function buildWorktimeReportHtml(snapshot, options = {}) {
   const preferredAction = options.preferredAction === "pdf" ? "pdf" : "print";
-  const scopeLabel = snapshot.tab === "personal" ? "個人別" : "全佁E;
-  const averageLabel = snapshot.tab === "personal" ? "平坁E��働時閁E : "1人あたり平坁E��働時閁E;
+  const scopeLabel = snapshot.tab === "personal" ? "個人別" : "全体";
+  const averageLabel = snapshot.tab === "personal" ? "平均労働時間" : "1人あたり平均労働時間";
   const comparisonRowsHtml = snapshot.comparisonRows.length
     ? snapshot.comparisonRows.map((row) => {
       const averageValue = getWorktimeAverageValue(row.stats, snapshot.tab);
@@ -9772,7 +9167,7 @@ function buildWorktimeReportHtml(snapshot, options = {}) {
         </tr>
       `;
     }).join("")
-    : `<tr><td colspan="5" class="worktime-empty-cell">比輁E��象チE�Eタがありません、E/td></tr>`;
+    : `<tr><td colspan="5" class="worktime-empty-cell">比較対象データがありません。</td></tr>`;
 
   const breakdownRowsHtml = snapshot.breakdown.rows.length
     ? snapshot.breakdown.rows.map((row) => {
@@ -9796,7 +9191,7 @@ function buildWorktimeReportHtml(snapshot, options = {}) {
         </tr>
       `;
     }).join("")
-    : `<tr><td colspan="${snapshot.tab === "personal" ? "4" : "5"}" class="worktime-empty-cell">期間冁E�E冁E��チE�Eタがありません、E/td></tr>`;
+    : `<tr><td colspan="${snapshot.tab === "personal" ? "4" : "5"}" class="worktime-empty-cell">期間内の内訳データがありません。</td></tr>`;
 
   const selectedAverage = getWorktimeAverageValue(snapshot.selectedStats, snapshot.tab);
 
@@ -9805,7 +9200,7 @@ function buildWorktimeReportHtml(snapshot, options = {}) {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>(株)大成園　作業記録アプリ 労働時間�E极E/title>
+        <title>(株)大成園　作業記録アプリ 労働時間分析</title>
         <style>
           @page { size: A4 portrait; margin: 12mm; }
           * { box-sizing: border-box; }
@@ -9856,40 +9251,40 @@ function buildWorktimeReportHtml(snapshot, options = {}) {
       <body>
         <header class="worktime-toolbar">
           <div>
-            <h1>労働時間�E析レポ�EチE/h1>
-            <p>雁E��区刁E ${escapeHtml(scopeLabel)} / 対象: ${escapeHtml(snapshot.targetName)}</p>
-            <p class="worktime-toolbar__hint">Androidは「PDF保存」後に共有�Eアプリで印刷すると安定しめE��ぁE��す、E/p>
+            <h1>労働時間分析レポート</h1>
+            <p>集計区分: ${escapeHtml(scopeLabel)} / 対象: ${escapeHtml(snapshot.targetName)}</p>
+            <p class="worktime-toolbar__hint">Androidは「PDF保存」後に共有先アプリで印刷すると安定しやすいです。</p>
           </div>
           <div class="worktime-actions">
-            <button class="worktime-button worktime-button--print" type="button" onclick="window.print()">こ�E画面を印刷</button>
-            <button class="worktime-button worktime-button--pdf" id="worktimePdfButtonInWindow" type="button" onclick="window.print()">PDF保孁E/button>
-            <button class="worktime-button worktime-button--close" type="button" onclick="window.close()">閉じめE/button>
+            <button class="worktime-button worktime-button--print" type="button" onclick="window.print()">この画面を印刷</button>
+            <button class="worktime-button worktime-button--pdf" id="worktimePdfButtonInWindow" type="button" onclick="window.print()">PDF保存</button>
+            <button class="worktime-button worktime-button--close" type="button" onclick="window.close()">閉じる</button>
           </div>
         </header>
         <main class="worktime-body">
           <section class="worktime-header">
             <p class="worktime-app-name">(株)大成園　作業記録アプリ</p>
-            <h2 class="worktime-title">労働時間�E极E/h2>
-            <p class="worktime-meta">雁E��区刁E ${escapeHtml(scopeLabel)}</p>
+            <h2 class="worktime-title">労働時間分析</h2>
+            <p class="worktime-meta">集計区分: ${escapeHtml(scopeLabel)}</p>
             <p class="worktime-meta">期間: ${escapeHtml(snapshot.periodConfig.label)} / ${escapeHtml(snapshot.periodConfig.rangeText)}</p>
             <p class="worktime-meta">対象: ${escapeHtml(snapshot.targetName)}</p>
             <div class="worktime-summary">
-              <div class="worktime-summary__item"><span>労働時閁E/span><strong>${escapeHtml(formatHours(snapshot.selectedStats.totalHours))}</strong></div>
+              <div class="worktime-summary__item"><span>労働時間</span><strong>${escapeHtml(formatHours(snapshot.selectedStats.totalHours))}</strong></div>
               <div class="worktime-summary__item"><span>出勤日数</span><strong>${escapeHtml(formatDays(snapshot.selectedStats.attendanceDays))}</strong></div>
               <div class="worktime-summary__item"><span>${escapeHtml(averageLabel)}</span><strong>${escapeHtml(formatHours(selectedAverage))}</strong></div>
-              <div class="worktime-summary__item"><span>${snapshot.tab === "personal" ? "対象作業老E : "対象作業老E��"}</span><strong>${escapeHtml(snapshot.tab === "personal" ? snapshot.targetName : formatPeople(snapshot.selectedStats.workerCount || 0))}</strong></div>
+              <div class="worktime-summary__item"><span>${snapshot.tab === "personal" ? "対象作業者" : "対象作業者数"}</span><strong>${escapeHtml(snapshot.tab === "personal" ? snapshot.targetName : formatPeople(snapshot.selectedStats.workerCount || 0))}</strong></div>
             </div>
           </section>
 
           <section class="worktime-section">
-            <h3>週・月�E年の比輁E/h3>
+            <h3>週・月・年の比較</h3>
             <div class="worktime-table-wrap">
               <table class="worktime-table">
                 <thead>
                   <tr>
-                    <th>期間区刁E/th>
+                    <th>期間区分</th>
                     <th>対象期間</th>
-                    <th>労働時閁E/th>
+                    <th>労働時間</th>
                     <th>出勤日数</th>
                     <th>${escapeHtml(averageLabel)}</th>
                   </tr>
@@ -9907,10 +9302,10 @@ function buildWorktimeReportHtml(snapshot, options = {}) {
               <table class="worktime-table">
                 <thead>
                   <tr>
-                    <th>区刁E/th>
-                    <th>労働時閁E/th>
+                    <th>区分</th>
+                    <th>労働時間</th>
                     <th>出勤日数</th>
-                    ${snapshot.tab === "personal" ? "" : "<th>作業老E��</th>"}
+                    ${snapshot.tab === "personal" ? "" : "<th>作業者数</th>"}
                     <th>${escapeHtml(averageLabel)}</th>
                   </tr>
                 </thead>
@@ -9938,27 +9333,27 @@ function buildWorktimeReportHtml(snapshot, options = {}) {
 function openWorktimeReportWindow(preferredAction = "print", tab = activeWorktimeTab) {
   const snapshot = buildWorktimeAnalysisSnapshot(tab);
   if (!snapshot.isValid) {
-    window.alert(snapshot.error || "労働時間�E析�E条件を確認してください、E);
+    window.alert(snapshot.error || "労働時間分析の条件を確認してください。");
     return;
   }
   const html = buildWorktimeReportHtml(snapshot, { preferredAction });
   openGeneratedDocumentWindow(html, {
     width: 1200,
     height: 920,
-    popupBlockedMessage: "労働時間�E析画面を開けませんでした。ブラウザのポップアチE�E設定を確認してください、E
+    popupBlockedMessage: "労働時間分析画面を開けませんでした。ブラウザのポップアップ設定を確認してください。"
   });
 }
 
 function exportWorktimeAnalysisCsv(tab = activeWorktimeTab) {
   const snapshot = buildWorktimeAnalysisSnapshot(tab);
   if (!snapshot.isValid) {
-    window.alert(snapshot.error || "労働時間�E析�E条件を確認してください、E);
+    window.alert(snapshot.error || "労働時間分析の条件を確認してください。");
     return;
   }
-  const scopeLabel = snapshot.tab === "personal" ? "個人別" : "全佁E;
+  const scopeLabel = snapshot.tab === "personal" ? "個人別" : "全体";
   const targetLabel = snapshot.targetName;
   const rows = [
-    ["雁E��区刁E, "期間区刁E, "対象期間", "氏名また�E全佁E, "労働時閁E, "出勤日数", "平坁E��働時閁E]
+    ["集計区分", "期間区分", "対象期間", "氏名または全体", "労働時間", "出勤日数", "平均労働時間"]
   ];
 
   snapshot.comparisonRows.forEach((row) => {
@@ -10022,14 +9417,14 @@ async function printQrCard(title, meta, imageUrl) {
         <h1>${escapeHtml(title)}</h1>
         <p>${escapeHtml(meta)}</p>
         <img id="qrPrintImage" src="${escapeHtml(printableImageUrl)}" alt="${escapeHtml(title)}" />
-        <p class="status" id="qrPrintStatus">QR画像を確認中でぁE..</p>
+        <p class="status" id="qrPrintStatus">QR画像を確認中です...</p>
         <script>
           (function () {
             const image = document.getElementById("qrPrintImage");
             const status = document.getElementById("qrPrintStatus");
             const runPrint = () => {
               if (status) {
-                status.textContent = "QR画像�E準備ができました。印刷します、E;
+                status.textContent = "QR画像の準備ができました。印刷します。";
               }
               window.setTimeout(() => window.print(), 120);
             };
@@ -10041,7 +9436,7 @@ async function printQrCard(title, meta, imageUrl) {
               image.addEventListener("load", runPrint, { once: true });
               image.addEventListener("error", () => {
                 if (status) {
-                  status.textContent = "QR画像�E読み込みに失敗しました。�E度お試しください、E;
+                  status.textContent = "QR画像の読み込みに失敗しました。再度お試しください。";
                   status.style.color = "#9f2d2d";
                 }
               }, { once: true });
@@ -10054,7 +9449,7 @@ async function printQrCard(title, meta, imageUrl) {
   const win = openGeneratedDocumentWindow(html, {
     width: 520,
     height: 700,
-    popupBlockedMessage: "印刷用ウィンドウを開けませんでした。�EチE�EアチE�E設定を確認してください、E
+    popupBlockedMessage: "印刷用ウィンドウを開けませんでした。ポップアップ設定を確認してください。"
   });
   if (!win) return;
   win.focus();
@@ -10075,14 +9470,14 @@ function collectVarietyNamesByLocation({ orchardId, plotId = "" }) {
 function buildQrListItems() {
   const orchardItems = masters.orchards.map((orchard) => {
     const code = normalizeManagementCode(orchard.managementCode);
-    const codeLabel = code || "未設宁E;
-    const warningText = code ? "" : "管琁E��ード未設定です。園地マスターで設定してください、E;
+    const codeLabel = code || "未設定";
+    const warningText = code ? "" : "管理コード未設定です。園地マスターで設定してください。";
     const varietyNames = collectVarietyNamesByLocation({ orchardId: orchard.id });
     return {
       type: "orchard",
-      title: `園地QR: ${orchard.name}${code ? ` (${code})` : "�E�管琁E��ード未設定！E}`,
-      meta: `管琁E��ーチE ${codeLabel}${code ? "" : "�E�要設定！E} / 園地ID: ${orchard.id}`,
-      detailText: varietyNames.length ? `品種: ${varietyNames.join("、E)}` : "品種: 該当記録なぁE,
+      title: `園地QR: ${orchard.name}${code ? ` (${code})` : "（管理コード未設定）"}`,
+      meta: `管理コード: ${codeLabel}${code ? "" : "（要設定）"} / 園地ID: ${orchard.id}`,
+      detailText: varietyNames.length ? `品種: ${varietyNames.join("、")}` : "品種: 該当記録なし",
       warningText,
       payload: buildLocationQrPayload(orchard.id, ""),
       orchardName: orchard.name,
@@ -10098,14 +9493,14 @@ function buildQrListItems() {
     const orchard = getOrchardById(plot.orchardId);
     const plotCode = normalizeManagementCode(plot.managementCode);
     const orchardCode = normalizeManagementCode(orchard?.managementCode);
-    const plotCodeLabel = plotCode || "未設宁E;
-    const warningText = plotCode ? "" : "管琁E��ード未設定です。区画マスターで設定してください、E;
+    const plotCodeLabel = plotCode || "未設定";
+    const warningText = plotCode ? "" : "管理コード未設定です。区画マスターで設定してください。";
     const varietyNames = collectVarietyNamesByLocation({ orchardId: plot.orchardId, plotId: plot.id });
     return {
       type: "plot",
-      title: `区画QR: ${plot.name}${plotCode ? ` (${plotCode})` : "�E�管琁E��ード未設定！E}`,
-      meta: `園地: ${orchard?.name || "未設宁E}${orchardCode ? ` (${orchardCode})` : ""} / 区画管琁E��ーチE ${plotCodeLabel}${plotCode ? "" : "�E�要設定！E} / 園地ID: ${plot.orchardId} / 区画ID: ${plot.id}`,
-      detailText: varietyNames.length ? `品種: ${varietyNames.join("、E)}` : "品種: 該当記録なぁE,
+      title: `区画QR: ${plot.name}${plotCode ? ` (${plotCode})` : "（管理コード未設定）"}`,
+      meta: `園地: ${orchard?.name || "未設定"}${orchardCode ? ` (${orchardCode})` : ""} / 区画管理コード: ${plotCodeLabel}${plotCode ? "" : "（要設定）"} / 園地ID: ${plot.orchardId} / 区画ID: ${plot.id}`,
+      detailText: varietyNames.length ? `品種: ${varietyNames.join("、")}` : "品種: 該当記録なし",
       warningText,
       payload: buildLocationQrPayload(plot.orchardId, plot.id),
       orchardName: orchard?.name || "",
@@ -10143,14 +9538,14 @@ function createQrCard({ type, title, meta, detailText, warningText, payload }) {
   image.src = buildQrImageUrl(payload);
   const payloadText = document.createElement("p");
   payloadText.className = "qr-card__meta";
-  payloadText.textContent = `識別孁E ${payload}`;
+  payloadText.textContent = `識別子: ${payload}`;
   const actions = document.createElement("div");
   actions.className = "qr-card__actions";
   const saveLink = document.createElement("a");
   saveLink.className = "button button--ghost button--small";
   saveLink.href = image.src;
   saveLink.download = `${title.replace(/\s+/g, "-")}.png`;
-  saveLink.textContent = "画像保孁E;
+  saveLink.textContent = "画像保存";
   saveLink.target = "_blank";
   saveLink.rel = "noopener";
   const printButton = document.createElement("button");
@@ -10171,7 +9566,7 @@ function renderQrCodeList() {
   qrCodeList.innerHTML = "";
   const qrItems = buildQrListItems();
   if (!qrItems.length) {
-    qrCodeList.appendChild(buildEmptyState("園地・区画を登録するとQRコード一覧を表示できます、E));
+    qrCodeList.appendChild(buildEmptyState("園地・区画を登録するとQRコード一覧を表示できます。"));
     return;
   }
 
@@ -10200,7 +9595,7 @@ function renderQrCodeList() {
   });
 
   if (!filteredItems.length) {
-    qrCodeList.appendChild(buildEmptyState("条件に一致するQRコードがありません。検索条件を見直してください、E));
+    qrCodeList.appendChild(buildEmptyState("条件に一致するQRコードがありません。検索条件を見直してください。"));
     return;
   }
 
@@ -10212,18 +9607,18 @@ function renderQrCodeList() {
 function applyQrLocation({ orchardId, plotId }) {
   const orchard = getOrchardById(orchardId);
   if (!orchard) {
-    window.alert("読み取ったQRコード�E園地IDが存在しません。�Eスターを確認してください、E);
+    window.alert("読み取ったQRコードの園地IDが存在しません。マスターを確認してください。");
     return false;
   }
   orchardSelect.value = orchard.id;
   renderPlotOptions(orchard.id, "");
   recordWeatherInfo = null;
   clearWeatherDetailInputs();
-    setWeatherFetchStatus(`忁E��に応じて、E{WEATHER_FETCH_BUTTON_TEXT}」を押してください。`);
+    setWeatherFetchStatus(`必要に応じて「${WEATHER_FETCH_BUTTON_TEXT}」を押してください。`);
   if (plotId) {
     const plot = getPlotById(plotId);
     if (!plot || plot.orchardId !== orchard.id) {
-      window.alert("読み取ったQRコード�E区画IDが存在しなぁE��、園地と一致しません、E);
+      window.alert("読み取ったQRコードの区画IDが存在しないか、園地と一致しません。");
       return false;
     }
     plotSelect.value = plot.id;
@@ -10235,7 +9630,7 @@ function applyQrLocation({ orchardId, plotId }) {
 function handleQrDecodedValue(rawValue) {
   const parsed = parseLocationQrPayload(rawValue);
   if (!parsed) {
-    window.alert("読み取ったコード�E対応してぁE��せん。園地・区画QRコードを使用してください、E);
+    window.alert("読み取ったコードは対応していません。園地・区画QRコードを使用してください。");
     return false;
   }
   const applied = applyQrLocation(parsed);
@@ -10271,21 +9666,21 @@ async function scanQrFrame() {
     }
   } catch (error) {
     console.error(error);
-    qrScannerMessage.textContent = "QR読み取り中にエラーが発生しました。手入力を利用してください、E;
+    qrScannerMessage.textContent = "QR読み取り中にエラーが発生しました。手入力を利用してください。";
   }
   qrScanFrameId = requestAnimationFrame(scanQrFrame);
 }
 
 async function openQrScanner() {
   if (typeof qrScannerDialog.showModal !== "function") {
-    window.alert("こ�Eブラウザでは読み取り画面を開けません。手入力を利用してください、E);
+    window.alert("このブラウザでは読み取り画面を開けません。手入力を利用してください。");
     return;
   }
   qrManualInput.value = "";
-  qrScannerMessage.textContent = "カメラを起動してQRコードを読み取ってください、E;
+  qrScannerMessage.textContent = "カメラを起動してQRコードを読み取ってください。";
   qrScannerDialog.showModal();
   if (!("BarcodeDetector" in window)) {
-    qrScannerMessage.textContent = "こ�E端末ではカメラQR読み取りに未対応です。下�E手�E力を利用してください、E;
+    qrScannerMessage.textContent = "この端末ではカメラQR読み取りに未対応です。下の手入力を利用してください。";
     return;
   }
   try {
@@ -10300,7 +9695,7 @@ async function openQrScanner() {
     qrScanFrameId = requestAnimationFrame(scanQrFrame);
   } catch (error) {
     console.error(error);
-    qrScannerMessage.textContent = "カメラを起動できませんでした。下�E手�E力を利用してください、E;
+    qrScannerMessage.textContent = "カメラを起動できませんでした。下の手入力を利用してください。";
   }
 }
 
@@ -10332,15 +9727,15 @@ function escapeCsvValue(value) {
 /*
 function exportCsv() {
   if (!records.length) {
-    window.alert("CSV出力できる作業記録がありません、E);
+    window.alert("CSV出力できる作業記録がありません。");
     return;
   }
-  const header = ["作業日", "園地", "区画", "品種", "作業冁E��", "当日グルーチE, "使用固定チームセチE��", "日別チ�Eム編戁E, "作業時間", "作業人数", "延べ人晁E, "概算人件費", "代表作業老E��", "作業老E��覧", "所属区刁E, "時給単価", "開始時刻", "終亁E��刻", "天氁E, "使用賁E��", "メモ"];
+  const header = ["作業日", "園地", "区画", "品種", "作業内容", "当日グループ", "使用固定チームセット", "日別チーム編成", "作業時間", "作業人数", "延べ人時", "概算人件費", "代表作業者名", "作業者一覧", "所属区分", "時給単価", "開始時刻", "終了時刻", "天気", "使用資材", "メモ"];
   const rows = records.slice().sort((a, b) => new Date(b.workDate) - new Date(a.workDate)).map((record) => {
     const names = getRecordDisplay(record);
     const metrics = getRecordMetrics(record);
     const teamPlan = getTeamPlan(record.workDate, record.dailyGroupId);
-    const teamPlanText = teamPlan ? teamPlan.workerIds.map((workerId) => getWorkerById(workerId)?.displayName).filter(Boolean).join("、E) : "";
+    const teamPlanText = teamPlan ? teamPlan.workerIds.map((workerId) => getWorkerById(workerId)?.displayName).filter(Boolean).join("、") : "";
     return [record.workDate, names.orchardName, names.plotName, names.varietyName, record.taskType, names.dailyGroupName, names.fixedTeamSetName, teamPlanText, metrics.hours, metrics.workerCount, metrics.personHours, metrics.laborCost, names.workerFullName, names.workerListText, names.workerCategory, names.workerHourlyRate, record.startTime, record.endTime, record.weather, record.materials, record.notes];
   });
   const csv = [header, ...rows].map((row) => row.map(escapeCsvValue).join(",")).join("\n");
@@ -10358,18 +9753,18 @@ function exportCsv() {
 function exportCumulativeComparisonCsvLegacy() {
   const comparisonData = getCumulativeComparisonData();
   if (!comparisonData.periodConfig.isValid) {
-    window.alert(comparisonData.periodConfig.error || "比輁E��件を確認してください、E);
+    window.alert(comparisonData.periodConfig.error || "比較条件を確認してください。");
     return;
   }
   const metricLabelMap = {
-    count: "件数基溁E,
-    hours: "総作業時間基溁E,
-    personHours: "延べ人時基溁E,
-    laborCost: "概算人件費基溁E
+    count: "件数基準",
+    hours: "総作業時間基準",
+    personHours: "延べ人時基準",
+    laborCost: "概算人件費基準"
   };
-  const metricLabel = metricLabelMap[comparisonSortMetricInput.value] || "総作業時間基溁E;
-  const sortLabel = comparisonSortOrderInput.value === "asc" ? "少なぁE��E : "多い頁E;
-  const header = ["区刁E, "名称", "累積作業件数", "累積総作業時間", "累積延べ人晁E, "累積概算人件費", "比輁E��閁E, "並び替え基溁E, "並び頁E];
+  const metricLabel = metricLabelMap[comparisonSortMetricInput.value] || "総作業時間基準";
+  const sortLabel = comparisonSortOrderInput.value === "asc" ? "少ない順" : "多い順";
+  const header = ["区分", "名称", "累積作業件数", "累積総作業時間", "累積延べ人時", "累積概算人件費", "比較期間", "並び替え基準", "並び順"];
   const orchardRows = comparisonData.orchardEntries.map((entry) => ["園地", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, comparisonData.periodConfig.label, metricLabel, sortLabel]);
   const plotRows = comparisonData.plotEntries.map((entry) => ["区画", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, comparisonData.periodConfig.label, metricLabel, sortLabel]);
   const rows = [header, ...orchardRows, ...plotRows];
@@ -10385,14 +9780,13 @@ function exportCumulativeComparisonCsvLegacy() {
 */
 
 /*
-/*
 function exportCsvWithTemperature() {
   if (!records.length) {
     // legacy-disabled
-    window.alert("CSV出力できる作業記録がありません、E);
+    window.alert("CSV出力できる作業記録がありません。");
     return;
     // legacy-disabled-end
-    window.alert("CSV出力できる作業記録がありません、E);
+    window.alert("CSV出力できる作業記録がありません。");
     return;
   }
 
@@ -10401,24 +9795,24 @@ function exportCsvWithTemperature() {
     "園地",
     "区画",
     "品種",
-    "作業区刁E,
-    "当日グルーチE,
-    "使用固定チームセチE��",
-    "日別チ�Eム編戁E,
+    "作業区分",
+    "当日グループ",
+    "使用固定チームセット",
+    "日別チーム編成",
     "作業時間",
     "作業人数",
-    "延べ人晁E,
+    "延べ人時",
     "概算人件費",
-    "代表作業老E��",
-    "作業老E��覧",
-    "所属区刁E,
+    "代表作業者名",
+    "作業者一覧",
+    "所属区分",
     "時給単価",
     "開始時刻",
-    "終亁E��刻",
-    "現在気温�E�℃�E�E,
-    "平坁E��温�E�℃�E�E,
-    "天氁E,
-    "使用賁E��",
+    "終了時刻",
+    "現在気温（℃）",
+    "平均気温（℃）",
+    "天気",
+    "使用資材",
     "メモ"
   ];
 
@@ -10434,7 +9828,7 @@ function exportCsvWithTemperature() {
         ? teamPlan.workerIds
             .map((workerId) => getWorkerById(workerId)?.displayName)
             .filter(Boolean)
-            .join("、E)
+            .join("、")
         : "";
 
       return [
@@ -10487,44 +9881,44 @@ function exportCsvWithTemperature() {
     "園地",
     "区画",
     "品種",
-    "作業区刁E,
-    "当日グルーチE,
-    "使用固定チームセチE��",
-    "日別チ�Eム編戁E,
+    "作業区分",
+    "当日グループ",
+    "使用固定チームセット",
+    "日別チーム編成",
     "作業時間",
     "作業人数",
-    "延べ人晁E,
+    "延べ人時",
     "概算人件費",
-    "代表作業老E��",
-    "作業老E��覧",
-    "所属区刁E,
+    "代表作業者名",
+    "作業者一覧",
+    "所属区分",
     "時給単価",
     "開始時刻",
-    "終亁E��刻",
-    "カウントしなぁE��間（�E�E�E,
-    "自動計算労働時閁E,
-    "手�E力上書き労働時閁E,
-    "作業老E��勤務詳細",
-    "現在気温�E�℃�E�E,
-    "平坁E��温�E�℃�E�E,
-    "天氁E,
-    "最高気温�E�℃�E�E,
-    "最低気温�E�℃�E�E,
-    "降水量！Em�E�E,
-    "湿度�E�E�E�E,
-    "風速！E/s�E�E,
-    "天気コーチE,
+    "終了時刻",
+    "カウントしない時間（分）",
+    "自動計算労働時間",
+    "手入力上書き労働時間",
+    "作業者別勤務詳細",
+    "現在気温（℃）",
+    "平均気温（℃）",
+    "天気",
+    "最高気温（℃）",
+    "最低気温（℃）",
+    "降水量（mm）",
+    "湿度（%）",
+    "風速（m/s）",
+    "天気コード",
     "天気取得時刻",
     "現場確認サマリー",
-    "痁E��発甁E,
-    "害虫発甁E,
-    "薬剤散币E,
-    "痁E��・食害",
-    "葉枝の濡めE,
+    "病気発生",
+    "害虫発生",
+    "薬剤散布",
+    "病斑・食害",
+    "葉枝の濡れ",
     "ぬかるみ",
     "作業しにくさ",
     "現場メモ",
-    "使用賁E��",
+    "使用資材",
     "メモ"
   ];
 
@@ -10557,7 +9951,7 @@ function exportCsvWithTemperature() {
             ? detail.resolvedHours
             : (Number.isFinite(detail.manualHours) ? detail.manualHours : detail.calculatedHours);
           const adoptedText = Number.isFinite(adoptedHours) ? `${adoptedHours.toFixed(1)}h` : "-";
-          return `${worker?.displayName || workerId}(${detail.startTime || "--"}-${detail.endTime || "--"} / 控除${detail.breakMinutes}刁E/ ${adoptedText})`;
+          return `${worker?.displayName || workerId}(${detail.startTime || "--"}-${detail.endTime || "--"} / 控除${detail.breakMinutes}分 / ${adoptedText})`;
         })
         .join(" / ");
 
@@ -10618,658 +10012,33 @@ function exportCsvWithTemperature() {
   URL.revokeObjectURL(url);
 }
 
-function exportCsvWithTemperature() {
-  if (!records.length) {
-    window.alert("CSV出力できる作業記録がありません、E);
-    return;
-  }
-
-  const header = [
-    "作業日",
-    "園地",
-    "区画",
-    "品種",
-    "作業冁E��",
-    "作業グルーチE,
-    "作業老E��覧",
-    "作業人数",
-    "勤務区刁E,
-    "開始時刻",
-    "終亁E��刻",
-    "拘束時間�E�時間！E,
-    "控除時間�E��E�E�E,
-    "実労働時間（時間！E,
-    "延べ人晁E,
-    "概算人件費",
-    "現在気温�E�℃�E�E,
-    "平坁E��温�E�℃�E�E,
-    "天氁E,
-    "最高気温�E�℃�E�E,
-    "最低気温�E�℃�E�E,
-    "降水量！Em�E�E,
-    "湿度�E�E�E�E,
-    "風速！E/s�E�E,
-    "使用賁E��",
-    "メモ"
-  ];
-
-  const rows = records
-    .slice()
-    .sort((a, b) => new Date(b.workDate) - new Date(a.workDate))
-    .map((record) => {
-      const names = getRecordDisplay(record);
-      const metrics = getRecordMetrics(record);
-      const environment = normalizeRecordEnvironment(record);
-      const weatherInfo = environment.weatherInfo || null;
-      const workTypeText = getRecordTaskTypeText(record, "");
-      const recordStartTime = getRecordStartTime(record);
-      const recordEndTime = getRecordEndTime(record);
-      const recordBreakMinutes = getRecordBreakMinutes(record, companySettings);
-      const recordBoundHours = calculateBoundHoursByRange(recordStartTime, recordEndTime);
-      const shiftType = inferRecordShiftType(record, companySettings);
-
-      return [
-        record.workDate,
-        names.orchardName,
-        names.plotName,
-        names.varietyName,
-        workTypeText,
-        names.dailyGroupName,
-        names.workerListText,
-        metrics.workerCount,
-        getShiftTypeLabel(shiftType),
-        recordStartTime,
-        recordEndTime,
-        Number.isFinite(recordBoundHours) ? recordBoundHours : "",
-        recordBreakMinutes,
-        metrics.hours,
-        metrics.personHours,
-        metrics.laborCost,
-        environment.temperatureC ?? "",
-        weatherInfo?.tempAvg ?? "",
-        environment.weather,
-        weatherInfo?.tempMax ?? "",
-        weatherInfo?.tempMin ?? "",
-        weatherInfo?.precipitation ?? "",
-        weatherInfo?.humidity ?? "",
-        weatherInfo?.windSpeed ?? "",
-        record.materials,
-        record.notes
-      ];
-    });
-
-  const csv = [header, ...rows].map((row) => row.map(escapeCsvValue).join(",")).join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "taiseien-work-records-v7.csv";
-  link.click();
-  URL.revokeObjectURL(url);
-}
-*/
-
-function exportCsvWithTemperature() {
-  if (!records.length) {
-    window.alert("\u0043\u0053\u0056\u51fa\u529b\u3067\u304d\u308b\u4f5c\u696d\u8a18\u9332\u304c\u3042\u308a\u307e\u305b\u3093\u3002");
-    return;
-  }
-
-  const header = [
-    "\u4f5c\u696d\u65e5",
-    "\u5712\u5730",
-    "\u533a\u753b",
-    "\u54c1\u7a2e",
-    "\u4f5c\u696d\u9805\u76ee",
-    "\u4f5c\u696d\u30b0\u30eb\u30fc\u30d7",
-    "\u4f5c\u696d\u8005\u4e00\u89a7",
-    "\u4f5c\u696d\u4eba\u6570",
-    "\u52e4\u52d9\u533a\u5206",
-    "\u958b\u59cb\u6642\u523b",
-    "\u7d42\u4e86\u6642\u523b",
-    "\u62d8\u675f\u6642\u9593\uff08\u6642\u9593\uff09",
-    "\u63a7\u9664\u6642\u9593\uff08\u5206\uff09",
-    "\u5b9f\u52b4\u50cd\u6642\u9593\uff08\u6642\u9593\uff09",
-    "\u5ef6\u3079\u4eba\u6642",
-    "\u6982\u7b97\u4eba\u4ef6\u8cbb",
-    "\u6c17\u6e29\uff08\u2103\uff09",
-    "\u5e73\u5747\u6c17\u6e29\uff08\u2103\uff09",
-    "\u6700\u9ad8\u6c17\u6e29\uff08\u2103\uff09",
-    "\u6700\u4f4e\u6c17\u6e29\uff08\u2103\uff09",
-    "\u964d\u6c34\u91cf\uff08mm\uff09",
-    "\u6e7f\u5ea6\uff08\uff05\uff09",
-    "\u98a8\u901f\uff08m/s\uff09",
-    "\u5929\u6c17",
-    "\u4f7f\u7528\u8cc7\u6750",
-    "\u30e1\u30e2"
-  ];
-
-  const rows = records
-    .slice()
-    .sort((a, b) => new Date(b.workDate) - new Date(a.workDate))
-    .map((record) => {
-      const names = getRecordDisplay(record);
-      const metrics = getRecordMetrics(record);
-      const environment = normalizeRecordEnvironment(record);
-      const weatherInfo = environment.weatherInfo || null;
-      const workTypeText = getRecordTaskTypeText(record, "");
-      const startTime = getRecordStartTime(record);
-      const endTime = getRecordEndTime(record);
-      const breakMinutes = getRecordBreakMinutes(record, companySettings);
-      const boundHours = calculateBoundHoursByRange(startTime, endTime);
-      const shiftType = inferRecordShiftType(record, companySettings);
-
-      return [
-        record.workDate,
-        names.orchardName,
-        names.plotName,
-        names.varietyName,
-        workTypeText,
-        names.dailyGroupName,
-        names.workerListText,
-        metrics.workerCount,
-        getShiftTypeLabel(shiftType),
-        startTime,
-        endTime,
-        Number.isFinite(boundHours) ? boundHours : "",
-        breakMinutes,
-        metrics.hours,
-        metrics.personHours,
-        metrics.laborCost,
-        environment.temperatureC ?? "",
-        weatherInfo?.tempAvg ?? "",
-        weatherInfo?.tempMax ?? "",
-        weatherInfo?.tempMin ?? "",
-        weatherInfo?.precipitation ?? "",
-        weatherInfo?.humidity ?? "",
-        weatherInfo?.windSpeed ?? "",
-        environment.weather ?? "",
-        record.materials ?? "",
-        record.notes ?? ""
-      ];
-    });
-
-  const csv = [header, ...rows].map((row) => row.map(escapeCsvValue).join(",")).join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "taiseien-work-records-v7.csv";
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function getPayrollPeriodText(periodConfig) {
-  if (!periodConfig) return "";
-  return periodConfig.rangeText || `${formatDateYmd(periodConfig.from)}〜${formatDateYmd(periodConfig.to)}`;
-}
-
-function renderPayrollSummaryCards(data) {
-  if (!payrollSummaryCards) return;
-  const summary = data.summary || {};
-  const cards = [
-    { label: "\u5bfe\u8c61\u4eba\u6570", value: formatPeople(summary.workerCount || 0) },
-    { label: "\u51fa\u52e4\u65e5\u6570\u5408\u8a08", value: formatDays(summary.attendanceDays || 0) },
-    { label: "\u7dcf\u5b9f\u52b4\u50cd\u6642\u9593", value: formatHoursQuarter(summary.totalHours || 0) },
-    { label: "\u7dcf\u63a7\u9664\u6642\u9593", value: `${Math.round(summary.totalBreakMinutes || 0)}\u5206` },
-    { label: "\u57fa\u672c\u652f\u7d66\u984d\u5408\u8a08", value: formatCurrency(summary.basicPay || 0) },
-    { label: "\u5dee\u5f15\u652f\u7d66\u984d\u5408\u8a08", value: formatCurrency(summary.netPay || 0) }
-  ];
-  payrollSummaryCards.innerHTML = "";
-  cards.forEach((item) => {
-    const card = document.createElement("article");
-    card.className = "summary-card payroll-summary-card";
-    const label = document.createElement("span");
-    label.className = "summary-card__label";
-    label.textContent = item.label;
-    const value = document.createElement("strong");
-    value.textContent = item.value;
-    card.append(label, value);
-    payrollSummaryCards.appendChild(card);
-  });
-}
-
-function renderPayrollList(data) {
-  if (!payrollList) return;
-  payrollList.innerHTML = "";
-  if (!data.rows.length) {
-    payrollList.appendChild(buildEmptyState("\u5bfe\u8c61\u671f\u9593\u306b\u7d66\u4e0e\u96c6\u8a08\u30c7\u30fc\u30bf\u304c\u3042\u308a\u307e\u305b\u3093\u3002"));
-    return;
-  }
-  data.rows.forEach((row) => {
-    const card = document.createElement("article");
-    card.className = "payroll-row";
-    if (row.workerId === activePayrollWorkerId) card.classList.add("is-active");
-    card.addEventListener("click", () => {
-      activePayrollWorkerId = row.workerId;
-      renderPayrollSection();
-    });
-
-    const header = document.createElement("div");
-    header.className = "payroll-row__header";
-    const heading = document.createElement("h4");
-    heading.textContent = `${row.fullName}${row.category ? `(${row.category})` : ""}`;
-
-    const actions = document.createElement("div");
-    actions.className = "payroll-row__actions";
-
-    const detailButton = document.createElement("button");
-    detailButton.type = "button";
-    detailButton.className = "button button--view button--small";
-    detailButton.textContent = "\u660e\u7d30\u3092\u898b\u308b";
-    detailButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      activePayrollWorkerId = row.workerId;
-      renderPayrollSection();
-    });
-
-    const printButton = document.createElement("button");
-    printButton.type = "button";
-    printButton.className = "button button--save button--small";
-    printButton.textContent = "\u5370\u5237";
-    printButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      openPayrollIndividualReportWindow(row, data.periodConfig, "print");
-    });
-
-    const pdfButton = document.createElement("button");
-    pdfButton.type = "button";
-    pdfButton.className = "button button--save button--small";
-    pdfButton.textContent = "PDF\u4fdd\u5b58";
-    pdfButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      openPayrollIndividualReportWindow(row, data.periodConfig, "pdf");
-    });
-
-    actions.append(detailButton, printButton, pdfButton);
-    header.append(heading, actions);
-
-    const metrics = document.createElement("div");
-    metrics.className = "payroll-row__metrics";
-    metrics.innerHTML = `
-      <span>\u51fa\u52e4\u65e5\u6570: <strong>${formatDays(row.attendanceDays)}</strong></span>
-      <span>\u7dcf\u5b9f\u52b4\u50cd\u6642\u9593: <strong>${formatHoursQuarter(row.totalHours)}</strong></span>
-      <span>\u7dcf\u63a7\u9664\u6642\u9593: <strong>${Math.round(row.totalBreakMinutes || 0)}\u5206</strong></span>
-      <span>\u5dee\u5f15\u652f\u7d66\u984d: <strong>${formatCurrency(row.netPay)}</strong></span>
-    `;
-
-    card.append(header, metrics);
-    payrollList.appendChild(card);
-  });
-}
-
-function renderPayrollDetail(data) {
-  if (!payrollDetail) return;
-  if (!data.rows.length) {
-    payrollDetail.innerHTML = "";
-    payrollDetail.appendChild(buildEmptyState("\u500b\u5225\u660e\u7d30\u3092\u8868\u793a\u3067\u304d\u308b\u30c7\u30fc\u30bf\u304c\u3042\u308a\u307e\u305b\u3093\u3002"));
-    return;
-  }
-
-  if (!data.rows.some((row) => row.workerId === activePayrollWorkerId)) {
-    activePayrollWorkerId = data.rows[0].workerId;
-  }
-  const selectedRow = data.rows.find((row) => row.workerId === activePayrollWorkerId) || data.rows[0];
-  const periodText = getPayrollPeriodText(data.periodConfig);
-  const dailyDetails = Array.isArray(selectedRow.dailyDetails) ? selectedRow.dailyDetails : [];
-
-  const dayRowsHtml = dailyDetails.length
-    ? dailyDetails.map((day) => `
-      <article class="payroll-day-card">
-        <div class="payroll-day-card__header">
-          <h5>${escapeHtml(formatDateWithWeekdayJa(day.workDate))}</h5>
-          <strong>${escapeHtml(formatCurrency(day.dayPay))}</strong>
-        </div>
-        <div class="payroll-day-card__grid">
-          <div><span>\u4f5c\u696d\u5185\u5bb9</span><strong>${escapeHtml(day.workTypeText || "\u672a\u8a2d\u5b9a")}</strong></div>
-          <div><span>\u52e4\u52d9\u6642\u9593\u5e2f</span><strong>${escapeHtml(day.timeRangeText || `${day.startTime || "--"}\u301c${day.endTime || "--"}`)}</strong></div>
-          <div><span>\u958b\u59cb\u6642\u523b</span><strong>${escapeHtml(day.startTime || "--")}</strong></div>
-          <div><span>\u7d42\u4e86\u6642\u523b</span><strong>${escapeHtml(day.endTime || "--")}</strong></div>
-          <div><span>\u7d66\u4e0e\u8a08\u7b97\u304b\u3089\u9664\u5916\u3057\u305f\u6642\u9593</span><strong>${escapeHtml(String(Math.round(day.breakMinutes || 0)))}\u5206</strong></div>
-          <div><span>\u5b9f\u52b4\u50cd\u6642\u9593</span><strong>${escapeHtml(formatHoursQuarter(day.workHours))}</strong></div>
-          <div><span>\u6642\u7d66</span><strong>${escapeHtml(formatCurrency(day.hourlyRate || 0))}</strong></div>
-          <div><span>\u65e5\u5225\u8cc3\u91d1</span><strong>${escapeHtml(formatCurrency(day.dayPay || 0))}</strong></div>
-        </div>
-      </article>
-    `).join("")
-    : `<div class="empty-state">\u3053\u306e\u671f\u9593\u306e\u51fa\u52e4\u660e\u7d30\u306f\u3042\u308a\u307e\u305b\u3093\u3002</div>`;
-
-  payrollDetail.innerHTML = `
-    <article class="payroll-detail-card">
-      <div class="payroll-detail-card__header">
-        <h4>${escapeHtml(selectedRow.fullName)}</h4>
-        <span class="chip chip--soft">${escapeHtml(selectedRow.category || "\u533a\u5206\u672a\u8a2d\u5b9a")}</span>
-      </div>
-      <div class="payroll-detail-grid">
-        <div><span>\u5bfe\u8c61\u671f\u9593</span><strong>${escapeHtml(periodText)}</strong></div>
-        <div><span>\u7de0\u3081\u533a\u5206</span><strong>${escapeHtml(data.periodConfig.closeLabel)}</strong></div>
-        <div><span>\u51fa\u52e4\u65e5\u6570</span><strong>${escapeHtml(formatDays(selectedRow.attendanceDays))}</strong></div>
-        <div><span>\u7dcf\u5b9f\u52b4\u50cd\u6642\u9593</span><strong>${escapeHtml(formatHoursQuarter(selectedRow.totalHours))}</strong></div>
-        <div><span>\u7dcf\u63a7\u9664\u6642\u9593</span><strong>${escapeHtml(String(Math.round(selectedRow.totalBreakMinutes || 0)))}\u5206</strong></div>
-        <div><span>\u6642\u7d66</span><strong>${escapeHtml(formatCurrency(selectedRow.hourlyRate))}</strong></div>
-        <div><span>\u57fa\u672c\u652f\u7d66\u984d</span><strong>${escapeHtml(formatCurrency(selectedRow.basicPay))}</strong></div>
-      </div>
-      <h5 class="payroll-day-section-title">\u65e5\u5225\u660e\u7d30</h5>
-      <section class="payroll-day-list">${dayRowsHtml}</section>
-      <section class="payroll-total-summary">
-        <h5>\u5408\u8a08</h5>
-        <div class="payroll-total-summary__grid">
-          <div><span>\u51fa\u52e4\u65e5\u6570</span><strong>${escapeHtml(formatDays(selectedRow.attendanceDays))}</strong></div>
-          <div><span>\u7dcf\u52b4\u50cd\u6642\u9593</span><strong>${escapeHtml(formatHoursQuarter(selectedRow.totalHours))}</strong></div>
-          <div><span>\u57fa\u672c\u652f\u7d66\u984d</span><strong>${escapeHtml(formatCurrency(selectedRow.basicPay))}</strong></div>
-          <div><span>\u624b\u5f53</span><strong>${escapeHtml(formatCurrency(selectedRow.allowance))}</strong></div>
-          <div><span>\u63a7\u9664</span><strong>${escapeHtml(formatCurrency(selectedRow.deduction))}</strong></div>
-          <div><span>\u5dee\u5f15\u652f\u7d66\u984d</span><strong>${escapeHtml(formatCurrency(selectedRow.netPay))}</strong></div>
-        </div>
-      </section>
-      <div class="payroll-adjustment-row">
-        <label>\u624b\u5f53\uff08\u5186\uff09<input type="number" id="payrollAllowanceInput" min="0" step="1" value="${selectedRow.allowance}"></label>
-        <label>\u63a7\u9664\uff08\u5186\uff09<input type="number" id="payrollDeductionInput" min="0" step="1" value="${selectedRow.deduction}"></label>
-      </div>
-      <p class="payroll-netpay">\u5dee\u5f15\u652f\u7d66\u984d <strong>${escapeHtml(formatCurrency(selectedRow.netPay))}</strong></p>
-      <p class="form-hint">\u5dee\u5f15\u652f\u7d66\u984d = \u57fa\u672c\u652f\u7d66\u984d + \u624b\u5f53 - \u63a7\u9664</p>
-      <div class="payroll-detail-actions">
-        <button type="button" class="button button--save" id="payrollAdjustmentSaveButton">\u624b\u5f53\u30fb\u63a7\u9664\u3092\u4fdd\u5b58</button>
-        <button type="button" class="button button--view" id="payrollIndividualPrintButton">\u3053\u306e\u4eba\u306e\u660e\u7d30\u3092\u5370\u5237</button>
-        <button type="button" class="button button--save" id="payrollIndividualPdfButton">\u3053\u306e\u4eba\u306e\u660e\u7d30\u3092PDF\u4fdd\u5b58</button>
-      </div>
-    </article>
-  `;
-
-  const allowanceInput = document.getElementById("payrollAllowanceInput");
-  const deductionInput = document.getElementById("payrollDeductionInput");
-  const saveButton = document.getElementById("payrollAdjustmentSaveButton");
-  const printButton = document.getElementById("payrollIndividualPrintButton");
-  const pdfButton = document.getElementById("payrollIndividualPdfButton");
-  if (!allowanceInput || !deductionInput || !saveButton || !printButton || !pdfButton) return;
-
-  saveButton.addEventListener("click", () => {
-    upsertPayrollAdjustment(selectedRow.workerId, data.periodConfig, Number(allowanceInput.value || 0), Number(deductionInput.value || 0));
-    renderPayrollSection();
-  });
-  printButton.addEventListener("click", () => openPayrollIndividualReportWindow(selectedRow, data.periodConfig, "print"));
-  pdfButton.addEventListener("click", () => openPayrollIndividualReportWindow(selectedRow, data.periodConfig, "pdf"));
-}
-
-function renderPayrollSection() {
-  if (!payrollPeriodInfo || !payrollList || !payrollDetail) return;
-  const periodConfig = getPayrollPeriodConfig();
-  if (payrollCustomRange) payrollCustomRange.hidden = periodConfig.closeType !== "custom";
-
-  if (!periodConfig.isValid) {
-    payrollPeriodInfo.textContent = periodConfig.error || "\u7d66\u4e0e\u671f\u9593\u3092\u6b63\u3057\u304f\u8a2d\u5b9a\u3057\u3066\u304f\u3060\u3055\u3044\u3002";
-    if (payrollSummaryCards) payrollSummaryCards.innerHTML = "";
-    payrollList.innerHTML = "";
-    payrollList.appendChild(buildEmptyState("\u671f\u9593\u3092\u8a2d\u5b9a\u3059\u308b\u3068\u7d66\u4e0e\u4e00\u89a7\u3092\u8868\u793a\u3057\u307e\u3059\u3002"));
-    payrollDetail.innerHTML = "";
-    payrollDetail.appendChild(buildEmptyState("\u500b\u5225\u660e\u7d30\u3092\u8868\u793a\u3067\u304d\u308b\u30c7\u30fc\u30bf\u304c\u3042\u308a\u307e\u305b\u3093\u3002"));
-    return;
-  }
-
-  const data = getPayrollData(periodConfig);
-  payrollPeriodInfo.textContent = `${periodConfig.closeLabel} / ${getPayrollPeriodText(periodConfig)} / \u5bfe\u8c61: ${getPayrollWorkerScopeLabel(periodConfig.workerScope)}`;
-  renderPayrollSummaryCards(data);
-  renderPayrollList(data);
-  renderPayrollDetail(data);
-}
-
-function exportPayrollCsv() {
-  const data = getPayrollData(getPayrollPeriodConfig());
-  if (!data.periodConfig.isValid) {
-    window.alert(data.periodConfig.error || "\u7d66\u4e0e\u671f\u9593\u3092\u6b63\u3057\u304f\u8a2d\u5b9a\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
-    return;
-  }
-  if (!data.rows.length) {
-    window.alert("CSV\u51fa\u529b\u3067\u304d\u308b\u7d66\u4e0e\u30c7\u30fc\u30bf\u304c\u3042\u308a\u307e\u305b\u3093\u3002");
-    return;
-  }
-
-  const periodText = getPayrollPeriodText(data.periodConfig);
-  const csvRows = [["\u4f5c\u696d\u8005\u540d","\u65e5\u4ed8","\u66dc\u65e5","\u4f5c\u696d\u5185\u5bb9","\u958b\u59cb\u6642\u523b","\u7d42\u4e86\u6642\u523b","\u63a7\u9664\u6642\u9593(\u5206)","\u5b9f\u52b4\u50cd\u6642\u9593","\u6642\u7d66","\u65e5\u5225\u8cc3\u91d1","\u5bfe\u8c61\u671f\u9593","\u7de0\u3081\u533a\u5206","\u884c\u7a2e\u5225"]];
-
-  data.rows.forEach((row) => {
-    (row.dailyDetails || []).forEach((day) => {
-      csvRows.push([
-        row.fullName,
-        formatDateYmd(day.workDate),
-        day.weekdayLabel || getWeekdayLabelJa(day.workDate),
-        day.workTypeText || "\u672a\u8a2d\u5b9a",
-        day.startTime || "",
-        day.endTime || "",
-        Math.round(day.breakMinutes || 0),
-        Number((day.workHours || 0).toFixed(2)),
-        row.hourlyRate,
-        Math.round(day.dayPay || 0),
-        periodText,
-        data.periodConfig.closeLabel,
-        "\u65e5\u5225\u660e\u7d30"
-      ]);
-    });
-
-    csvRows.push([
-      row.fullName,
-      "",
-      "",
-      "\u671f\u9593\u5408\u8a08",
-      "",
-      "",
-      Math.round(row.totalBreakMinutes || 0),
-      Number((row.totalHours || 0).toFixed(2)),
-      row.hourlyRate,
-      Math.round(row.basicPay || 0),
-      periodText,
-      data.periodConfig.closeLabel,
-      "\u5408\u8a08"
-    ]);
-  });
-
-  csvRows.push(["\u5168\u4f53\u5408\u8a08","","","","","",Math.round(data.summary.totalBreakMinutes || 0),Number((data.summary.totalHours || 0).toFixed(2)),"",Math.round(data.summary.basicPay || 0),periodText,data.periodConfig.closeLabel,"\u5168\u4f53"]);
-
-  const csv = csvRows.map((row) => row.map(escapeCsvValue).join(",")).join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `taiseien-payroll-detail-${data.periodConfig.from}_${data.periodConfig.to}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function buildPayrollWorkerDailyRowsHtml(dailyDetails) {
-  if (!dailyDetails.length) return `<tr><td colspan="10">\u5bfe\u8c61\u671f\u9593\u306e\u660e\u7d30\u304c\u3042\u308a\u307e\u305b\u3093\u3002</td></tr>`;
-  return dailyDetails.map((day) => `
-    <tr>
-      <td>${escapeHtml(formatDateYmd(day.workDate))}</td>
-      <td>${escapeHtml(day.weekdayLabel || getWeekdayLabelJa(day.workDate))}</td>
-      <td>${escapeHtml(day.workTypeText || "\u672a\u8a2d\u5b9a")}</td>
-      <td>${escapeHtml(day.timeRangeText || `${day.startTime || "--"}\u301c${day.endTime || "--"}`)}</td>
-      <td>${escapeHtml(day.startTime || "--")}</td>
-      <td>${escapeHtml(day.endTime || "--")}</td>
-      <td>${escapeHtml(String(Math.round(day.breakMinutes || 0)))}\u5206</td>
-      <td>${escapeHtml(formatHoursQuarter(day.workHours))}</td>
-      <td>${escapeHtml(formatCurrency(day.hourlyRate || 0))}</td>
-      <td>${escapeHtml(formatCurrency(day.dayPay || 0))}</td>
-    </tr>
-  `).join("");
-}
-
-function buildPayrollReportHtml(data, preferredAction = "print") {
-  const periodText = getPayrollPeriodText(data.periodConfig);
-  const scopeLabel = getPayrollWorkerScopeLabel(data.periodConfig.workerScope);
-  const workerSections = data.rows.map((row) => `
-    <section class="sheet-section">
-      <h3>${escapeHtml(row.fullName)}${row.category ? `(${escapeHtml(row.category)})` : ""}</h3>
-      <h4 class="detail-subtitle">\u65e5\u5225\u660e\u7d30</h4>
-      <table>
-        <thead><tr><th>\u65e5\u4ed8</th><th>\u66dc</th><th>\u4f5c\u696d\u5185\u5bb9</th><th>\u52e4\u52d9\u6642\u9593\u5e2f</th><th>\u958b\u59cb</th><th>\u7d42\u4e86</th><th>\u7d66\u4e0e\u8a08\u7b97\u304b\u3089\u9664\u5916\u3057\u305f\u6642\u9593</th><th>\u5b9f\u52b4\u50cd</th><th>\u6642\u7d66</th><th>\u65e5\u5225\u8cc3\u91d1</th></tr></thead>
-        <tbody>${buildPayrollWorkerDailyRowsHtml(row.dailyDetails || [])}</tbody>
-        <tfoot><tr><td colspan="7">\u671f\u9593\u5408\u8a08</td><td>${escapeHtml(formatHoursQuarter(row.totalHours))}</td><td>${escapeHtml(formatCurrency(row.hourlyRate || 0))}</td><td>${escapeHtml(formatCurrency(row.basicPay || 0))}</td></tr></tfoot>
-      </table>
-      <p class="worker-adjustment">\u624b\u5f53: ${escapeHtml(formatCurrency(row.allowance || 0))} / \u63a7\u9664: ${escapeHtml(formatCurrency(row.deduction || 0))} / \u5dee\u5f15\u652f\u7d66\u984d: ${escapeHtml(formatCurrency(row.netPay || 0))}</p>
-    </section>
-  `).join("");
-
-  return `
-    <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>(\u682a)\u5927\u6210\u5712 \u7c21\u6613\u7d66\u4e0e\u660e\u7d30</title>
-    <style>
-      @page { size: A4 portrait; margin: 12mm; } * { box-sizing: border-box; }
-      body { margin: 0; font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif; color: #2f2921; background: #f6f3ec; }
-      .toolbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #d8d2c8; background: #ffffffee; }
-      .toolbar h1 { margin: 0; font-size: 16px; } .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-      .button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
-      .button--print { background: #3f6f3f; color: #fff; } .button--pdf { background: #c6522f; color: #fff; } .button--close { background: #ece8de; color: #3c352f; }
-      .sheet { width: min(210mm, 100%); margin: 0 auto; padding: 8mm 0 12mm; }
-      .header { border: 1px solid #dfd8cd; border-radius: 4mm; background: #fff; padding: 5mm; margin-bottom: 3mm; }
-      .app { margin: 0; font-size: 18px; } .title { margin: 2mm 0 1mm; font-size: 18px; } .meta { margin: 1mm 0; color: #5f564b; font-size: 13px; }
-      .summary { display: grid; gap: 2mm; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 2.4mm; }
-      .summary div { border: 1px solid #dfd8cd; border-radius: 3mm; background: #fff; padding: 2.5mm 3mm; display: grid; gap: 1mm; }
-      .summary span { font-size: 11px; color: #61574b; } .summary strong { font-size: 14px; }
-      .sheet-section { border: 1px solid #dfd8cd; border-radius: 4mm; background: #fff; padding: 4mm; margin-bottom: 3mm; }
-      .sheet-section h3 { margin: 0 0 2mm; font-size: 16px; }
-      .detail-subtitle { margin: 0 0 2mm; font-size: 13px; color: #4f463b; }
-      table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #ddd3c3; padding: 5px 6px; font-size: 11px; text-align: center; }
-      th { background: #f3eee3; } td:nth-child(3), th:nth-child(3) { text-align: left; } tfoot td { background: #faf6ee; font-weight: 700; }
-      .worker-adjustment { margin: 2mm 0 0; font-size: 12px; color: #5a4d40; }
-      @media (max-width: 720px) { .toolbar { position: static; padding: 10px 12px; } .actions { width: 100%; } .button { flex: 1; } .sheet { width: 100%; padding: 12px; } .summary { grid-template-columns: 1fr; } }
-      @media print { body { background: #fff; } .toolbar { display: none; } .sheet { width: auto; margin: 0; padding: 0; } }
-    </style></head>
-    <body>
-      <header class="toolbar"><h1>\u7c21\u6613\u7d66\u4e0e\u660e\u7d30(\u4e00\u89a7)</h1><div class="actions"><button class="button button--print" type="button" onclick="window.print()">\u5370\u5237</button><button class="button button--pdf" type="button" onclick="window.print()">PDF\u4fdd\u5b58</button><button class="button button--close" type="button" onclick="window.close()">\u9589\u3058\u308b</button></div></header>
-      <main class="sheet">
-        <section class="header">
-          <p class="app">(\u682a)\u5927\u6210\u5712\u3000\u4f5c\u696d\u8a18\u9332\u30a2\u30d7\u30ea</p>
-          <h2 class="title">\u7c21\u6613\u7d66\u4e0e\u660e\u7d30(\u4e00\u89a7)</h2>
-          <p class="meta">\u5bfe\u8c61\u671f\u9593: ${escapeHtml(periodText)}</p>
-          <p class="meta">\u7de0\u3081\u533a\u5206: ${escapeHtml(data.periodConfig.closeLabel)} / \u5bfe\u8c61: ${escapeHtml(scopeLabel)}</p>
-          <div class="summary">
-            <div><span>\u5bfe\u8c61\u4eba\u6570</span><strong>${escapeHtml(formatPeople(data.summary.workerCount || 0))}</strong></div>
-            <div><span>\u51fa\u52e4\u65e5\u6570\u5408\u8a08</span><strong>${escapeHtml(formatDays(data.summary.attendanceDays || 0))}</strong></div>
-            <div><span>\u7dcf\u5b9f\u52b4\u50cd\u6642\u9593</span><strong>${escapeHtml(formatHoursQuarter(data.summary.totalHours || 0))}</strong></div>
-            <div><span>\u7dcf\u63a7\u9664\u6642\u9593</span><strong>${escapeHtml(String(Math.round(data.summary.totalBreakMinutes || 0)))}\u5206</strong></div>
-            <div><span>\u57fa\u672c\u652f\u7d66\u984d\u5408\u8a08</span><strong>${escapeHtml(formatCurrency(data.summary.basicPay || 0))}</strong></div>
-            <div><span>\u5dee\u5f15\u652f\u7d66\u984d\u5408\u8a08</span><strong>${escapeHtml(formatCurrency(data.summary.netPay || 0))}</strong></div>
-          </div>
-        </section>
-        ${workerSections}
-      </main>
-      <script>(function(){const preferredAction=${JSON.stringify(preferredAction)};if(preferredAction==="pdf"){window.setTimeout(()=>window.print(),140);}})();</script>
-    </body></html>
-  `;
-}
-
-function openPayrollReportWindow(preferredAction = "print") {
-  const data = getPayrollData(getPayrollPeriodConfig());
-  if (!data.periodConfig.isValid) {
-    window.alert(data.periodConfig.error || "\u7d66\u4e0e\u671f\u9593\u3092\u6b63\u3057\u304f\u8a2d\u5b9a\u3057\u3066\u304f\u3060\u3055\u3044\u3002");
-    return;
-  }
-  if (!data.rows.length) {
-    window.alert("\u8868\u793a\u30fb\u5370\u5237\u3067\u304d\u308b\u7d66\u4e0e\u30c7\u30fc\u30bf\u304c\u3042\u308a\u307e\u305b\u3093\u3002");
-    return;
-  }
-  openGeneratedDocumentWindow(buildPayrollReportHtml(data, preferredAction), {
-    width: 1280,
-    height: 920,
-    popupBlockedMessage: "\u7d66\u4e0e\u660e\u7d30\u306e\u8868\u793a\u753b\u9762\u3092\u958b\u3051\u307e\u305b\u3093\u3067\u3057\u305f\u3002"
-  });
-}
-
-function buildPayrollIndividualReportHtml(row, periodConfig, preferredAction = "print") {
-  const periodText = getPayrollPeriodText(periodConfig);
-  const dailyDetails = Array.isArray(row?.dailyDetails) ? row.dailyDetails : [];
-  return `
-    <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>(\u682a)\u5927\u6210\u5712 \u500b\u4eba\u5225\u7c21\u6613\u7d66\u4e0e\u660e\u7d30</title>
-    <style>
-      @page { size: A4 portrait; margin: 12mm; } * { box-sizing: border-box; }
-      body { margin: 0; font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif; color: #2f2921; background: #f6f3ec; }
-      .toolbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #d8d2c8; background: #ffffffee; }
-      .toolbar h1 { margin: 0; font-size: 16px; } .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-      .button { border: 0; border-radius: 999px; min-height: 38px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
-      .button--print { background: #3f6f3f; color: #fff; } .button--pdf { background: #c6522f; color: #fff; } .button--close { background: #ece8de; color: #3c352f; }
-      .sheet { width: min(210mm, 100%); margin: 0 auto; padding: 8mm 0 12mm; }
-      .header { border: 1px solid #dfd8cd; border-radius: 4mm; background: #fff; padding: 5mm; margin-bottom: 3mm; }
-      .app { margin: 0; font-size: 18px; } .title { margin: 2mm 0 1mm; font-size: 18px; } .meta { margin: 1mm 0; color: #5f564b; font-size: 13px; }
-      .detail-subtitle { margin: 0 0 2mm; font-size: 13px; color: #4f463b; }
-      .summary { display: grid; gap: 2mm; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 2.4mm 0 3mm; }
-      .summary div { border: 1px solid #dfd8cd; border-radius: 3mm; background: #fff; padding: 2.5mm 3mm; display: grid; gap: 1mm; }
-      .summary span { font-size: 11px; color: #61574b; } .summary strong { font-size: 14px; }
-      table { width: 100%; border-collapse: collapse; background: #fff; }
-      th, td { border: 1px solid #ddd3c3; padding: 6px 7px; font-size: 12px; text-align: center; }
-      th { background: #f3eee3; } td:nth-child(3), th:nth-child(3) { text-align: left; } tfoot td { background: #faf6ee; font-weight: 700; }
-      .netpay { margin-top: 3mm; border: 1px solid #dcb49b; border-radius: 3mm; background: #fff5ef; padding: 2.8mm 3.4mm; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-      .netpay span { color: #7a4a34; font-weight: 700; } .netpay strong { color: #8f351e; font-size: 20px; }
-      @media (max-width: 720px) { .toolbar { position: static; padding: 10px 12px; } .actions { width: 100%; } .button { flex: 1; } .sheet { width: 100%; padding: 12px; } .summary { grid-template-columns: 1fr; } }
-      @media print { body { background: #fff; } .toolbar { display: none; } .sheet { width: auto; margin: 0; padding: 0; } }
-    </style></head>
-    <body>
-      <header class="toolbar"><h1>\u500b\u4eba\u5225\u7c21\u6613\u7d66\u4e0e\u660e\u7d30</h1><div class="actions"><button class="button button--print" type="button" onclick="window.print()">\u5370\u5237</button><button class="button button--pdf" type="button" onclick="window.print()">PDF\u4fdd\u5b58</button><button class="button button--close" type="button" onclick="window.close()">\u9589\u3058\u308b</button></div></header>
-      <main class="sheet">
-        <section class="header">
-          <p class="app">(\u682a)\u5927\u6210\u5712\u3000\u4f5c\u696d\u8a18\u9332\u30a2\u30d7\u30ea</p>
-          <h2 class="title">\u500b\u4eba\u5225\u7c21\u6613\u7d66\u4e0e\u660e\u7d30</h2>
-          <p class="meta">\u4f5c\u696d\u8005\u540d: ${escapeHtml(row.fullName || "")}</p>
-          <p class="meta">\u5bfe\u8c61\u671f\u9593: ${escapeHtml(periodText)}</p>
-          <p class="meta">\u7de0\u3081\u533a\u5206: ${escapeHtml(periodConfig.closeLabel || "")}</p>
-          <div class="summary">
-            <div><span>\u51fa\u52e4\u65e5\u6570</span><strong>${escapeHtml(formatDays(row.attendanceDays || 0))}</strong></div>
-            <div><span>\u7dcf\u5b9f\u52b4\u50cd\u6642\u9593</span><strong>${escapeHtml(formatHoursQuarter(row.totalHours || 0))}</strong></div>
-            <div><span>\u57fa\u672c\u652f\u7d66\u984d</span><strong>${escapeHtml(formatCurrency(row.basicPay || 0))}</strong></div>
-            <div><span>\u6642\u7d66</span><strong>${escapeHtml(formatCurrency(row.hourlyRate || 0))}</strong></div>
-            <div><span>\u624b\u5f53</span><strong>${escapeHtml(formatCurrency(row.allowance || 0))}</strong></div>
-            <div><span>\u63a7\u9664</span><strong>${escapeHtml(formatCurrency(row.deduction || 0))}</strong></div>
-            <div><span>\u5dee\u5f15\u652f\u7d66\u984d</span><strong>${escapeHtml(formatCurrency(row.netPay || 0))}</strong></div>
-          </div>
-        </section>
-        <h3 class="detail-subtitle">\u65e5\u5225\u660e\u7d30</h3>
-        <table>
-          <thead><tr><th>\u65e5\u4ed8</th><th>\u66dc</th><th>\u4f5c\u696d\u5185\u5bb9</th><th>\u52e4\u52d9\u6642\u9593\u5e2f</th><th>\u958b\u59cb</th><th>\u7d42\u4e86</th><th>\u7d66\u4e0e\u8a08\u7b97\u304b\u3089\u9664\u5916\u3057\u305f\u6642\u9593</th><th>\u5b9f\u52b4\u50cd</th><th>\u6642\u7d66</th><th>\u65e5\u5225\u8cc3\u91d1</th></tr></thead>
-          <tbody>${buildPayrollWorkerDailyRowsHtml(dailyDetails)}</tbody>
-          <tfoot><tr><td colspan="7">\u671f\u9593\u5408\u8a08</td><td>${escapeHtml(formatHoursQuarter(row.totalHours || 0))}</td><td>${escapeHtml(formatCurrency(row.hourlyRate || 0))}</td><td>${escapeHtml(formatCurrency(row.basicPay || 0))}</td></tr></tfoot>
-        </table>
-        <div class="netpay"><span>\u5dee\u5f15\u652f\u7d66\u984d</span><strong>${escapeHtml(formatCurrency(row.netPay || 0))}</strong></div>
-      </main>
-      <script>(function(){const preferredAction=${JSON.stringify(preferredAction)};if(preferredAction==="pdf"){window.setTimeout(()=>window.print(),140);}})();</script>
-    </body></html>
-  `;
-}
-
-function openPayrollIndividualReportWindow(row, periodConfig, preferredAction = "print") {
-  if (!row || !periodConfig) return;
-  openGeneratedDocumentWindow(buildPayrollIndividualReportHtml(row, periodConfig, preferredAction), {
-    width: 1080,
-    height: 920,
-    popupBlockedMessage: "\u500b\u4eba\u5225\u660e\u7d30\u306e\u8868\u793a\u753b\u9762\u3092\u958b\u3051\u307e\u305b\u3093\u3067\u3057\u305f\u3002"
-  });
-}
-bindEvent(form, "submit", (event) => {
+form.addEventListener("submit", (event) => {
   event.preventDefault();
   if (!orchardSelect.value || !plotSelect.value || !varietySelect.value) {
-    window.alert("園地・区画・品種をすべて選択してください、E);
+    window.alert("園地・区画・品種をすべて選択してください。");
     return;
   }
   if (!selectedTaskTypes.length) {
     setTaskTypeValidationState(true);
-    window.alert("作業冁E��めEつ以上選択してください、E);
+    window.alert("作業内容を1つ以上選択してください。");
     return;
   }
   setTaskTypeValidationState(false);
   if (!groupSelect.value) {
-    window.alert("そ�E日に参加するグループを選択してください、E);
+    window.alert("その日に参加するグループを選択してください。");
     return;
   }
   if (!selectedWorkerIds.length) {
-    window.alert("作業老E��1人以上選択してください、E);
+    window.alert("作業者を1人以上選択してください。");
     return;
   }
-  const breakMinutesValue = getFormBreakMinutes(companySettings);
-  const selectedShiftType = getSelectedFormShiftType();
-  const manualHoursValue = getFormManualWorkHours(companySettings);
+  const breakMinutesValue = Number(breakMinutesInput?.value ?? normalizeCompanySettings(companySettings).workdayBreakMinutes);
   if (!Number.isFinite(breakMinutesValue) || breakMinutesValue < 0 || breakMinutesValue > 600) {
-    window.alert("カウントしなぁE��間（�E�E��E0、E00で入力してください、E);
+    window.alert("カウントしない時間（分）は0〜600で入力してください。");
     return;
   }
   if ((startTimeInput.value && !endTimeInput.value) || (!startTimeInput.value && endTimeInput.value)) {
-    window.alert("開始時刻と終亁E��刻はセチE��で入力してください、E);
+    window.alert("開始時刻と終了時刻はセットで入力してください。");
     return;
   }
   if (
@@ -11277,28 +10046,11 @@ bindEvent(form, "submit", (event) => {
     endTimeInput.value &&
     calculateHoursFromRange(startTimeInput.value, endTimeInput.value, companySettings, breakMinutesValue) === null
   ) {
-    window.alert("終亁E��刻は開始時刻より後に設定してください、E);
-    return;
-  }
-  if (selectedShiftType === WORK_SHIFT_TYPE.MANUAL && manualHoursValue === null && !Object.keys(workerTimeDetailsDraft || {}).length) {
-    window.alert("勤務区分が「手入力」の場合は、実労働時間（手入力）を入力してください。");
+    window.alert("終了時刻は開始時刻より後に設定してください。");
     return;
   }
   pruneWorkerTimeDetailsDraft();
   const record = getFormData();
-  if (selectedShiftType === WORK_SHIFT_TYPE.MANUAL && Number(record.workHours || 0) <= 0) {
-    window.alert("勤務区分が「手入力」の場合は、実労働時間（手入力）を入力してください。");
-    return;
-  }
-  const missingWorkerPayroll = getAssignedWorkers(record).some((worker) => {
-    const detail = record.workerTimeDetails?.[worker.id] || {};
-    const payrollHours = Number(detail.payrollHours ?? detail.manualHours ?? detail.calculatedHours ?? 0);
-    return !Number.isFinite(payrollHours) || payrollHours <= 0;
-  });
-  if (missingWorkerPayroll) {
-    window.alert("作業者ごとの勤務時間が不足しています。各作業者の実労働時間を確認してください。");
-    return;
-  }
   const index = records.findIndex((item) => item.id === record.id);
   if (index >= 0) records[index] = record;
   else records.push(record);
@@ -11307,12 +10059,12 @@ bindEvent(form, "submit", (event) => {
   render();
 });
 
-bindEvent(orchardSelect, "change", () => {
+orchardSelect.addEventListener("change", () => {
   renderPlotOptions(orchardSelect.value);
   recordWeatherInfo = null;
   clearWeatherDetailInputs();
   if (orchardSelect.value) {
-    setWeatherFetchStatus(`入力�E容が変わりました。忁E��に応じて、E{WEATHER_FETCH_BUTTON_TEXT}」を押してください。`);
+    setWeatherFetchStatus(`入力内容が変わりました。必要に応じて「${WEATHER_FETCH_BUTTON_TEXT}」を押してください。`);
   } else {
     setWeatherFetchStatus(WEATHER_FETCH_HINT_TEXT);
   }
@@ -11320,7 +10072,7 @@ bindEvent(orchardSelect, "change", () => {
 if (fetchWeatherButton) {
   fetchWeatherButton.addEventListener("click", handleFetchWeatherClick);
 }
-bindEvent(workDateInput, "change", () => {
+workDateInput.addEventListener("change", () => {
   const teamPlan = getTeamPlan(workDateInput.value, groupSelect.value);
   if (teamPlan) {
     selectedWorkerIds = teamPlan.workerIds.slice();
@@ -11335,7 +10087,7 @@ bindEvent(workDateInput, "change", () => {
   syncWorkerCountFromSelection();
   renderWorkerSelectionList();
 });
-bindEvent(groupSelect, "change", () => {
+groupSelect.addEventListener("change", () => {
   const teamPlan = getTeamPlan(workDateInput.value, groupSelect.value);
   if (teamPlan) {
     selectedWorkerIds = teamPlan.workerIds.slice();
@@ -11350,21 +10102,15 @@ bindEvent(groupSelect, "change", () => {
   syncWorkerCountFromSelection();
   renderWorkerSelectionList();
 });
-bindEvent(startTimeInput, "change", updateTimeHint);
-bindEvent(endTimeInput, "change", updateTimeHint);
+startTimeInput.addEventListener("change", updateTimeHint);
+endTimeInput.addEventListener("change", updateTimeHint);
 if (breakMinutesInput) {
   breakMinutesInput.addEventListener("input", updateTimeHint);
 }
-bindEvent(workHoursInput, "input", updateTimeHint);
-if (workShiftTypeInput) {
-  workShiftTypeInput.addEventListener("change", () => {
-    applyShiftPresetToForm(workShiftTypeInput.value, true);
-    updateTimeHint();
-  });
-}
+workHoursInput.addEventListener("input", updateTimeHint);
 if (applyStandardWorkTimeButton) {
   applyStandardWorkTimeButton.addEventListener("click", () => {
-    applyShiftPresetToForm(WORK_SHIFT_TYPE.FULL_DAY, true);
+    applyDefaultWorkScheduleToForm(true);
     updateTimeHint();
   });
 }
@@ -11386,11 +10132,11 @@ if (clearTaskTypesButton) {
     renderTaskTypeChecklist();
   });
 }
-bindEvent(resetButton, "click", resetRecordForm);
-bindEvent(orchardFilterInput, "change", renderRecords);
-bindEvent(varietyFilterInput, "change", renderRecords);
-bindEvent(taskFilterInput, "change", renderRecords);
-bindEvent(workerFilterInput, "change", renderRecords);
+resetButton.addEventListener("click", resetRecordForm);
+orchardFilterInput.addEventListener("change", renderRecords);
+varietyFilterInput.addEventListener("change", renderRecords);
+taskFilterInput.addEventListener("change", renderRecords);
+workerFilterInput.addEventListener("change", renderRecords);
 if (workerSearchInput) {
   workerSearchInput.addEventListener("input", renderMasterLists);
 }
@@ -11425,13 +10171,36 @@ if (historyCalendarTodayButton) {
     renderRecords();
   });
 }
-bindEvent(exportButton, "click", exportCsvWithTemperature);
+exportButton.addEventListener("click", exportCsvWithTemperature);
+if (shortcutRecordFormButton) {
+  shortcutRecordFormButton.addEventListener("click", () => moveToShortcut(recordFormPanel, workDateInput));
+}
+if (shortcutTeamPlanButton) {
+  shortcutTeamPlanButton.addEventListener("click", () => moveToShortcut(teamPlanPanel, teamPlanDateInput));
+}
+if (shortcutDailyReportButton) {
+  shortcutDailyReportButton.addEventListener("click", () => {
+    if (dailyReportDateInput && !dailyReportDateInput.value) {
+      dailyReportDateInput.value = getTodayString();
+    }
+    moveToShortcut(recordListPanel, dailyReportDateInput);
+  });
+}
 if (shortcutMonthlyReportButton) {
   shortcutMonthlyReportButton.addEventListener("click", () => {
     setSettingsSection("company", {
       switchToSettingsView: true,
       scrollIntoView: true,
       focusElement: fiscalClosingMonthInput
+    });
+  });
+}
+if (shortcutAnnualReportButton) {
+  shortcutAnnualReportButton.addEventListener("click", () => {
+    setSummarySection("top", {
+      switchToSummaryView: true,
+      scrollIntoView: true,
+      focusElement: summaryMenuDailyButton
     });
   });
 }
@@ -11481,6 +10250,30 @@ if (summaryNavButtons.length) {
     });
   });
 }
+if (bottomNavButtons.length) {
+  const viewFocusMap = {
+    record: workDateInput,
+    team: teamPlanDateInput,
+    records: orchardFilterInput,
+    summary: summaryMenuDailyButton,
+    settings: settingsMenuCompanyButton
+  };
+  bottomNavButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetView = button.dataset.appView;
+      if (!targetView || !appViewPanelMap[targetView]) return;
+      if (targetView === "settings") {
+        setSettingsSection("top", { scrollIntoView: false, focusElement: settingsMenuCompanyButton });
+      } else if (targetView === "summary") {
+        setSummarySection("top", { scrollIntoView: false, focusElement: summaryMenuDailyButton });
+      }
+      setAppView(targetView, {
+        scrollIntoView: true,
+        focusElement: viewFocusMap[targetView] || null
+      });
+    });
+  });
+}
 if (dailyReportPreviewButton) {
   dailyReportPreviewButton.addEventListener("click", openDailyReportWindow);
 }
@@ -11509,10 +10302,7 @@ if (payrollExportButton) {
   payrollExportButton.addEventListener("click", exportPayrollCsv);
 }
 if (payrollPrintButton) {
-  payrollPrintButton.addEventListener("click", () => openPayrollReportWindow("print"));
-}
-if (payrollPdfButton) {
-  payrollPdfButton.addEventListener("click", () => openPayrollReportWindow("pdf"));
+  payrollPrintButton.addEventListener("click", openPayrollReportWindow);
 }
 if (taskReportPreviewButton) {
   taskReportPreviewButton.addEventListener("click", openTaskTypeReportWindow);
@@ -11550,8 +10340,8 @@ if (worktimePersonalCsvButton) {
 if (worktimeOverallCsvButton) {
   worktimeOverallCsvButton.addEventListener("click", exportWorktimeOverallCsv);
 }
-bindEvent(comparisonExportButton, "click", exportCumulativeComparisonCsv);
-bindEvent(qrScanButton, "click", openQrScanner);
+comparisonExportButton.addEventListener("click", exportCumulativeComparisonCsv);
+qrScanButton.addEventListener("click", openQrScanner);
 if (openOrchardQrSheetButton) {
   openOrchardQrSheetButton.addEventListener("click", () => openQrLabelSheet("orchard"));
 }
@@ -11591,17 +10381,17 @@ if (qrFilterCodeInput) {
 if (qrFilterTypeInput) {
   qrFilterTypeInput.addEventListener("change", renderQrCodeList);
 }
-bindEvent(backupButton, "click", downloadJsonBackup);
-bindEvent(restoreButton, "click", () => restoreInput?.click());
-bindEvent(restoreInput, "change", handleRestoreFile);
+backupButton.addEventListener("click", downloadJsonBackup);
+restoreButton.addEventListener("click", () => restoreInput.click());
+restoreInput.addEventListener("change", handleRestoreFile);
 if (resetAllDataButton) {
   resetAllDataButton.addEventListener("click", resetAllDataToSeedState);
 }
-bindEvent(comparisonPeriodInput, "change", renderCumulativeComparison);
-bindEvent(comparisonSortMetricInput, "change", renderCumulativeComparison);
-bindEvent(comparisonSortOrderInput, "change", renderCumulativeComparison);
-bindEvent(comparisonFromDateInput, "change", renderCumulativeComparison);
-bindEvent(comparisonToDateInput, "change", renderCumulativeComparison);
+comparisonPeriodInput.addEventListener("change", renderCumulativeComparison);
+comparisonSortMetricInput.addEventListener("change", renderCumulativeComparison);
+comparisonSortOrderInput.addEventListener("change", renderCumulativeComparison);
+comparisonFromDateInput.addEventListener("change", renderCumulativeComparison);
+comparisonToDateInput.addEventListener("change", renderCumulativeComparison);
 if (payrollCloseTypeInput) {
   payrollCloseTypeInput.addEventListener("change", renderPayrollSection);
 }
@@ -11683,18 +10473,18 @@ if (annualReportSortMetricInput) {
 if (annualReportSortOrderInput) {
   annualReportSortOrderInput.addEventListener("change", renderAnnualReport);
 }
-bindEvent(qrScannerCloseButton, "click", closeQrScanner);
-bindEvent(qrScannerDialog, "close", stopQrScannerStream);
-bindEvent(qrManualApplyButton, "click", () => {
+qrScannerCloseButton.addEventListener("click", closeQrScanner);
+qrScannerDialog.addEventListener("close", stopQrScannerStream);
+qrManualApplyButton.addEventListener("click", () => {
   const value = qrManualInput.value.trim();
   if (!value) {
-    window.alert("手�E力コードを入力してください、E);
+    window.alert("手入力コードを入力してください。");
     return;
   }
   handleQrDecodedValue(value);
 });
 
-bindEvent(orchardForm, "submit", (event) => {
+orchardForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const id = orchardIdInput.value || createId("orchard");
   const name = orchardNameInput.value.trim();
@@ -11705,19 +10495,19 @@ bindEvent(orchardForm, "submit", (event) => {
   const longitude = longitudeText ? normalizeLongitude(longitudeText) : null;
   const note = orchardNoteInput.value.trim();
   if (masters.orchards.some((item) => item.name === name && item.id !== id)) {
-    window.alert("同じ園地名がすでに登録されてぁE��す、E);
+    window.alert("同じ園地名がすでに登録されています。");
     return;
   }
   if (managementCode && masters.orchards.some((item) => normalizeManagementCode(item.managementCode) === managementCode && item.id !== id)) {
-    window.alert("同じ園地管琁E��ードがすでに登録されてぁE��す、E);
+    window.alert("同じ園地管理コードがすでに登録されています。");
     return;
   }
   if (latitudeText && !Number.isFinite(latitude)) {
-    window.alert("緯度は -90 、E90 の篁E��で入力してください、E);
+    window.alert("緯度は -90 〜 90 の範囲で入力してください。");
     return;
   }
   if (longitudeText && !Number.isFinite(longitude)) {
-    window.alert("経度は -180 、E180 の篁E��で入力してください、E);
+    window.alert("経度は -180 〜 180 の範囲で入力してください。");
     return;
   }
   const orchard = { id, name, managementCode, latitude, longitude, note };
@@ -11729,7 +10519,7 @@ bindEvent(orchardForm, "submit", (event) => {
   render();
 });
 
-bindEvent(plotForm, "submit", (event) => {
+plotForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const id = plotIdInput.value || createId("plot");
   const orchardId = plotOrchardInput.value;
@@ -11737,11 +10527,11 @@ bindEvent(plotForm, "submit", (event) => {
   const managementCode = normalizeManagementCode(plotCodeInput.value);
   const note = plotNoteInput.value.trim();
   if (masters.plots.some((item) => item.orchardId === orchardId && item.name === name && item.id !== id)) {
-    window.alert("同じ園地に同名の区画が登録されてぁE��す、E);
+    window.alert("同じ園地に同名の区画が登録されています。");
     return;
   }
   if (managementCode && masters.plots.some((item) => normalizeManagementCode(item.managementCode) === managementCode && item.id !== id)) {
-    window.alert("同じ区画管琁E��ードがすでに登録されてぁE��す、E);
+    window.alert("同じ区画管理コードがすでに登録されています。");
     return;
   }
   const plot = { id, orchardId, name, managementCode, note };
@@ -11753,13 +10543,13 @@ bindEvent(plotForm, "submit", (event) => {
   render();
 });
 
-bindEvent(varietyForm, "submit", (event) => {
+varietyForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const id = varietyIdInput.value || createId("variety");
   const name = varietyNameInput.value.trim();
   const note = varietyNoteInput.value.trim();
   if (masters.varieties.some((item) => item.name === name && item.id !== id)) {
-    window.alert("同じ品種名がすでに登録されてぁE��す、E);
+    window.alert("同じ品種名がすでに登録されています。");
     return;
   }
   const variety = { id, name, note };
@@ -11771,7 +10561,7 @@ bindEvent(varietyForm, "submit", (event) => {
   render();
 });
 
-bindEvent(groupForm, "submit", (event) => {
+groupForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const id = groupIdInput.value || createId("group");
   const name = groupNameInput.value.trim();
@@ -11780,7 +10570,7 @@ bindEvent(groupForm, "submit", (event) => {
   const isActive = groupIsActiveInput.checked;
   const selectedMemberIds = [...new Set(selectedGroupMemberWorkerIds)].filter((workerId) => Boolean(getWorkerById(workerId)));
   if (masters.groups.some((item) => item.name === name && item.id !== id)) {
-    window.alert("同じグループ名がすでに登録されてぁE��す、E);
+    window.alert("同じグループ名がすでに登録されています。");
     return;
   }
   const group = { id, name, sortOrder, description, isActive };
@@ -11809,27 +10599,27 @@ bindEvent(groupForm, "submit", (event) => {
   render();
 });
 
-bindEvent(teamSetGroupIdInput, "change", () => {
+teamSetGroupIdInput.addEventListener("change", () => {
   selectedTeamSetWorkerIds = selectedTeamSetWorkerIds.filter((workerId) => getWorkerById(workerId)?.isActive);
   renderTeamSetWorkerList();
 });
 
-bindEvent(teamSetForm, "submit", (event) => {
+teamSetForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const id = teamSetIdInput.value || createId("team-set");
   const name = teamSetNameInput.value.trim();
   const groupId = teamSetGroupIdInput.value;
   const workerIds = [...new Set(selectedTeamSetWorkerIds)];
   if (!name || !groupId) {
-    window.alert("セチE��名と作業グループを入力してください、E);
+    window.alert("セット名と作業グループを入力してください。");
     return;
   }
   if (!workerIds.length) {
-    window.alert("固定チームセチE��には作業老E��1人以上登録してください、E);
+    window.alert("固定チームセットには作業者を1人以上登録してください。");
     return;
   }
   if (masters.fixedTeamSets.some((item) => item.name === name && item.id !== id)) {
-    window.alert("同じセチE��名がすでに登録されてぁE��す、E);
+    window.alert("同じセット名がすでに登録されています。");
     return;
   }
   const teamSet = { id, name, groupId, workerIds };
@@ -11843,7 +10633,7 @@ bindEvent(teamSetForm, "submit", (event) => {
   render();
 });
 
-bindEvent(workerForm, "submit", (event) => {
+workerForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const id = workerIdInput.value || createId("worker");
   const fullName = workerFullNameInput.value.trim();
@@ -11852,7 +10642,7 @@ bindEvent(workerForm, "submit", (event) => {
   const hourlyRate = Number(workerHourlyRateInput.value || 0);
   const isActive = workerIsActiveInput.checked;
   if (masters.workers.some((item) => item.fullName === fullName && item.id !== id)) {
-    window.alert("同じ氏名の作業老E��すでに登録されてぁE��す。重褁E��録しなぁE��用です、E);
+    window.alert("同じ氏名の作業者がすでに登録されています。重複登録しない運用です。");
     return;
   }
   const current = masters.workers.find((item) => item.id === id);
@@ -11865,25 +10655,25 @@ bindEvent(workerForm, "submit", (event) => {
   render();
 });
 
-bindEvent(membershipWorkerIdInput, "change", () => {
+membershipWorkerIdInput.addEventListener("change", () => {
   selectedMembershipGroupIds = [];
   membershipPrimaryGroupIdInput.value = "";
   renderMembershipGroupList();
 });
 
-bindEvent(membershipForm, "submit", (event) => {
+membershipForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const workerId = membershipWorkerIdInput.value;
   if (!workerId) {
-    window.alert("作業老E��選択してください、E);
+    window.alert("作業者を選択してください。");
     return;
   }
   if (!selectedMembershipGroupIds.length) {
-    window.alert("所属グループを1つ以上選択してください、E);
+    window.alert("所属グループを1つ以上選択してください。");
     return;
   }
   if (!membershipPrimaryGroupIdInput.value || !selectedMembershipGroupIds.includes(membershipPrimaryGroupIdInput.value)) {
-    window.alert("主所属グループを選択してください、E);
+    window.alert("主所属グループを選択してください。");
     return;
   }
 
@@ -11902,29 +10692,29 @@ bindEvent(membershipForm, "submit", (event) => {
   render();
 });
 
-bindEvent(teamPlanDateInput, "change", () => {
+teamPlanDateInput.addEventListener("change", () => {
   selectedTeamPlanWorkerIds = [];
   teamPlanIdInput.value = "";
   renderTeamPlanWorkerList();
 });
 
-bindEvent(teamPlanGroupInput, "change", () => {
+teamPlanGroupInput.addEventListener("change", () => {
   selectedTeamPlanWorkerIds = [];
   teamPlanIdInput.value = "";
   renderTeamPlanWorkerList();
 });
 
-bindEvent(teamSetSelectInput, "change", () => {
+teamSetSelectInput.addEventListener("change", () => {
   const selected = getTeamSetById(teamSetSelectInput.value);
   teamSetHint.textContent = selected
-    ? `現在選択中: ${selected.name}�E�忁E��に応じて欠勤老E��外し、応援老E��追加できます）`
-    : "固定チームセチE��を呼び出すと、参加老E��一括で反映できます、E;
+    ? `現在選択中: ${selected.name}（必要に応じて欠勤者を外し、応援者を追加できます）`
+    : "固定チームセットを呼び出すと、参加者を一括で反映できます。";
 });
 
-bindEvent(teamPlanForm, "submit", (event) => {
+teamPlanForm.addEventListener("submit", (event) => {
   event.preventDefault();
   if (!teamPlanDateInput.value || !teamPlanGroupInput.value) {
-    window.alert("編成日と作業グループを選択してください、E);
+    window.alert("編成日と作業グループを選択してください。");
     return;
   }
   const selectedTeamSet = getTeamSetById(teamSetSelectInput.value);
@@ -11946,14 +10736,14 @@ bindEvent(teamPlanForm, "submit", (event) => {
   render();
 });
 
-bindEvent(teamPlanCopyButton, "click", () => {
+teamPlanCopyButton.addEventListener("click", () => {
   if (!teamPlanDateInput.value || !teamPlanGroupInput.value) {
-    window.alert("先に編成日と作業グループを選択してください、E);
+    window.alert("先に編成日と作業グループを選択してください。");
     return;
   }
   const previousPlan = getLatestPreviousTeamPlan(teamPlanDateInput.value, teamPlanGroupInput.value);
   if (!previousPlan) {
-    window.alert("コピ�Eできる前回編成がありません、E);
+    window.alert("コピーできる前回編成がありません。");
     return;
   }
   teamSetSelectInput.value = previousPlan.fixedTeamSetId || "";
@@ -11961,23 +10751,23 @@ bindEvent(teamPlanCopyButton, "click", () => {
   renderTeamPlanWorkerList();
 });
 
-bindEvent(teamPlanLoadSetButton, "click", () => {
+teamPlanLoadSetButton.addEventListener("click", () => {
   if (!teamPlanGroupInput.value) {
-    window.alert("先に作業グループを選択してください、E);
+    window.alert("先に作業グループを選択してください。");
     return;
   }
   const selectedTeamSet = getTeamSetById(teamSetSelectInput.value);
   if (!selectedTeamSet) {
-    window.alert("呼び出す固定チームセチE��を選択してください、E);
+    window.alert("呼び出す固定チームセットを選択してください。");
     return;
   }
   selectedTeamPlanWorkerIds = selectedTeamSet.workerIds.slice();
   renderTeamPlanWorkerList();
 });
 
-bindEvent(teamPlanApplyButton, "click", () => {
+teamPlanApplyButton.addEventListener("click", () => {
   if (!teamPlanDateInput.value || !teamPlanGroupInput.value) {
-    window.alert("先に編成日と作業グループを選択してください、E);
+    window.alert("先に編成日と作業グループを選択してください。");
     return;
   }
   const selectedTeamSet = getTeamSetById(teamSetSelectInput.value);
@@ -11994,24 +10784,24 @@ bindEvent(teamPlanApplyButton, "click", () => {
   moveToShortcut(recordFormPanel, workDateInput);
 });
 
-bindEvent(teamPlanResetButton, "click", () => {
+teamPlanResetButton.addEventListener("click", () => {
   resetTeamPlanForm();
   renderTeamPlanWorkerList();
 });
 
-bindEvent(orchardResetButton, "click", resetOrchardForm);
-bindEvent(plotResetButton, "click", resetPlotForm);
-bindEvent(varietyResetButton, "click", resetVarietyForm);
-bindEvent(groupResetButton, "click", () => {
+orchardResetButton.addEventListener("click", resetOrchardForm);
+plotResetButton.addEventListener("click", resetPlotForm);
+varietyResetButton.addEventListener("click", resetVarietyForm);
+groupResetButton.addEventListener("click", () => {
   resetGroupForm();
   renderGroupMemberList();
 });
-bindEvent(teamSetResetButton, "click", () => {
+teamSetResetButton.addEventListener("click", () => {
   resetTeamSetForm();
   renderTeamSetWorkerList();
 });
-bindEvent(workerResetButton, "click", resetWorkerForm);
-bindEvent(membershipResetButton, "click", () => {
+workerResetButton.addEventListener("click", resetWorkerForm);
+membershipResetButton.addEventListener("click", () => {
   resetMembershipForm();
   renderMembershipGroupList();
 });
@@ -12029,11 +10819,11 @@ if (companySettingsForm) {
     const breakMinutesValue = Number(workdayBreakMinutesInput?.value ?? companySettings.workdayBreakMinutes);
     const timeUnitMinutesValue = Number(payrollTimeUnitMinutesInput?.value ?? companySettings.payrollTimeUnitMinutes);
     if (!Number.isFinite(monthValue) || monthValue < 1 || monthValue > 12) {
-      window.alert("決算締月�E1、E2で入力してください、E);
+      window.alert("決算締月は1〜12で入力してください。");
       return;
     }
     if (!Number.isFinite(dayValue) || dayValue < 1 || dayValue > 31) {
-      window.alert("決算締日は1、E1で入力してください、E);
+      window.alert("決算締日は1〜31で入力してください。");
       return;
     }
     if (!Number.isFinite(baseTemperatureValue)) {
@@ -12041,19 +10831,19 @@ if (companySettingsForm) {
       return;
     }
     if (!startTimeValue || !endTimeValue) {
-      window.alert("標準�E勤時刻と標準退勤時刻を�E力してください、E);
+      window.alert("標準出勤時刻と標準退勤時刻を入力してください。");
       return;
     }
     if (parseTimeToMinutes(endTimeValue) <= parseTimeToMinutes(startTimeValue)) {
-      window.alert("標準退勤時刻は標準�E勤時刻より後に設定してください、E);
+      window.alert("標準退勤時刻は標準出勤時刻より後に設定してください。");
       return;
     }
     if (!Number.isFinite(breakMinutesValue) || breakMinutesValue < 0 || breakMinutesValue > 300) {
-      window.alert("休�E時間は0、E00刁E��入力してください、E);
+      window.alert("休憩時間は0〜300分で入力してください。");
       return;
     }
     if (![15, 30].includes(timeUnitMinutesValue)) {
-      window.alert("時間計算�E丸め単位�E15刁E��た�E30刁E��選択してください、E);
+      window.alert("時間計算の丸め単位は15分または30分を選択してください。");
       return;
     }
     companySettings = normalizeCompanySettings({
@@ -12094,13 +10884,12 @@ if (companySettingsForm) {
     const fiscalRange = getFiscalYearRange(today);
     companySettings = currentSettings;
     const baseTemperatureText = Number(previewSettings.degreeDayBaseTemperatureC).toFixed(1).replace(/\.0$/, "");
-    const breakText = `${Math.floor(previewSettings.workdayBreakMinutes / 60)}時間${String(previewSettings.workdayBreakMinutes % 60).padStart(2, "0")}刁E;
+    const breakText = `${Math.floor(previewSettings.workdayBreakMinutes / 60)}時間${String(previewSettings.workdayBreakMinutes % 60).padStart(2, "0")}分`;
     const defaultHours = getDefaultWorkHours(previewSettings);
-    const effectiveTimeUnitMinutes = previewSettings.payrollTimeUnitMinutes === 30 ? 15 : previewSettings.payrollTimeUnitMinutes;
-    companyFiscalYearPreview.textContent = `\u73fe\u5728\u306e\u6c7a\u7b97\u5e74\u5ea6: ${formatDateYmd(fiscalRange.from)}\u301c${formatDateYmd(fiscalRange.to)} / \u7a4d\u7b97\u6e29\u5ea6\u57fa\u6e96: ${baseTemperatureText}\u2103 / \u6a19\u6e96\u52e4\u52d9: ${previewSettings.workdayStartTime}\u301c${previewSettings.workdayEndTime}\uff08\u4f11\u61a9 ${breakText}\uff09= ${defaultHours}\u6642\u9593 / \u4e38\u3081: ${effectiveTimeUnitMinutes}\u5206`;
+    companyFiscalYearPreview.textContent = `\u73fe\u5728\u306e\u6c7a\u7b97\u5e74\u5ea6: ${formatDateYmd(fiscalRange.from)}\u301c${formatDateYmd(fiscalRange.to)} / \u7a4d\u7b97\u6e29\u5ea6\u57fa\u6e96: ${baseTemperatureText}\u2103 / \u6a19\u6e96\u52e4\u52d9: ${previewSettings.workdayStartTime}\u301c${previewSettings.workdayEndTime}\uff08\u4f11\u61a9 ${breakText}\uff09= ${defaultHours}\u6642\u9593 / \u4e38\u3081: ${previewSettings.payrollTimeUnitMinutes}\u5206`;
   };
-  bindEvent(fiscalClosingMonthInput, "input", updatePreview);
-  bindEvent(fiscalClosingDayInput, "input", updatePreview);
+  fiscalClosingMonthInput.addEventListener("input", updatePreview);
+  fiscalClosingDayInput.addEventListener("input", updatePreview);
   if (degreeDayBaseTemperatureInput) {
     degreeDayBaseTemperatureInput.addEventListener("input", updatePreview);
   }
@@ -12140,30 +10929,29 @@ function renderCompanySettings() {
   }
   const fiscalRange = getFiscalYearRange(today);
   const baseTemperatureText = Number(normalized.degreeDayBaseTemperatureC).toFixed(1).replace(/\.0$/, "");
-  const breakText = `${Math.floor(normalized.workdayBreakMinutes / 60)}時間${String(normalized.workdayBreakMinutes % 60).padStart(2, "0")}刁E;
+  const breakText = `${Math.floor(normalized.workdayBreakMinutes / 60)}時間${String(normalized.workdayBreakMinutes % 60).padStart(2, "0")}分`;
   const defaultHours = getDefaultWorkHours(normalized);
-  const effectiveTimeUnitMinutes = normalized.payrollTimeUnitMinutes === 30 ? 15 : normalized.payrollTimeUnitMinutes;
-  companyFiscalYearPreview.textContent = `\u73fe\u5728\u306e\u6c7a\u7b97\u5e74\u5ea6: ${formatDateYmd(fiscalRange.from)}\u301c${formatDateYmd(fiscalRange.to)} / \u7a4d\u7b97\u6e29\u5ea6\u57fa\u6e96: ${baseTemperatureText}\u2103 / \u6a19\u6e96\u52e4\u52d9: ${normalized.workdayStartTime}\u301c${normalized.workdayEndTime}\uff08\u4f11\u61a9 ${breakText}\uff09= ${defaultHours}\u6642\u9593 / \u4e38\u3081: ${effectiveTimeUnitMinutes}\u5206`;
+  companyFiscalYearPreview.textContent = `\u73fe\u5728\u306e\u6c7a\u7b97\u5e74\u5ea6: ${formatDateYmd(fiscalRange.from)}\u301c${formatDateYmd(fiscalRange.to)} / \u7a4d\u7b97\u6e29\u5ea6\u57fa\u6e96: ${baseTemperatureText}\u2103 / \u6a19\u6e96\u52e4\u52d9: ${normalized.workdayStartTime}\u301c${normalized.workdayEndTime}\uff08\u4f11\u61a9 ${breakText}\uff09= ${defaultHours}\u6642\u9593 / \u4e38\u3081: ${normalized.payrollTimeUnitMinutes}\u5206`;
   applyDefaultWorkScheduleToForm();
 }
 
 function exportCumulativeComparisonCsv() {
   const comparisonData = getCumulativeComparisonData();
   if (!comparisonData.periodConfig.isValid) {
-    window.alert(comparisonData.periodConfig.error || "比輁E��件を確認してください、E);
+    window.alert(comparisonData.periodConfig.error || "比較条件を確認してください。");
     return;
   }
   const metricLabelMap = {
-    count: "件数基溁E,
-    hours: "総作業時間基溁E,
-    personHours: "延べ人時基溁E,
-    laborCost: "概算人件費基溁E
+    count: "件数基準",
+    hours: "総作業時間基準",
+    personHours: "延べ人時基準",
+    laborCost: "概算人件費基準"
   };
-  const metricLabel = metricLabelMap[comparisonSortMetricInput.value] || "総作業時間基溁E;
-  const sortLabel = comparisonSortOrderInput.value === "asc" ? "少なぁE��E : "多い頁E;
+  const metricLabel = metricLabelMap[comparisonSortMetricInput.value] || "総作業時間基準";
+  const sortLabel = comparisonSortOrderInput.value === "asc" ? "少ない順" : "多い順";
   const periodModeLabel = getComparisonPeriodLabel(comparisonData.periodConfig.mode);
   const periodRangeLabel = comparisonData.periodConfig.rangeText || "";
-  const header = ["種別", "名称", "累積作業件数", "累積総作業時間", "累積延べ人晁E, "累積概算人件費", "比輁E��閁E, "比輁E��間篁E��", "並び替え基溁E, "並び頁E];
+  const header = ["種別", "名称", "累積作業件数", "累積総作業時間", "累積延べ人時", "累積概算人件費", "比較期間", "比較期間範囲", "並び替え基準", "並び順"];
   const orchardRows = comparisonData.orchardEntries.map((entry) => ["園地", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, periodModeLabel, periodRangeLabel, metricLabel, sortLabel]);
   const plotRows = comparisonData.plotEntries.map((entry) => ["区画", entry.label, entry.count, entry.hours, entry.personHours, entry.laborCost, periodModeLabel, periodRangeLabel, metricLabel, sortLabel]);
   const rows = [header, ...orchardRows, ...plotRows];
@@ -12202,32 +10990,9 @@ function registerPwaServiceWorker() {
   window.addEventListener("load", () => {
     const swUrl = new URL("./sw.js", window.location.href);
     const scopeUrl = new URL("./", window.location.href);
-    const forceActivate = (worker) => {
-      if (!worker) return;
-      worker.postMessage("SKIP_WAITING");
-    };
-    let hasReloadedBySwUpdate = false;
-
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (hasReloadedBySwUpdate) return;
-      hasReloadedBySwUpdate = true;
-      window.location.reload();
-    });
-
     navigator.serviceWorker.register(swUrl.href, {
       scope: scopeUrl.pathname,
       updateViaCache: "none"
-    }).then((registration) => {
-      forceActivate(registration.waiting);
-      registration.addEventListener("updatefound", () => {
-        const installing = registration.installing;
-        if (!installing) return;
-        installing.addEventListener("statechange", () => {
-          if (installing.state === "installed" && navigator.serviceWorker.controller) {
-            forceActivate(installing);
-          }
-        });
-      });
     }).catch((error) => {
       console.error("Service Workerの登録に失敗しました。", error);
     });
@@ -12243,13 +11008,6 @@ resetTeamSetForm();
 resetWorkerForm();
 resetMembershipForm();
 resetTeamPlanForm();
+render();
 setAppView(activeAppViewKey, { scrollIntoView: false });
-try {
-  render();
-} catch (error) {
-  console.error("初期描画中にエラーが発生しました。", error);
-} finally {
-  setAppView(activeAppViewKey, { scrollIntoView: false });
-}
 setWeatherFetchStatus(WEATHER_FETCH_HINT_TEXT);
-

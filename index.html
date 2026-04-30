@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260501-2">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="app" class="page-shell">
@@ -53,17 +53,16 @@
       <section class="home-shortcuts" aria-label="よく使うメニュー">
         <p class="home-shortcuts__title">まずはここを押してください</p>
         <div class="home-shortcuts__grid">
-          <button type="button" class="button button--save home-shortcut-button" id="shortcutRecordFormButton" data-view-target="record">記録する</button>
-          <button type="button" class="button button--view home-shortcut-button" id="shortcutDailyReportButton" data-view-target="records">記録一覧</button>
-          <button type="button" class="button button--view home-shortcut-button" id="shortcutAnnualReportButton" data-view-target="summary">集計</button>
-          <button type="button" class="button button--settings home-shortcut-button" data-view-target="settings">設定</button>
-          <button type="button" class="button button--view home-shortcut-button" id="shortcutTeamPlanButton" data-view-target="team">今日のメンバー</button>
+          <button type="button" class="button button--save home-shortcut-button" id="shortcutRecordFormButton">作業を記録する</button>
+          <button type="button" class="button button--view home-shortcut-button" id="shortcutDailyReportButton">履歴を見る</button>
+          <button type="button" class="button button--view home-shortcut-button" id="shortcutTeamPlanButton">今日のメンバー</button>
+          <button type="button" class="button button--view home-shortcut-button" id="shortcutAnnualReportButton">まとめを見る</button>
         </div>
       </section>
     </header>
 
     <main class="layout">
-      <section class="panel form-panel" id="recordFormPanel" data-mobile-tab-panel="true" hidden>
+      <section class="panel form-panel" id="recordFormPanel" data-mobile-tab-panel="true">
         <div class="panel__header">
           <div>
             <p class="panel__eyebrow">記録</p>
@@ -330,7 +329,7 @@
       </section>
 
       <div class="content-stack">
-        <section class="panel team-panel" id="teamPlanPanel" data-mobile-tab-panel="true" hidden>
+        <section class="panel team-panel" id="teamPlanPanel" data-mobile-tab-panel="true">
           <div class="panel__header">
             <div>
               <p class="panel__eyebrow">メンバー</p>
@@ -411,7 +410,7 @@
           <div id="teamPlanList" class="master-list"></div>
         </section>
 
-        <section class="panel list-panel" id="recordListPanel" data-mobile-tab-panel="true" hidden>
+        <section class="panel list-panel" id="recordListPanel" data-mobile-tab-panel="true">
           <div class="panel__header">
             <div>
               <p class="panel__eyebrow">履歴を見る</p>
@@ -475,7 +474,7 @@
           <div id="recordList" class="record-list" aria-live="polite"></div>
         </section>
 
-        <section class="panel analytics-panel" id="analyticsPanel" data-mobile-tab-panel="true" hidden>
+        <section class="panel analytics-panel" id="analyticsPanel" data-mobile-tab-panel="true">
           <div class="summary-page-nav" id="summaryPageNav" hidden>
             <button type="button" class="button button--settings button--small" data-summary-nav="top">まとめトップへ戻る</button>
             <button type="button" class="button button--settings button--small" data-summary-nav="home">ホームへ戻る</button>
@@ -559,7 +558,6 @@
               <button class="button button--view" id="payrollRefreshButton" type="button">給与集計を更新</button>
               <button class="button button--save" id="payrollExportButton" type="button">給与一覧をCSV出力</button>
               <button class="button button--view" id="payrollPrintButton" type="button">給与一覧を印刷</button>
-              <button class="button button--save" id="payrollPdfButton" type="button">給与一覧をPDF保存</button>
             </div>
 
             <div class="payroll-custom-range" id="payrollCustomRange" hidden>
@@ -952,7 +950,7 @@
           </div>
         </section>
 
-        <section class="panel master-panel" id="masterPanel" data-mobile-tab-panel="true" data-settings-panel="master" hidden>
+        <section class="panel master-panel" id="masterPanel" data-mobile-tab-panel="true" data-settings-panel="master">
           <div class="panel__header">
             <div>
               <p class="panel__eyebrow">設定</p>
@@ -1454,10 +1452,10 @@
     </main>
 
     <nav class="bottom-nav" id="bottomNav" aria-label="画面切替">
-      <button type="button" class="bottom-nav__button is-active" data-app-view="home" data-view-target="home" aria-current="page">ホーム</button>
-      <button type="button" class="bottom-nav__button" data-app-view="record" data-view-target="record">記録</button>
-      <button type="button" class="bottom-nav__button" data-app-view="records" data-view-target="records">履歴</button>
-      <button type="button" class="bottom-nav__button" data-app-view="settings" data-view-target="settings">設定</button>
+      <button type="button" class="bottom-nav__button is-active" data-app-view="home" aria-current="page">ホーム</button>
+      <button type="button" class="bottom-nav__button" data-app-view="record">記録</button>
+      <button type="button" class="bottom-nav__button" data-app-view="records">履歴</button>
+      <button type="button" class="bottom-nav__button" data-app-view="settings">設定</button>
     </nav>
   </div>
 
@@ -1569,6 +1567,6 @@
     </article>
   </template>
 
-  <script src="app.js?v=20260501-2"></script>
+  <script src="app.js"></script>
 </body>
 </html>
