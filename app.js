@@ -10821,10 +10821,10 @@ function renderPayrollDetail(data) {
         </div>
         <div class="payroll-day-card__grid">
           <div><span>\u4f5c\u696d\u5185\u5bb9</span><strong>${escapeHtml(day.workTypeText || "\u672a\u8a2d\u5b9a")}</strong></div>
-          <div><span>\u52e4\u52d9\u6642\u9593</span><strong>${escapeHtml(day.timeRangeText || `${day.startTime || "--"}\u301c${day.endTime || "--"}`)}</strong></div>
+          <div><span>\u52e4\u52d9\u6642\u9593\u5e2f</span><strong>${escapeHtml(day.timeRangeText || `${day.startTime || "--"}\u301c${day.endTime || "--"}`)}</strong></div>
           <div><span>\u958b\u59cb\u6642\u523b</span><strong>${escapeHtml(day.startTime || "--")}</strong></div>
           <div><span>\u7d42\u4e86\u6642\u523b</span><strong>${escapeHtml(day.endTime || "--")}</strong></div>
-          <div><span>\u30ab\u30a6\u30f3\u30c8\u3057\u306a\u3044\u6642\u9593</span><strong>${escapeHtml(String(Math.round(day.breakMinutes || 0)))}\u5206</strong></div>
+          <div><span>\u7d66\u4e0e\u8a08\u7b97\u304b\u3089\u9664\u5916\u3057\u305f\u6642\u9593</span><strong>${escapeHtml(String(Math.round(day.breakMinutes || 0)))}\u5206</strong></div>
           <div><span>\u5b9f\u52b4\u50cd\u6642\u9593</span><strong>${escapeHtml(formatHoursQuarter(day.workHours))}</strong></div>
           <div><span>\u6642\u7d66</span><strong>${escapeHtml(formatCurrency(day.hourlyRate || 0))}</strong></div>
           <div><span>\u65e5\u5225\u8cc3\u91d1</span><strong>${escapeHtml(formatCurrency(day.dayPay || 0))}</strong></div>
@@ -11000,7 +11000,7 @@ function buildPayrollReportHtml(data, preferredAction = "print") {
       <h3>${escapeHtml(row.fullName)}${row.category ? `(${escapeHtml(row.category)})` : ""}</h3>
       <h4 class="detail-subtitle">\u65e5\u5225\u660e\u7d30</h4>
       <table>
-        <thead><tr><th>\u65e5\u4ed8</th><th>\u66dc</th><th>\u4f5c\u696d\u5185\u5bb9</th><th>\u52e4\u52d9\u6642\u9593</th><th>\u958b\u59cb</th><th>\u7d42\u4e86</th><th>\u30ab\u30a6\u30f3\u30c8\u3057\u306a\u3044\u6642\u9593</th><th>\u5b9f\u52b4\u50cd</th><th>\u6642\u7d66</th><th>\u65e5\u5225\u8cc3\u91d1</th></tr></thead>
+        <thead><tr><th>\u65e5\u4ed8</th><th>\u66dc</th><th>\u4f5c\u696d\u5185\u5bb9</th><th>\u52e4\u52d9\u6642\u9593\u5e2f</th><th>\u958b\u59cb</th><th>\u7d42\u4e86</th><th>\u7d66\u4e0e\u8a08\u7b97\u304b\u3089\u9664\u5916\u3057\u305f\u6642\u9593</th><th>\u5b9f\u52b4\u50cd</th><th>\u6642\u7d66</th><th>\u65e5\u5225\u8cc3\u91d1</th></tr></thead>
         <tbody>${buildPayrollWorkerDailyRowsHtml(row.dailyDetails || [])}</tbody>
         <tfoot><tr><td colspan="7">\u671f\u9593\u5408\u8a08</td><td>${escapeHtml(formatHoursQuarter(row.totalHours))}</td><td>${escapeHtml(formatCurrency(row.hourlyRate || 0))}</td><td>${escapeHtml(formatCurrency(row.basicPay || 0))}</td></tr></tfoot>
       </table>
@@ -11121,7 +11121,7 @@ function buildPayrollIndividualReportHtml(row, periodConfig, preferredAction = "
         </section>
         <h3 class="detail-subtitle">\u65e5\u5225\u660e\u7d30</h3>
         <table>
-          <thead><tr><th>\u65e5\u4ed8</th><th>\u66dc</th><th>\u4f5c\u696d\u5185\u5bb9</th><th>\u52e4\u52d9\u6642\u9593</th><th>\u958b\u59cb</th><th>\u7d42\u4e86</th><th>\u30ab\u30a6\u30f3\u30c8\u3057\u306a\u3044\u6642\u9593</th><th>\u5b9f\u52b4\u50cd</th><th>\u6642\u7d66</th><th>\u65e5\u5225\u8cc3\u91d1</th></tr></thead>
+          <thead><tr><th>\u65e5\u4ed8</th><th>\u66dc</th><th>\u4f5c\u696d\u5185\u5bb9</th><th>\u52e4\u52d9\u6642\u9593\u5e2f</th><th>\u958b\u59cb</th><th>\u7d42\u4e86</th><th>\u7d66\u4e0e\u8a08\u7b97\u304b\u3089\u9664\u5916\u3057\u305f\u6642\u9593</th><th>\u5b9f\u52b4\u50cd</th><th>\u6642\u7d66</th><th>\u65e5\u5225\u8cc3\u91d1</th></tr></thead>
           <tbody>${buildPayrollWorkerDailyRowsHtml(dailyDetails)}</tbody>
           <tfoot><tr><td colspan="7">\u671f\u9593\u5408\u8a08</td><td>${escapeHtml(formatHoursQuarter(row.totalHours || 0))}</td><td>${escapeHtml(formatCurrency(row.hourlyRate || 0))}</td><td>${escapeHtml(formatCurrency(row.basicPay || 0))}</td></tr></tfoot>
         </table>
