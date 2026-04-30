@@ -379,7 +379,7 @@ const summaryNavButtons = Array.from(document.querySelectorAll("[data-summary-na
 const summaryMenuDailyButton = document.getElementById("summaryMenuDailyButton");
 const bottomNav = document.getElementById("bottomNav");
 const bottomNavButtons = bottomNav
-  ? Array.from(bottomNav.querySelectorAll("[data-app-view]"))
+  ? Array.from(bottomNav.querySelectorAll("[data-view-target],[data-app-view]"))
   : [];
 const appViewPanelMap = {
   home: ["homePanel"],
@@ -392,9 +392,12 @@ const appViewPanelMap = {
 const appViewKeys = Object.keys(appViewPanelMap);
 const appViewPanels = Array.from(
   new Set(
-    appViewKeys
-      .flatMap((viewKey) => appViewPanelMap[viewKey])
-      .map((panelId) => document.getElementById(panelId))
+    [
+      ...appViewKeys
+        .flatMap((viewKey) => appViewPanelMap[viewKey])
+        .map((panelId) => document.getElementById(panelId)),
+      ...Array.from(document.querySelectorAll("[data-mobile-tab-panel]"))
+    ]
       .filter(Boolean)
   )
 );
@@ -403,6 +406,7 @@ let activeSettingsSection = "top";
 let activeSummarySection = "top";
 let activeWorktimeTab = "personal";
 let activeWorktimeWorkerId = "";
+let hasBoundViewTargetDelegation = false;
 const shortcutRecordFormButton = document.getElementById("shortcutRecordFormButton");
 const shortcutTeamPlanButton = document.getElementById("shortcutTeamPlanButton");
 const shortcutDailyReportButton = document.getElementById("shortcutDailyReportButton");
@@ -5794,18 +5798,39 @@ function setSummarySection(sectionKey, options = {}) {
   focusElementLater(resolvedFocus);
 }
 
+function normalizeAppViewKey(viewKey) {
+  const normalized = normalizeText(viewKey);
+  if (normalized === "history") return "records";
+  if (normalized === "analytics") return "summary";
+  return normalized;
+}
+
 function setAppView(viewKey, options = {}) {
-  if (!viewKey || !appViewPanelMap[viewKey] || !appViewPanels.length) return;
+  const normalizedViewKey = normalizeAppViewKey(viewKey);
+  if (!normalizedViewKey || !appViewPanelMap[normalizedViewKey] || !appViewPanels.length) return;
   const { scrollIntoView = true, focusElement = null } = options;
-  activeAppViewKey = viewKey;
+  activeAppViewKey = normalizedViewKey;
 
   appViewPanels.forEach((panel) => {
-    panel.hidden = !appViewPanelMap[viewKey].includes(panel.id);
+    panel.hidden = true;
+    panel.classList.add("is-hidden");
+  });
+
+  const targetPanelIds = appViewPanelMap[normalizedViewKey] || [];
+  targetPanelIds.forEach((panelId) => {
+    const panel = document.getElementById(panelId);
+    if (!panel) {
+      console.warn("setAppView: パネルが見つかりません:", panelId);
+      return;
+    }
+    panel.hidden = false;
+    panel.classList.remove("is-hidden");
   });
 
   if (bottomNavButtons.length) {
     bottomNavButtons.forEach((button) => {
-      const isActive = button.dataset.appView === viewKey;
+      const buttonView = normalizeAppViewKey(button.dataset.viewTarget || button.dataset.appView || "");
+      const isActive = buttonView === normalizedViewKey;
       button.classList.toggle("is-active", isActive);
       if (isActive) {
         button.setAttribute("aria-current", "page");
@@ -5815,15 +5840,15 @@ function setAppView(viewKey, options = {}) {
     });
   }
   if (document?.body) {
-    document.body.dataset.currentView = viewKey;
+    document.body.dataset.currentView = normalizedViewKey;
   }
 
-  if (viewKey === "settings") {
+  if (normalizedViewKey === "settings") {
     applySettingsSectionState();
     if (document?.body) {
       delete document.body.dataset.summarySection;
     }
-  } else if (viewKey === "summary") {
+  } else if (normalizedViewKey === "summary") {
     applySummarySectionState();
     if (document?.body) {
       delete document.body.dataset.settingsSection;
@@ -5835,13 +5860,13 @@ function setAppView(viewKey, options = {}) {
 
   if (scrollIntoView) {
     let activePanel = null;
-    if (viewKey === "settings") {
+    if (normalizedViewKey === "settings") {
       activePanel = activeSettingsSection === "qr" ? qrPanel : masterPanel;
-    } else if (viewKey === "summary") {
+    } else if (normalizedViewKey === "summary") {
       activePanel = analyticsPanel;
     }
     if (!activePanel) {
-      const firstPanelId = appViewPanelMap[viewKey][0];
+      const firstPanelId = targetPanelIds[0];
       activePanel = document.getElementById(firstPanelId);
     }
     if (activePanel) {
@@ -5851,6 +5876,51 @@ function setAppView(viewKey, options = {}) {
 
   focusElementLater(focusElement);
 }
+
+function getDefaultFocusForView(viewKey) {
+  const normalizedViewKey = normalizeAppViewKey(viewKey);
+  if (normalizedViewKey === "record") return workDateInput;
+  if (normalizedViewKey === "team") return teamPlanDateInput;
+  if (normalizedViewKey === "records") return dailyReportDateInput || orchardFilterInput;
+  if (normalizedViewKey === "summary") return summaryMenuDailyButton;
+  if (normalizedViewKey === "settings") return settingsMenuCompanyButton;
+  return shortcutRecordFormButton;
+}
+
+function handleViewTargetNavigation(rawViewKey, options = {}) {
+  const normalizedViewKey = normalizeAppViewKey(rawViewKey);
+  if (!normalizedViewKey || !appViewPanelMap[normalizedViewKey]) {
+    console.warn("不明な画面キーです:", rawViewKey);
+    return;
+  }
+
+  if (normalizedViewKey === "records" && dailyReportDateInput && !dailyReportDateInput.value) {
+    dailyReportDateInput.value = getTodayString();
+  }
+  if (normalizedViewKey === "settings") {
+    setSettingsSection("top", { scrollIntoView: false, focusElement: settingsMenuCompanyButton });
+  } else if (normalizedViewKey === "summary") {
+    setSummarySection("top", { scrollIntoView: false, focusElement: summaryMenuDailyButton });
+  }
+
+  setAppView(normalizedViewKey, {
+    scrollIntoView: options.scrollIntoView !== false,
+    focusElement: options.focusElement || getDefaultFocusForView(normalizedViewKey)
+  });
+}
+
+function bindViewTargetDelegation() {
+  if (hasBoundViewTargetDelegation) return;
+  hasBoundViewTargetDelegation = true;
+  document.addEventListener("click", (event) => {
+    const trigger = event.target?.closest?.("[data-view-target],[data-app-view]");
+    if (!trigger) return;
+    const rawViewKey = trigger.dataset.viewTarget || trigger.dataset.appView || "";
+    if (!rawViewKey) return;
+    handleViewTargetNavigation(rawViewKey, { scrollIntoView: true });
+  });
+}
+bindViewTargetDelegation();
 
 function moveToShortcut(targetPanel, focusElement) {
   const targetViewKey = getAppViewForPanelId(targetPanel?.id);
@@ -11008,6 +11078,12 @@ resetTeamSetForm();
 resetWorkerForm();
 resetMembershipForm();
 resetTeamPlanForm();
-render();
 setAppView(activeAppViewKey, { scrollIntoView: false });
+try {
+  render();
+} catch (error) {
+  console.error("初期描画中にエラーが発生しました。", error);
+} finally {
+  setAppView(activeAppViewKey, { scrollIntoView: false });
+}
 setWeatherFetchStatus(WEATHER_FETCH_HINT_TEXT);
