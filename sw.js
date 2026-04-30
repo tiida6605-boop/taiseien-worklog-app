@@ -1,4 +1,4 @@
-const CACHE_NAME = "taiseien-pwa-v11";
+const CACHE_NAME = "taiseien-pwa-v12";
 const SW_URL = new URL(self.location.href);
 const BASE_PATH = SW_URL.pathname.slice(0, SW_URL.pathname.lastIndexOf("/") + 1);
 const APP_BASE_URL = `${SW_URL.origin}${BASE_PATH}`;
