@@ -2080,23 +2080,25 @@ function getRecordResolvedWorkHours(record, settings = companySettings) {
   const manualHours = normalizeManualHours(record?.manualWorkHours, normalizedSettings);
   if (manualHours !== null) return manualHours;
 
-  const explicitHours = normalizeManualHours(record?.workHours, normalizedSettings);
-  if (explicitHours !== null) return explicitHours;
+  const startTime = getRecordStartTime(record);
+  const endTime = getRecordEndTime(record);
+  if (startTime && endTime) {
+    const breakMinutes = getRecordBreakMinutes(record, normalizedSettings);
+    const calculatedHours = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
+    if (Number.isFinite(calculatedHours)) return calculatedHours;
+  }
 
   const storedCalculatedHours = normalizeManualHours(record?.calculatedWorkHours, normalizedSettings);
   if (storedCalculatedHours !== null) return storedCalculatedHours;
+
+  const explicitHours = normalizeManualHours(record?.workHours, normalizedSettings);
+  if (explicitHours !== null) return explicitHours;
 
   const legacyDurationHours = normalizeLegacyDurationToHours(
     record?.duration ?? record?.workDurationMinutes ?? record?.durationMinutes ?? record?.durationHours,
     normalizedSettings
   );
   if (legacyDurationHours !== null) return legacyDurationHours;
-
-  const startTime = getRecordStartTime(record);
-  const endTime = getRecordEndTime(record);
-  const breakMinutes = getRecordBreakMinutes(record, normalizedSettings);
-  const calculatedHours = calculateHoursFromRange(startTime, endTime, normalizedSettings, breakMinutes);
-  if (Number.isFinite(calculatedHours)) return calculatedHours;
 
   return getDefaultWorkHours(normalizedSettings);
 }
@@ -2161,6 +2163,43 @@ function getWorkerHoursForRecord(record, workerId, settings = companySettings) {
   if (Number.isFinite(detail.calculatedHours)) return detail.calculatedHours;
   if (Number.isFinite(detail.resolvedHours)) return detail.resolvedHours;
   return getRecordResolvedWorkHours(record, settings);
+}
+
+function calculatePayrollBasicPay(totalHours, hourlyRate) {
+  const safeHours = Number(totalHours);
+  const safeRate = Number(hourlyRate);
+  if (!Number.isFinite(safeHours) || !Number.isFinite(safeRate)) return 0;
+  return Math.round(Math.max(0, safeHours) * Math.max(0, safeRate));
+}
+
+function calculatePayrollNetPay(basicPay, allowance = 0, deduction = 0) {
+  const safeBasicPay = Number(basicPay);
+  const safeAllowance = Number(allowance);
+  const safeDeduction = Number(deduction);
+  return (Number.isFinite(safeBasicPay) ? safeBasicPay : 0)
+    + (Number.isFinite(safeAllowance) ? safeAllowance : 0)
+    - (Number.isFinite(safeDeduction) ? safeDeduction : 0);
+}
+
+function getPayrollCalculationSelfTestResult() {
+  const hourlyRate = 1030;
+  const hoursPerDay = 7.5;
+  const workDays = 4;
+  const totalHours = hoursPerDay * workDays;
+  const basicPay = calculatePayrollBasicPay(totalHours, hourlyRate);
+  return {
+    hourlyRate,
+    hoursPerDay,
+    workDays,
+    totalHours,
+    expectedBasicPay: 30900,
+    basicPay,
+    passed: basicPay === 30900
+  };
+}
+
+if (typeof window !== "undefined") {
+  window.taiseienPayrollCalculationTest = getPayrollCalculationSelfTestResult;
 }
 
 function applyDefaultWorkScheduleToForm(force = false) {
@@ -2923,10 +2962,10 @@ function buildPayrollRows(periodConfig) {
     const hourlyRate = Number(item.worker.hourlyRate || 0);
     const totalHours = Number(item.totalHours.toFixed(2));
     const attendanceDays = item.attendanceDates.size;
-    const basicPay = totalHours * hourlyRate;
+    const basicPay = calculatePayrollBasicPay(totalHours, hourlyRate);
     const allowance = Number(adjustment?.allowance || 0);
     const deduction = Number(adjustment?.deduction || 0);
-    const netPay = basicPay + allowance - deduction;
+    const netPay = calculatePayrollNetPay(basicPay, allowance, deduction);
     return {
       workerId: item.worker.id,
       fullName: item.worker.fullName || item.worker.displayName || "未設定",
@@ -3553,6 +3592,7 @@ function renderPayrollDetail(data) {
         <div><span>総労働時間</span><strong>${escapeHtml(formatHours(selectedRow.totalHours))}</strong></div>
         <div><span>時給</span><strong>${escapeHtml(formatCurrency(selectedRow.hourlyRate))}</strong></div>
         <div><span>基本支給額</span><strong>${escapeHtml(formatCurrency(selectedRow.basicPay))}</strong></div>
+        <div><span>計算確認</span><strong>${escapeHtml(formatHours(selectedRow.totalHours))} × ${escapeHtml(formatCurrency(selectedRow.hourlyRate))} = ${escapeHtml(formatCurrency(selectedRow.basicPay))}</strong></div>
       </div>
 
       <div class="payroll-adjustment-row">
