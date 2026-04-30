@@ -652,7 +652,7 @@ const summaryNavButtons = Array.from(document.querySelectorAll("[data-summary-na
 const summaryMenuDailyButton = document.getElementById("summaryMenuDailyButton");
 const bottomNav = document.getElementById("bottomNav");
 const bottomNavButtons = bottomNav
-  ? Array.from(bottomNav.querySelectorAll("[data-app-view]"))
+  ? Array.from(bottomNav.querySelectorAll("[data-view-target],[data-app-view]"))
   : [];
 const appViewPanelMap = {
   home: ["homePanel"],
@@ -663,11 +663,22 @@ const appViewPanelMap = {
   settings: ["masterPanel", "qrPanel"]
 };
 const appViewKeys = Object.keys(appViewPanelMap);
+const appViewOptionalPanelIds = [
+  "payrollPanel",
+  "backupPanel"
+];
+const appViewManagedPanelIds = Array.from(
+  new Set([
+    ...appViewKeys.flatMap((viewKey) => appViewPanelMap[viewKey]),
+    ...appViewOptionalPanelIds
+  ])
+);
 const appViewPanels = Array.from(
   new Set(
-    appViewKeys
-      .flatMap((viewKey) => appViewPanelMap[viewKey])
-      .map((panelId) => document.getElementById(panelId))
+    [
+      ...appViewManagedPanelIds.map((panelId) => document.getElementById(panelId)),
+      ...Array.from(document.querySelectorAll("[data-mobile-tab-panel]"))
+    ]
       .filter(Boolean)
   )
 );
@@ -676,6 +687,7 @@ let activeSettingsSection = "top";
 let activeSummarySection = "top";
 let activeWorktimeTab = "personal";
 let activeWorktimeWorkerId = "";
+let hasBoundViewTargetDelegation = false;
 const shortcutRecordFormButton = document.getElementById("shortcutRecordFormButton");
 const shortcutTeamPlanButton = document.getElementById("shortcutTeamPlanButton");
 const shortcutDailyReportButton = document.getElementById("shortcutDailyReportButton");
@@ -6150,6 +6162,7 @@ function setSummarySection(sectionKey, options = {}) {
 function normalizeAppViewKey(viewKey) {
   const normalized = normalizeText(viewKey);
   if (normalized === "history") return "records";
+  if (normalized === "analytics") return "summary";
   return normalized;
 }
 
@@ -6160,12 +6173,26 @@ function setAppView(viewKey, options = {}) {
   activeAppViewKey = normalizedViewKey;
 
   appViewPanels.forEach((panel) => {
-    panel.hidden = !appViewPanelMap[normalizedViewKey].includes(panel.id);
+    if (!panel) return;
+    panel.hidden = true;
+    panel.classList.add("is-hidden");
+  });
+
+  const targetPanelIds = appViewPanelMap[normalizedViewKey] || [];
+  targetPanelIds.forEach((panelId) => {
+    const panel = document.getElementById(panelId);
+    if (!panel) {
+      console.warn("setAppView: パネルが見つかりません:", panelId);
+      return;
+    }
+    panel.hidden = false;
+    panel.classList.remove("is-hidden");
   });
 
   if (bottomNavButtons.length) {
     bottomNavButtons.forEach((button) => {
-      const isActive = button.dataset.appView === normalizedViewKey;
+      const buttonView = normalizeAppViewKey(button.dataset.viewTarget || button.dataset.appView || "");
+      const isActive = buttonView === normalizedViewKey;
       button.classList.toggle("is-active", isActive);
       if (isActive) {
         button.setAttribute("aria-current", "page");
@@ -6201,7 +6228,7 @@ function setAppView(viewKey, options = {}) {
       activePanel = analyticsPanel;
     }
     if (!activePanel) {
-      const firstPanelId = appViewPanelMap[normalizedViewKey][0];
+      const firstPanelId = targetPanelIds[0];
       activePanel = document.getElementById(firstPanelId);
     }
     if (activePanel) {
@@ -6230,6 +6257,54 @@ function bindClick(id, handler) {
   el.addEventListener("click", handler);
   return el;
 }
+
+function getDefaultFocusForView(viewKey) {
+  const normalizedViewKey = normalizeAppViewKey(viewKey);
+  if (normalizedViewKey === "record") return workDateInput;
+  if (normalizedViewKey === "team") return teamPlanDateInput;
+  if (normalizedViewKey === "records") return dailyReportDateInput || orchardFilterInput;
+  if (normalizedViewKey === "summary") return summaryMenuDailyButton;
+  if (normalizedViewKey === "settings") return settingsMenuCompanyButton;
+  return shortcutRecordFormButton;
+}
+
+function handleViewTargetNavigation(rawViewKey, options = {}) {
+  const normalizedViewKey = normalizeAppViewKey(rawViewKey);
+  if (!normalizedViewKey || !appViewPanelMap[normalizedViewKey]) {
+    console.warn("不明な画面キーです:", rawViewKey);
+    return;
+  }
+
+  if (normalizedViewKey === "records" && dailyReportDateInput && !dailyReportDateInput.value) {
+    dailyReportDateInput.value = getTodayString();
+  }
+  if (normalizedViewKey === "settings") {
+    setSettingsSection("top", { scrollIntoView: false, focusElement: settingsMenuCompanyButton });
+  } else if (normalizedViewKey === "summary") {
+    setSummarySection("top", { scrollIntoView: false, focusElement: summaryMenuDailyButton });
+  }
+
+  const focusElement = options.focusElement || getDefaultFocusForView(normalizedViewKey);
+  setAppView(normalizedViewKey, {
+    scrollIntoView: options.scrollIntoView !== false,
+    focusElement
+  });
+}
+
+function bindViewTargetDelegation() {
+  if (hasBoundViewTargetDelegation) return;
+  hasBoundViewTargetDelegation = true;
+  bindEvent(document, "click", (event) => {
+    const trigger = event.target?.closest?.("[data-view-target],[data-app-view]");
+    if (!trigger) return;
+    const rawViewKey = trigger.dataset.viewTarget || trigger.dataset.appView || "";
+    if (!rawViewKey) return;
+    handleViewTargetNavigation(rawViewKey, {
+      scrollIntoView: true
+    });
+  });
+}
+bindViewTargetDelegation();
 
 function moveToShortcut(targetPanel, focusElement) {
   const targetViewKey = getAppViewForPanelId(targetPanel?.id);
@@ -11351,18 +11426,6 @@ if (historyCalendarTodayButton) {
   });
 }
 bindEvent(exportButton, "click", exportCsvWithTemperature);
-bindClick("shortcutRecordFormButton", () => {
-  setAppView("record", { scrollIntoView: true, focusElement: workDateInput });
-});
-bindClick("shortcutDailyReportButton", () => {
-  if (dailyReportDateInput && !dailyReportDateInput.value) {
-    dailyReportDateInput.value = getTodayString();
-  }
-  setAppView("history", { scrollIntoView: true, focusElement: dailyReportDateInput || orchardFilterInput });
-});
-bindClick("shortcutTeamPlanButton", () => {
-  setAppView("team", { scrollIntoView: true, focusElement: teamPlanDateInput });
-});
 if (shortcutMonthlyReportButton) {
   shortcutMonthlyReportButton.addEventListener("click", () => {
     setSettingsSection("company", {
@@ -11372,13 +11435,6 @@ if (shortcutMonthlyReportButton) {
     });
   });
 }
-bindClick("shortcutAnnualReportButton", () => {
-  setSummarySection("top", {
-    switchToSummaryView: true,
-    scrollIntoView: true,
-    focusElement: summaryMenuDailyButton
-  });
-});
 if (settingsMenuButtons.length) {
   settingsMenuButtons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -11422,30 +11478,6 @@ if (summaryNavButtons.length) {
         return;
       }
       setSummarySection("top", { switchToSummaryView: true, scrollIntoView: true, focusElement: summaryMenuDailyButton });
-    });
-  });
-}
-if (bottomNavButtons.length) {
-  const viewFocusMap = {
-    record: workDateInput,
-    team: teamPlanDateInput,
-    records: orchardFilterInput,
-    summary: summaryMenuDailyButton,
-    settings: settingsMenuCompanyButton
-  };
-  bottomNavButtons.forEach((button) => {
-    bindEvent(button, "click", () => {
-      const targetView = button.dataset.appView;
-      if (!targetView || !appViewPanelMap[targetView]) return;
-      if (targetView === "settings") {
-        setSettingsSection("top", { scrollIntoView: false, focusElement: settingsMenuCompanyButton });
-      } else if (targetView === "summary") {
-        setSummarySection("top", { scrollIntoView: false, focusElement: summaryMenuDailyButton });
-      }
-      setAppView(targetView, {
-        scrollIntoView: true,
-        focusElement: viewFocusMap[targetView] || null
-      });
     });
   });
 }
@@ -12170,11 +12202,34 @@ function registerPwaServiceWorker() {
   window.addEventListener("load", () => {
     const swUrl = new URL("./sw.js", window.location.href);
     const scopeUrl = new URL("./", window.location.href);
+    const forceActivate = (worker) => {
+      if (!worker) return;
+      worker.postMessage("SKIP_WAITING");
+    };
+    let hasReloadedBySwUpdate = false;
+
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (hasReloadedBySwUpdate) return;
+      hasReloadedBySwUpdate = true;
+      window.location.reload();
+    });
+
     navigator.serviceWorker.register(swUrl.href, {
       scope: scopeUrl.pathname,
       updateViaCache: "none"
+    }).then((registration) => {
+      forceActivate(registration.waiting);
+      registration.addEventListener("updatefound", () => {
+        const installing = registration.installing;
+        if (!installing) return;
+        installing.addEventListener("statechange", () => {
+          if (installing.state === "installed" && navigator.serviceWorker.controller) {
+            forceActivate(installing);
+          }
+        });
+      });
     }).catch((error) => {
-      console.error("Service Workerの登録に失敗しました、E, error);
+      console.error("Service Workerの登録に失敗しました。", error);
     });
   });
 }
